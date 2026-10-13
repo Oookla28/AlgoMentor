@@ -106,3 +106,16 @@ class ExecutionRequest(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["user", "created_at"])]
+
+
+class CodeDraft(models.Model):
+    """A private editing draft; saving it is never a submission or grade."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="code_drafts")
+    scope = models.CharField(max_length=48)
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, null=True, blank=True)
+    code = models.TextField(blank=True)
+    stdin = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "scope"], name="unique_user_code_draft")]

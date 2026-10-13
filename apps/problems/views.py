@@ -1,8 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+from django.core.exceptions import RequestDataTooBig
 from core.http import api_endpoint, json_body
 from core.exceptions import ValidationError, AuthenticationError
-from .models import Problem, Submission
+from .models import Problem, Submission, CodeDraft
 from .services.problem_service import problem_queryset
 from .services.submission_service import run_code, submit_code, serialize_submission
 
@@ -60,3 +62,35 @@ def diagnosis_api(request, submission_id):
     from .services.diagnosis_service import diagnose_with_ai
     data = json_body(request)
     return diagnose_with_ai(request.user, submission_id, data.get("level", 1))
+
+
+@never_cache
+@api_endpoint(methods=("GET", "POST"))
+def code_draft(request):
+    try:
+        data = json_body(request) if request.method == "POST" else request.GET
+    except RequestDataTooBig:
+        raise ValidationError("草稿请求过大，请缩短代码或标准输入。")
+    identifier = data.get("problem_id")
+    problem = None
+    if identifier not in (None, ""):
+        if isinstance(identifier, bool) or not str(identifier).isdigit() or int(identifier) < 1:
+            raise ValidationError("请选择有效题目。")
+        try:
+            problem = Problem.objects.get(pk=int(identifier), is_active=True)
+        except (ValueError, TypeError):
+            raise ValidationError("请选择有效题目。")
+    scope = f"problem:{problem.pk}" if problem else "lab"
+    if request.method == "POST":
+        code, stdin = data.get("code", ""), data.get("stdin", "")
+        if not isinstance(code, str) or len(code.encode("utf-8")) > 64000:
+            raise ValidationError("代码草稿须为文本，最多 64 KB。")
+        if not isinstance(stdin, str) or len(stdin.encode("utf-8")) > 32000:
+            raise ValidationError("输入草稿须为文本，最多 32 KB。")
+        draft, _ = CodeDraft.objects.update_or_create(user=request.user, scope=scope, defaults={"problem": problem, "code": code, "stdin": stdin})
+    else:
+        draft = CodeDraft.objects.filter(user=request.user, scope=scope).first()
+    return {"saved": draft is not None, "scope": scope, "problem_id": problem.pk if problem else None,
+            "code": draft.code if draft else "", "stdin": draft.stdin if draft else "",
+            "updated_at": draft.updated_at.isoformat() if draft else None,
+            "message": "草稿只保存在当前账号，不会运行、提交评测或更新掌握度。"}

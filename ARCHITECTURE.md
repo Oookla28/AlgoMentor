@@ -60,3 +60,13 @@ ReportTask 保存 PENDING/RUNNING/SUCCESS/FAILED/TIMEOUT，Worker 原子领取�
 ## 密钥与权限
 
 Django 自带认证 / CSRF / 会话。个人 Key 使用 Fernet，加密主密钥来自 `.env`；MultiFernet 支持旧密钥解密与轮换。只显示最后四位掩码，不返回完整 Key，不写浏览器存储、不写日志与 Trace。服务器地址仅由管理员环境变量配置，学生不能改变。每日和每分钟预算通过数据库事务预留；usage 缺失时不把未知消耗当零。详情 API 都按当前用户过滤，认证失败返回统一 401。
+
+## Wikipedia 与外部服务降级（增量）
+
+现有 WikipediaProvider 委托唯一 wikipedia_service：官方 Action API 搜索、保守标题匹配、摘要/修订/来源校验，Cache Aside 写入 SQLite WikipediaCache。共享缓存只包含公开词条与规范化公共别名，不保存完整私人问题。默认有效期七天；失败保留旧内容，并在来源卡片标明缓存时间、过期状态、语言、修订与许可。
+
+LangChain 保留 create_agent 及原工具，新增 search_wikipedia 注册名。明确来源请求、课程证据不足的安全公开概念通过 wrap_model_call 中间件调用真实注册工具，再将结果作为不可信证据交给模型；结果和 Trace 来自实际执行。当前 DeepSeek thinking 不支持强制 named tool_choice，因此该路由不改变模型或思考模式。百科来源与课程来源分开校验与展示，个人学习数据仍由原 ORM 工具取得。
+
+ServiceAvailability 持久保存 DeepSeek、Wikipedia、执行服务各自状态。业务请求更新成功/失败，普通状态 GET 无外网探测。全局网络错误、个人授权/额度错误、具体模型错误分开存储；冷却后原子领取半开尝试，真实成功恢复。百科缓存命中不会虚构在线状态。CodeDraft 按用户和题目/实验区保存，不产生提交或掌握证据。
+
+BGE 查询默认 local_files_only，prepare_embedding_model 负责显式下载；向量标识与维度没有变化。生产配置通过 WhiteNoise 提供 collectstatic 后的静态文件，原生页面无 CDN 运行依赖。离线冷启动脚本在新进程、一次性数据库副本和外网 socket/DNS 阻断下启动实际 WSGI，检查课程、图谱、算法、缓存与本地 Piston，不更改主机网络或真实学生记录。

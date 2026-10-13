@@ -91,13 +91,20 @@ def test_tools_only_trace_summary(user):
 
 
 def test_wikipedia_real_transport_contract():
-    transport=Mock();transport.get.return_value.status_code=200
-    transport.get.return_value.json.return_value={'title':'红黑树','extract':'一种自平衡二叉搜索树','content_urls':{'desktop':{'page':'https://zh.wikipedia.org/wiki/红黑树'}}}
+    # The existing contract now exercises the official Action API's search then
+    # page-extract flow rather than the older REST exact-title-only endpoint.
+    transport=Mock()
+    import json
+    search=Mock(status_code=200,headers={});search.iter_content.return_value=[json.dumps({'query':{'search':[{'title':'红黑树','pageid':55999,'ns':0}]}}).encode()]
+    article=Mock(status_code=200,headers={});article.iter_content.return_value=[json.dumps({'query':{'pages':[{'title':'红黑树','pageid':55999,'ns':0,'extract':'一种自平衡二叉搜索树','canonicalurl':'https://zh.wikipedia.org/wiki/红黑树','revisions':[{'revid':123}]}]}}).encode()]
+    transport.get.side_effect=[search,article]
     result=WikipediaProvider(transport).search('红黑树')
     assert result['found'] and result['extract']=='一种自平衡二叉搜索树'
-    call=transport.get.call_args
-    assert call.args[0].startswith('https://zh.wikipedia.org/api/rest_v1/page/summary/')
-    assert call.kwargs['allow_redirects'] is False
+    assert result['success'] and result['page_id']==55999 and result['revision_id']==123
+    assert transport.get.call_args_list[0].kwargs['params']['list']=='search'
+    for call in transport.get.call_args_list:
+        assert call.args[0]=='https://zh.wikipedia.org/w/api.php'
+        assert call.kwargs['allow_redirects'] is False
 
 
 def test_foreign_chat_session_rejected(user):

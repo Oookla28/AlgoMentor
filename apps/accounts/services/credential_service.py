@@ -37,6 +37,9 @@ def save_config(user, api_key: str = '', default_tier: str = 'fast', reasoning_e
     config.default_tier = default_tier
     config.reasoning_effort = reasoning_effort
     config.save()
+    if key:
+        from core.services.availability import ServiceAvailabilityManager
+        ServiceAvailabilityManager('deepseek', user=user).reset()
     if learning_goal is not None:
         from apps.accounts.services.profile_service import update_profile
         update_profile(user,learning_goal)
@@ -50,6 +53,8 @@ def delete_key(user) -> None:
     config.last_status = 'NOT_CONFIGURED'
     config.last_checked_at = None
     config.save()
+    from core.services.availability import ServiceAvailabilityManager
+    ServiceAvailabilityManager('deepseek', user=user).reset()
 
 
 def rotate_key(user) -> None:

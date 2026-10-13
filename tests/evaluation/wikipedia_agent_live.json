@@ -1,0 +1,52 @@
+{
+  "executed_at": "2026-10-13T13:12:09.945669+00:00",
+  "status": "PASSED",
+  "framework": "real LangChain create_agent",
+  "wikipedia_transport": "real official Action API",
+  "llm_planner": "explicit test double; no DeepSeek inference or paid API call",
+  "database": "pytest isolated test database",
+  "source": {
+    "success": true,
+    "query": "红黑树",
+    "title": "红黑树",
+    "page_id": 55999,
+    "language": "zh",
+    "summary": "红黑树（英語：Red–black tree）是一种自平衡二叉查找树，是在计算机科学中用到的一种数据结构，典型用途是实现关联数组。它在1972年由鲁道夫·贝尔发明，被称为「对称二叉B树」，它现代的名字源于利奧尼達斯·J·吉巴斯和罗伯特·塞奇威克于1978年写的一篇论文。红黑树的结构复杂，但它的操作有着良好的最坏情况运行时间，并且在实践中高效：它可以在\n  \n    \n      \n        \n          O\n        \n        (\n        log\n        ⁡\n        n\n        )\n      \n    \n    {\\displaystyle {\\text{O}}(\\log n)}\n  \n时间内完成查找、插入和删除，这里的\n  \n    \n      \n        n\n      \n    \n    {\\displaystyle n}\n  \n是树中元素的数目。",
+    "source_url": "https://zh.wikipedia.org/wiki/%E7%BA%A2%E9%BB%91%E6%A0%91",
+    "source_type": "wikipedia",
+    "retrieved_at": "2026-10-13T13:12:09.924909+00:00",
+    "revision_id": 93361542,
+    "from_cache": false,
+    "cache_status": "FRESH",
+    "error": null,
+    "error_code": null,
+    "query_status": "LIVE",
+    "cache_warning": "",
+    "found": true,
+    "extract": "红黑树（英語：Red–black tree）是一种自平衡二叉查找树，是在计算机科学中用到的一种数据结构，典型用途是实现关联数组。它在1972年由鲁道夫·贝尔发明，被称为「对称二叉B树」，它现代的名字源于利奧尼達斯·J·吉巴斯和罗伯特·塞奇威克于1978年写的一篇论文。红黑树的结构复杂，但它的操作有着良好的最坏情况运行时间，并且在实践中高效：它可以在\n  \n    \n      \n        \n          O\n        \n        (\n        log\n        ⁡\n        n\n        )\n      \n    \n    {\\displaystyle {\\text{O}}(\\log n)}\n  \n时间内完成查找、插入和删除，这里的\n  \n    \n      \n        n\n      \n    \n    {\\displaystyle n}\n  \n是树中元素的数目。",
+    "source": "中文维基百科（外部补充资料）",
+    "url": "https://zh.wikipedia.org/wiki/%E7%BA%A2%E9%BB%91%E6%A0%91",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "attribution": "中文维基百科 contributors",
+    "revision_url": "https://zh.wikipedia.org/w/index.php?title=%E7%BA%A2%E9%BB%91%E6%A0%91&oldid=93361542"
+  },
+  "tools": [
+    {
+      "id": 1,
+      "tool_name": "search_wikipedia",
+      "input_summary": "query: 3 字符, language: 2 字符, force_refresh: 4 字符, cache_only: 5 字符",
+      "status": "SUCCESS",
+      "duration_ms": 2550,
+      "error_type": ""
+    },
+    {
+      "id": 2,
+      "tool_name": "query_student_learning",
+      "input_summary": "days: 1 字符",
+      "status": "SUCCESS",
+      "duration_ms": 4,
+      "error_type": ""
+    }
+  ]
+}

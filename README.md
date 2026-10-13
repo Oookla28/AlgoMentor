@@ -75,7 +75,7 @@
 
 ### 2. LangChain 智能体与工具调用
 
-智能助教通过 LangChain 的真实 `create_agent` 运行多轮任务，并按需要调用五个 `StructuredTool`：
+智能助教通过 LangChain 的真实 `create_agent` 运行多轮任务，并按需要调用五类工具（保留原注册名，同时增加明确的 `search_wikipedia` 入口）：
 
 | 工具 | 实现能力 |
 | --- | --- |
@@ -83,7 +83,7 @@
 | `query_student_learning` | 查询当前登录学生的提交、掌握度和学习统计 |
 | `execute_python_code` | 将 Python 程序发送至隔离执行服务，返回实际结果 |
 | `get_current_time` | 获取系统当前时间与时区 |
-| `search_external_knowledge` | 通过 Wikipedia API 查询中英文百科补充资料 |
+| `search_external_knowledge` / `search_wikipedia` | 通过 Wikipedia 官方 Action API 查询中英文百科，支持持久化缓存 |
 
 工具参数通过 Pydantic 校验，学生身份由服务端绑定。每次调用记录工具名称、状态、耗时、错误类型与脱敏摘要；页面只展示实际发生的调用。任务设置调用次数、重复调用和总时限约束。
 
@@ -188,6 +188,28 @@ SQLite 保存账户配置、教学会话、提交、用例结果、学习活动�
 有效的错误提交自动进入错题本，保留错误类型、失败原因和原始提交。学生可查看分层诊断，配置 Key 后还可请求 AI 分析；再次通过相同题目后标记为已解决，历史错误仍保留。
 
 推荐服务综合规则掌握指数、未解决错题、题目难度、目标先修关系、已经通过的题目和最近练习记录排序，提供“基础 / 巩固 / 挑战”三种训练模式。每个推荐附带理由与训练目标，方便学生判断下一步练习的目的。
+
+### 11. Wikipedia 在线知识检索
+
+助教可调用 Wikipedia 官方 MediaWiki Action API，先搜索并判断标题相关性，再获取真实摘要、页面 ID、修订编号和来源链接。用户明确指定维基百科，或本地课程证据不足且需要解释扩展概念时，会调用百科工具；课程资料已有充分证据时保持本地 RAG 优先。中文优先，必要时提供明确标记的英文来源。
+
+使用方法：登录并配置 DeepSeek Key，进入“AI 智能助教”，输入“使用维基百科查询红黑树”，查看来源卡片。也可从课程知识库进入“Wikipedia 查询”，无需 Key 即可阅读原始百科摘要。实时获取、本地有效缓存、过期历史缓存均显示实际获取时间、原始链接及许可署名；输入“实时查询”会尝试刷新，失败回退也会明确标记。
+
+### 12. 离线学习支持
+
+**离线学习要求本地或局域网 Django 服务仍可访问。** 预先安装依赖、下载本地 Embedding 并建立 Chroma 索引后，即使外部互联网不可用，也可使用本地知识检索、知识网络、算法可视化、学习记录、错题、规则推荐与历史报告。在课程知识库点击“本地学习模式”，可查询原文和已经缓存的百科内容；页面明确区分原文检索与 AI 生成。
+
+Wikipedia 成功查询会保存公共词条缓存，默认有效期七天，过期内容可作为明确标记的历史备选。管理员可主动预热审核过的概念：
+
+```bash
+.venv/bin/python manage.py warmup_wikipedia --query '红黑树' --query 'Dijkstra算法' --interval 1
+# 预热人工审核词表；已有有效缓存自动跳过，支持中断后重新运行
+.venv/bin/python manage.py warmup_wikipedia --interval 1
+```
+
+DeepSeek、Wikipedia、代码执行分别记录真实调用状态，失败后进入限时冷却，后续请求可自动恢复，无需重启或清空学习数据。DeepSeek 不可用时无法生成新的 AI 回答或 CrewAI 报告；Wikipedia 离线查询只返回已有缓存。代码草稿可按账号手动保存和载入，不自动评测、不增加掌握度。本机独立 Piston VM 运行时可继续评测；远程执行服务不可达时不能保证评测可用。
+
+浏览器无法连接云端 Django 的情况不在本次离线支持范围内；平台未改造成完整 PWA。配置开关、真实联网与冷启动验证见 [Wikipedia 与离线增量报告](WIKIPEDIA_OFFLINE_REPORT.md)。
 
 <a id="architecture"></a>
 
@@ -373,7 +395,14 @@ python3.12 -m venv .venv
 .venv/bin/python manage.py ingest_knowledge --path 'knowledge/original/新的课程资料.pdf'
 ```
 
-相同文档哈希与索引配置会跳过重复入库。更换 Embedding 模型或 revision 后执行 `ingest_knowledge --rebuild`，避免混用向量维度。原始 PDF 应保持不变，课程新增内容与勘误需经过审核。
+相同文档哈希与索引配置会跳过重复入库。运行时默认只加载本地模型文件。首次准备或检查已有模型：
+
+```bash
+.venv/bin/python manage.py prepare_embedding_model
+.venv/bin/python manage.py prepare_embedding_model --check-only
+```
+
+前一命令是明确的联网下载操作，后一命令不访问外网；正常检索不自动下载或悄悄切换模型。更换 Embedding 模型或 revision 后执行 `ingest_knowledge --rebuild`，避免混用向量维度。原始 PDF 应保持不变，课程新增内容与勘误需经过审核。
 
 ### 6. 启动项目
 
@@ -487,7 +516,7 @@ cd AlgoMentor
 - **核对重要课程结论。** 引用可以定位真实片段，但生成内容仍需对照原文。默认 BGE 模型 revision 已锁定；显式选择 TF-IDF 时是词法基线，不等同于语义检索。
 - **保持执行隔离。** 不在 Django 进程中运行学生代码，不向执行 VM 挂载项目、数据库或密钥。默认运行请求为 2 秒 / 128 MiB；本机执行服务最大为 3 秒 / 256 MiB，并限制进程和输出。
 - **按证据解释掌握度。** 规则指数与 BKT 是工程估计，BKT 先验尚未拟合；无记录不代表已掌握，单题通过也不代表掌握整个章节。
-- **生产部署使用专用配置。** `runserver` 用于本机开发；正式部署需使用 `config.settings.production`、HTTPS、Gunicorn 与服务管理器。SQLite 适合当前课程规模，高并发部署需进一步评估。
+- **生产部署使用专用配置。** `runserver` 用于本机开发；正式部署需使用 `config.settings.production`、HTTPS、Gunicorn 与服务管理器；先执行 `collectstatic --settings=config.settings.production`，生产配置通过 WhiteNoise 提供本地静态资源。SQLite 适合当前课程规模，高并发部署需进一步评估。
 
 ### 常见问题
 

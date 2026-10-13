@@ -3,6 +3,7 @@ from django.conf import settings
 from core.exceptions import CodeExecutionError
 from .provider import ExecutionLimits, ExecutionResult, clipped, validate_program
 from .http_client import request_json, validate_url
+from .availability import track_execution
 
 
 class PistonClient:
@@ -17,6 +18,7 @@ class PistonClient:
     def probe(self) -> list:
         return request_json("GET", f"{self.base_url}/runtimes", headers=self.headers)
 
+    @track_execution
     def run(self, source: str, stdin: str = "", limits: ExecutionLimits = ExecutionLimits()) -> ExecutionResult:
         validate_program(source, stdin, limits)
         started = time.monotonic()

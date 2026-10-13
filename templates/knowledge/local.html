@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}本地学习 · 数构智学{% endblock %}
+{% block page_name %}local{% endblock %}
+{% block breadcrumb %}本地学习{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">KEEP LEARNING, WITH LOCAL EVIDENCE</p><h1>本地学习</h1><p class="page-subtitle">课程原文、已保存的百科资料与真实学习记录，在本地继续陪你学习。</p></div>
+  <a class="button secondary" href="{% url 'knowledge:wikipedia' %}">独立百科查询 →</a>
+</div>
+<div class="notice">本页直接检索本地资料，不调用 DeepSeek，也不会请求 Wikipedia。需要本地 Django、SQLite、向量索引和模型均已准备好；浏览器仍须能够访问本站。</div>
+<section class="card" style="margin:20px 0">
+  <div class="card-header"><div><h2>查找本地知识证据</h2><div class="sub">展示原文与缓存摘要，不生成或翻译 AI 回答</div></div><span class="pill teal">本地检索模式</span></div>
+  <div class="card-body" style="padding-top:0">
+    <form id="local-search-form" class="filters" style="margin-bottom:0">
+      <label class="search-field" style="max-width:none"><svg><use href="{% static 'svg/icons.svg' %}#search"/></svg><input type="search" id="local-query" placeholder="输入概念，例如：循环队列、红黑树" required maxlength="1000" aria-label="检索本地知识"></label>
+      <button class="button primary">检索本地资料</button>
+    </form>
+    <div id="local-search-results" class="knowledge-results" aria-live="polite" hidden></div>
+  </div>
+</section>
+<div class="local-learning-links">
+  <a class="card local-link" href="{% url 'knowledge:index' %}"><strong>章节与课程资料</strong><span>阅读原文与审核勘误</span></a>
+  <a class="card local-link" href="{% url 'graph:index' %}"><strong>动态知识网络</strong><span>查看先修关系与真实掌握变化</span></a>
+  <a class="card local-link" href="{% url 'visualization' %}"><strong>算法可视化</strong><span>逐步观察队列、链表与 KMP</span></a>
+  <a class="card local-link" href="{% url 'problems:list' %}"><strong>题库与代码草稿</strong><span>继续编辑；评测取决于执行服务</span></a>
+  <a class="card local-link" href="{% url 'learning:overview' %}"><strong>学习分析与推荐</strong><span>依据已有记录查看下一步练习</span></a>
+  <a class="card local-link" href="{% url 'learning:mistakes' %}"><strong>智能错题本</strong><span>回顾真实提交与规则诊断</span></a>
+  <a class="card local-link" href="{% url 'reports:index' %}"><strong>历史学习报告</strong><span>阅读已生成报告与本地统计</span></a>
+</div>
+<section class="card history-list">
+  <div class="card-header"><div><h2>已保存的 Wikipedia 资料</h2><div class="sub">公开百科缓存保留来源与原始获取时间；不含个人聊天记录</div></div></div>
+  <div class="card-body" style="padding-top:0">
+    {% for article in cached_articles %}
+    <details class="source-card source-wikipedia">
+      <summary>{{ article.title }}</summary>
+      <div class="source-meta">{% if article.language == 'en' %}English Wikipedia{% else %}中文维基百科{% endif %} · {% if article.is_stale %}历史缓存 · 已过期{% else %}本地缓存{% endif %} · 最后获取 {{ article.retrieved_at|date:'Y-m-d H:i' }}</div>
+      {% if article.is_stale %}<p class="cache-warning">以下内容为历史缓存，可能不是最新版本。</p>{% endif %}
+      <p>{{ article.summary }}</p>
+      <a class="card-link" href="{{ article.source_url }}" target="_blank" rel="noopener noreferrer">查看 Wikipedia 原始词条 ↗</a>
+      <div class="source-meta">Wikipedia 贡献者 · CC BY-SA 4.0 · 内容可能已有更新，实时版本请核对原始词条。</div>
+    </details>
+    {% empty %}<div class="empty-state compact"><h3>尚无百科缓存</h3><p>在线时通过独立百科入口查询，成功获取的公开摘要会保存到本地，之后可在这里继续阅读。</p></div>{% endfor %}
+  </div>
+</section>
+<section class="card history-list"><div class="card-header"><h2>课程知识点</h2><span class="sub">阅读与点击不会直接改变掌握指数</span></div><div class="card-body" style="padding-top:0"><div class="tags">{% for point in points %}<a class="pill {% if point.is_extension %}blue{% else %}gray{% endif %}" href="{% url 'graph:index' %}?point={{ point.slug }}">{{ point.name }}</a>{% endfor %}</div></div></section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/offline-learning.js' %}" defer></script>{% endblock %}

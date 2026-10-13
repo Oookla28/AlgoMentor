@@ -1,0 +1,10 @@
+{
+  "executed_at": "2026-10-13T13:38:20.730508+00:00",
+  "baseline": "218 passed, 1 skipped in 8.67s",
+  "final_regression": "320 passed, 2 skipped in 9.93s",
+  "live_wikipedia_agent": "1 passed in 2.96s; real LangChain + real Wikipedia; explicit test LLM",
+  "live_submission_flow": "1 passed in 1.76s; real Piston; isolated pytest DB",
+  "cold_start": "PASSED; fresh WSGI process; external DNS/socket block; disposable database copy",
+  "learning_preservation": "Original legacy rows unchanged",
+  "paid_deepseek_inference": "Not called by this incremental verification"
+}

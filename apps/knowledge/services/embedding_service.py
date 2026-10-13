@@ -14,9 +14,12 @@ class BGEEmbeddings(Embeddings):
     def __init__(self):
         from sentence_transformers import SentenceTransformer
         try:
-            self.model = SentenceTransformer(settings.EMBEDDING_MODEL, revision=settings.EMBEDDING_REVISION)
+            self.model = SentenceTransformer(
+                settings.EMBEDDING_MODEL, revision=settings.EMBEDDING_REVISION,
+                local_files_only=getattr(settings, 'LOCAL_EMBEDDING_OFFLINE_MODE', True),
+            )
         except Exception:
-            raise KnowledgeRetrievalError('中文 Embedding 模型加载失败。请检查模型下载网络，或明确选择 tfidf 基线后重新入库。',code='EMBEDDING_UNAVAILABLE')
+            raise KnowledgeRetrievalError('本地中文 Embedding 模型加载失败。请先联网运行 prepare_embedding_model；查询不会自动下载或切换向量模型。',code='EMBEDDING_UNAVAILABLE') from None
     def embed_documents(self,texts):
         return self.model.encode(texts,normalize_embeddings=True,show_progress_bar=False).tolist()
     def embed_query(self,text):

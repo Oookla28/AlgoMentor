@@ -30,3 +30,22 @@ class ToolInvocation(models.Model):
     error_type = models.CharField(max_length=80,blank=True)
     class Meta:
         ordering = ['started_at','id']
+
+
+class ServiceAvailability(models.Model):
+    """Operational state only; this table never contains requests, keys or grades."""
+    service = models.CharField(max_length=24)
+    scope = models.CharField(max_length=64, default='global')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                             on_delete=models.CASCADE, related_name='service_availability')
+    configuration_fingerprint = models.CharField(max_length=64)
+    status = models.CharField(max_length=12, default='UNKNOWN')
+    updated_at = models.DateTimeField()
+    last_success_at = models.DateTimeField(null=True, blank=True)
+    last_failure_at = models.DateTimeField(null=True, blank=True)
+    consecutive_failures = models.PositiveIntegerField(default=0)
+    error_code = models.CharField(max_length=80, blank=True)
+    next_retry_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['service', 'scope'], name='unique_service_availability_scope')]

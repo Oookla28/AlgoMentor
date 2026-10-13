@@ -4,12 +4,14 @@ import time
 from urllib.parse import urlparse
 import requests
 from django.conf import settings
+from django.db import transaction
 from apps.accounts.models import APIUsageRecord
 from apps.accounts.services.credential_service import get_api_key, get_config, record_connection_status
 from apps.accounts.services.usage_service import reserve_request, settle_request
 from core.exceptions import LLMProviderError, ValidationError
 from core.llm.model_registry import get_tier
 from core.llm.provider import LLMResult, TokenUsage
+from core.services.availability import ServiceAvailabilityManager, PERSONAL_DEEPSEEK_ERRORS, MODEL_DEEPSEEK_ERRORS, ensure_deepseek_attempt
 
 
 class DeepSeekClient:
@@ -36,10 +38,14 @@ class DeepSeekClient:
         if len(encoded.encode()) > getattr(settings,'LLM_MAX_INPUT_BYTES',120000):
             raise ValidationError('对话内容过长，请创建新会话。')
         # Byte length is a conservative token upper bound, including tool schemas.
-        budget_id,reserved = reserve_request(self.user,len(encoded.encode())+output_limit)
-        record = APIUsageRecord.objects.create(user=self.user,model=selected.model,tier=selected.key,purpose=self.purpose)
+        with transaction.atomic():
+            budget_id,reserved = reserve_request(self.user,len(encoded.encode())+output_limit)
+            # A suppressed call rolls back its reservation and produces no fake API usage.
+            ensure_deepseek_attempt(self.user, model=selected.model)
+            record = APIUsageRecord.objects.create(user=self.user,model=selected.model,tier=selected.key,purpose=self.purpose)
         start = time.monotonic()
         actual = None
+        attempted = False
         try:
             url = getattr(settings,'DEEPSEEK_BASE_URL','https://api.deepseek.com').rstrip('/')
             parsed = urlparse(url)
@@ -50,6 +56,7 @@ class DeepSeekClient:
                 timeout = min(timeout,max(0.1,self.deadline-time.monotonic()))
                 if self.deadline <= time.monotonic():
                     raise LLMProviderError('AI 任务已超时。',code='LLM_TIMEOUT',status_code=504)
+            attempted = True
             response = self.transport.post(url+'/chat/completions',headers={'Authorization':'Bearer '+key,'Content-Type':'application/json'},json=payload,timeout=(min(10,timeout/2),max(0.1,timeout-min(10,timeout/2))),allow_redirects=False)
             errors = {401:('密钥无效，请重新配置。','INVALID_API_KEY',401),402:('DeepSeek 余额不足，请在服务商账户充值。','INSUFFICIENT_BALANCE',402),429:('DeepSeek 请求限流，请稍后再试。','PROVIDER_RATE_LIMITED',429),404:('所选模型或接口暂不可用。','MODEL_UNAVAILABLE',502)}
             if response.status_code in errors:
@@ -92,3 +99,15 @@ class DeepSeekClient:
             # Failures retain their conservative reservation: usage may exist upstream.
             settle_request(budget_id,reserved,actual)
             record_connection_status(self.user,record.error_code if record.status=='FAILED' else record.status)
+            if attempted:
+                shared = ServiceAvailabilityManager('deepseek')
+                personal = ServiceAvailabilityManager('deepseek', user=self.user)
+                model_state = ServiceAvailabilityManager('deepseek', user=self.user, model=selected.model)
+                if record.status == 'SUCCESS':
+                    shared.record_success(); personal.record_success(); model_state.record_success()
+                elif record.error_code in MODEL_DEEPSEEK_ERRORS:
+                    model_state.record_failure(record.error_code)
+                elif record.error_code in PERSONAL_DEEPSEEK_ERRORS:
+                    personal.record_failure(record.error_code)
+                else:
+                    shared.record_failure(record.error_code)

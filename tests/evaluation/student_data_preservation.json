@@ -1,0 +1,16 @@
+{
+  "all_existing_tables_unchanged": true,
+  "checked_tables": [
+    "auth_user",
+    "accounts_userapiconfig",
+    "problems_submission",
+    "learning_masterystate",
+    "learning_learningactivity",
+    "learning_mistakerecord",
+    "learning_masterysnapshot",
+    "tutor_chatsession",
+    "tutor_chatmessage",
+    "reports_learningreport"
+  ],
+  "method": "Read-only SHA-256 comparison; no row contents exported; additive migrations only"
+}

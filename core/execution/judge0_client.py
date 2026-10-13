@@ -4,6 +4,7 @@ from django.conf import settings
 from core.exceptions import CodeExecutionError
 from .http_client import request_json, validate_url
 from .provider import ExecutionResult, ExecutionLimits, validate_program, clipped
+from .availability import track_execution
 
 
 class Judge0Client:
@@ -18,6 +19,7 @@ class Judge0Client:
     def probe(self):
         return request_json("GET", f"{self.base_url}/languages", headers=self.headers)
 
+    @track_execution
     def run(self, source, stdin="", limits=ExecutionLimits()):
         validate_program(source, stdin, limits)
         payload = {"language_id": getattr(settings, "JUDGE0_PYTHON_LANGUAGE_ID", 71), "source_code": source,

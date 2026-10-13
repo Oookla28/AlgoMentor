@@ -19,12 +19,18 @@ def expire_tasks():
 @transaction.atomic
 def enqueue_report(user) -> ReportTask:
     require_user(user);get_api_key(user)
+    from core.services.availability import ServiceAvailabilityManager
+    from core.llm.model_registry import get_tier
+    tier = get_config(user).default_tier
+    if not ServiceAvailabilityManager('deepseek', user=user, model=get_tier(tier).model).can_attempt():
+        raise BusinessError('DeepSeek 暂不可用，智能报告尚未生成。学习统计与历史报告仍可查看；稍后重试。',
+                            code='DEEPSEEK_TEMPORARILY_UNAVAILABLE', status_code=503)
     expire_tasks()
     existing=ReportTask.objects.filter(user=user,status__in=['PENDING','RUNNING']).first()
     if existing: return existing
     if ReportTask.objects.filter(user=user,created_at__gte=timezone.now()-timedelta(minutes=5)).count()>=3:
         raise BusinessError('报告请求过于频繁，请稍后再试。',code='REPORT_RATE_LIMITED',status_code=429)
-    return ReportTask.objects.create(user=user,tier=get_config(user).default_tier,statistics=weekly_statistics(user))
+    return ReportTask.objects.create(user=user,tier=tier,statistics=weekly_statistics(user))
 
 
 def claim_next_task():

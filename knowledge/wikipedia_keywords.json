@@ -1,0 +1,26 @@
+{
+  "description": "人工审阅的课程扩展概念。别名只用于公开概念规范化和中英文补充；实际页面必须经 API 搜索、相关性与非歧义检查后才能缓存。",
+  "reviewed_on": "2026-10-13",
+  "api_review_evidence": "tests/evaluation/wikipedia_keyword_review.json",
+  "review_note": "18 个有界候选已逐项通过真实 Action API 搜索和摘要检查；17 项返回中文词条，循环队列使用明确标为英文的 Circular buffer 补充。词条及修订会变化，预热仍逐次校验。",
+  "keywords": [
+    {"query": "二叉树", "en": "Binary tree", "aliases": ["二叉樹"]},
+    {"query": "二叉搜索树", "en": "Binary search tree", "aliases": ["二叉查找树", "二元搜尋樹"]},
+    {"query": "AVL树", "en": "AVL tree", "aliases": ["AVL 树"]},
+    {"query": "红黑树", "en": "Red-black tree", "aliases": ["红黑树算法", "紅黑樹", "Red–black tree"]},
+    {"query": "哈希表", "en": "Hash table", "aliases": ["散列表", "散列資料表"]},
+    {"query": "快速排序", "en": "Quicksort", "aliases": ["快速排序算法"]},
+    {"query": "归并排序", "en": "Merge sort", "aliases": ["合并排序", "归并排序算法"]},
+    {"query": "堆排序", "en": "Heapsort", "aliases": ["堆排序算法"]},
+    {"query": "迪杰斯特拉算法", "en": "Dijkstra's algorithm", "aliases": ["Dijkstra", "Dijkstra算法", "Dijkstra 算法", "戴克斯特拉算法"]},
+    {"query": "弗洛伊德算法", "en": "Floyd–Warshall algorithm", "aliases": ["Floyd", "Floyd算法", "Floyd 算法", "Floyd-Warshall算法"]},
+    {"query": "最小生成树", "en": "Minimum spanning tree", "aliases": ["最小生成樹"]},
+    {"query": "深度优先搜索", "en": "Depth-first search", "aliases": ["DFS", "深度优先遍历"]},
+    {"query": "广度优先搜索", "en": "Breadth-first search", "aliases": ["BFS", "广度优先遍历"]},
+    {"query": "动态规划", "en": "Dynamic programming", "aliases": ["動態規劃"]},
+    {"query": "贪心算法", "en": "Greedy algorithm", "aliases": ["貪婪演算法", "贪婪算法"]},
+    {"query": "KMP算法", "en": "Knuth–Morris–Pratt algorithm", "aliases": ["KMP", "KMP 算法", "克努斯-莫里斯-普拉特算法", "Knuth-Morris-Pratt algorithm", "Knuth–Morris–Pratt"]},
+    {"query": "布隆过滤器", "en": "Bloom filter", "aliases": ["布隆過濾器"]},
+    {"query": "循环队列", "en": "Circular buffer", "aliases": ["环形缓冲区", "Circular queue"]}
+  ]
+}

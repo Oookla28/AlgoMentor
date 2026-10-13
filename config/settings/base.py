@@ -74,3 +74,34 @@ EXECUTION_POLL_TIMEOUT = 15
 EXECUTION_REQUESTS_PER_MINUTE = 8
 MAX_TEST_CASES = 10
 BKT_PARAMETERS = {'initial':0.15,'learn':0.12,'guess':0.2,'slip':0.1}
+
+# Optional offline / external knowledge settings are validated without blocking startup.
+def _optional_bool(name, default=True):
+    value = os.getenv(name, str(default)).strip().lower()
+    return {'true': True, '1': True, 'yes': True, 'false': False, '0': False, 'no': False}.get(value, default)
+
+
+def _optional_int(name, default, minimum, maximum):
+    try:
+        value = int(os.getenv(name, str(default)))
+    except ValueError:
+        return default
+    return value if minimum <= value <= maximum else default
+
+
+WIKIPEDIA_ENABLED = _optional_bool('WIKIPEDIA_ENABLED')
+WIKIPEDIA_DEFAULT_LANGUAGE = os.getenv('WIKIPEDIA_DEFAULT_LANGUAGE', 'zh')
+if WIKIPEDIA_DEFAULT_LANGUAGE not in ('zh', 'en'):
+    WIKIPEDIA_DEFAULT_LANGUAGE = 'zh'
+WIKIPEDIA_FALLBACK_LANGUAGE = os.getenv('WIKIPEDIA_FALLBACK_LANGUAGE', 'en')
+if WIKIPEDIA_FALLBACK_LANGUAGE not in ('zh', 'en'):
+    WIKIPEDIA_FALLBACK_LANGUAGE = 'en'
+_wikipedia_read_timeout = _optional_int('WIKIPEDIA_TIMEOUT', 6, 1, 30)
+WIKIPEDIA_TIMEOUT = (min(3, _wikipedia_read_timeout), _wikipedia_read_timeout)
+WIKIPEDIA_CACHE_TTL_DAYS = _optional_int('WIKIPEDIA_CACHE_TTL_DAYS', 7, 1, 365)
+WIKIPEDIA_USER_AGENT = os.getenv('WIKIPEDIA_USER_AGENT', 'AlgoMentor/1.1 (https://github.com/Oookla28/AlgoMentor; educational knowledge retrieval)')
+if not 8 <= len(WIKIPEDIA_USER_AGENT) <= 250 or '\n' in WIKIPEDIA_USER_AGENT or '\r' in WIKIPEDIA_USER_AGENT:
+    WIKIPEDIA_USER_AGENT = 'AlgoMentor/1.1 (https://github.com/Oookla28/AlgoMentor)'
+OFFLINE_FALLBACK_ENABLED = _optional_bool('OFFLINE_FALLBACK_ENABLED')
+EXTERNAL_SERVICE_CHECK_INTERVAL = _optional_int('EXTERNAL_SERVICE_CHECK_INTERVAL', 60, 5, 3600)
+LOCAL_EMBEDDING_OFFLINE_MODE = _optional_bool('LOCAL_EMBEDDING_OFFLINE_MODE')

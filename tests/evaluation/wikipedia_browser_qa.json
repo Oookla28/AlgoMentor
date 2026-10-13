@@ -1,0 +1,25 @@
+{
+  "executed_at": "2026-10-13T13:38:20.731620+00:00",
+  "wikipedia_page": {
+    "url": "/knowledge/wikipedia/",
+    "query": "红黑树",
+    "cache_only": true,
+    "observed_title": "红黑树",
+    "observed_language": "中文维基百科",
+    "observed_source": "本地缓存",
+    "observed_page_id": 55999,
+    "observed_revision": 93361542,
+    "source_url_visible": true,
+    "license_visible": "CC BY-SA 4.0",
+    "screenshot": "output/screenshots/wikipedia-cache.png"
+  },
+  "local_learning": {
+    "url": "/knowledge/local/",
+    "query": "循环队列如何判断队满？",
+    "observed_mode": "本地知识检索模式；没有调用大模型",
+    "observed_citations": 4,
+    "original_source_link_visible": true,
+    "screenshot": "output/screenshots/local-learning.png"
+  },
+  "student_grades_or_drafts_created": false
+}

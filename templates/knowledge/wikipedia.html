@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Wikipedia 百科查询 · 数构智学{% endblock %}
+{% block page_name %}knowledge{% endblock %}
+{% block breadcrumb %}Wikipedia 百科查询{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">EXPLORE BEYOND THE COURSE</p><h1>Wikipedia 百科查询</h1><p class="page-subtitle">直接检索真实百科摘要，无需 DeepSeek 密钥。每条资料都保留词条链接、语言与获取时间。</p></div><a class="button secondary" href="{% url 'knowledge:local' %}">进入本地学习 →</a></div>
+<div class="notice" data-service-notice="wikipedia" hidden></div>
+<section class="card">
+  <div class="card-header"><div><h2>查找算法与数据结构概念</h2><div class="sub">请输入公开概念名称；请勿提交个人信息、聊天全文或 API Key</div></div><span class="pill blue">独立查询 · 不调用 LLM</span></div>
+  <div class="card-body" style="padding-top:0">
+    <form id="wikipedia-search-form" class="styled-form">
+      <div class="filters" style="margin-bottom:12px"><label class="search-field" style="max-width:none"><svg><use href="{% static 'svg/icons.svg' %}#search"/></svg><input type="search" id="wikipedia-query" placeholder="例如：红黑树、KMP、Dijkstra" required maxlength="120" aria-label="百科概念名称"></label><select id="wikipedia-language" aria-label="Wikipedia 语言"><option value="zh" {% if default_language == "zh" %}selected{% endif %}>中文优先，英文补充</option><option value="en" {% if default_language == "en" %}selected{% endif %}>English Wikipedia</option></select><button class="button primary">查询百科</button></div>
+      <div class="wikipedia-options"><label><input type="checkbox" id="wikipedia-refresh">尝试实时获取</label><label><input type="checkbox" id="wikipedia-cache-only">仅查本地缓存</label></div>
+    </form>
+    <p class="small-text muted">普通查询优先使用有效缓存；实时获取失败时可展示历史缓存并明确标识。英文摘要会保留原文，不会假装已经翻译。</p>
+    <div id="wikipedia-search-results" class="knowledge-results" aria-live="polite" hidden></div>
+  </div>
+</section>
+<section class="card history-list"><div class="card-body"><h3>课程知识与外部百科分别呈现</h3><p class="prose">Wikipedia 提供课程之外的扩展资料，不能代替课程原文或学生评测证据。百科内容来自 Wikipedia 贡献者，按 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a> 署名；原始词条与版本信息以实际接口返回为准。</p><div class="form-actions"><a class="button secondary small" href="{% url 'knowledge:index' %}">检索课程原文</a><a class="button text small" href="{% url 'tutor:chat' %}">AI 整合解释 →</a></div></div></section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/offline-learning.js' %}" defer></script>{% endblock %}

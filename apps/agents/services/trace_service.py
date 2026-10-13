@@ -9,6 +9,7 @@ from core.exceptions import BusinessError
 class ToolBudget:
     def __init__(self,trace,deadline):
         self.trace=trace;self.deadline=deadline;self.calls=0;self.signatures=Counter()
+        self.external_sources=[]
 
     def call(self,name,arguments,func):
         if time.monotonic()>self.deadline:
@@ -29,6 +30,12 @@ class ToolBudget:
             if time.monotonic()>self.deadline:
                 raise BusinessError('智能体任务已超时。',code='AGENT_TIMEOUT',status_code=504)
             row.status='SUCCESS'
+            if name in ('search_wikipedia','search_external_knowledge') and isinstance(result,dict):
+                if result.get('success') and result.get('source_type')=='wikipedia':
+                    if not any(source.get('source_url')==result.get('source_url') for source in self.external_sources):
+                        self.external_sources.append(result)
+                elif result.get('query_status')=='UNAVAILABLE':
+                    row.status='FAILED';row.error_type=str(result.get('error_code') or 'EXTERNAL_KNOWLEDGE_UNAVAILABLE')[:80]
             row.output_summary=f'真实工具返回，{len(str(result))} 字符'
             return result
         except Exception as exc:

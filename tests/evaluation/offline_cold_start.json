@@ -1,0 +1,58 @@
+{
+  "status": "PASSED",
+  "fresh_process": true,
+  "external_dns_and_sockets_blocked": true,
+  "host_proxy_blocked": true,
+  "student_db": "disposable local copy",
+  "learning_evidence_unchanged": true,
+  "deepseek_inference": "not called; no key used",
+  "debug": false,
+  "elapsed_seconds": 4.333,
+  "checks": {
+    "/": 200,
+    "/accounts/login/": 200,
+    "/accounts/settings/": 200,
+    "/knowledge/": 200,
+    "/knowledge/local/": 200,
+    "/knowledge/wikipedia/": 200,
+    "/graph/": 200,
+    "/visualizations/": 200,
+    "/problems/": 200,
+    "/learning/": 200,
+    "/mistakes/": 200,
+    "/reports/": 200,
+    "/static/css/app.css": 200,
+    "/static/js/app.js": 200,
+    "/static/js/graph.js": 200,
+    "/static/js/visualization.js": 200,
+    "/static/svg/icons.svg": 200,
+    "local_rag": {
+      "status": "PASSED",
+      "citations": 4,
+      "embedding": "local BGE / Chroma"
+    },
+    "graph_api": "PASSED",
+    "wikipedia_cache": {
+      "status": "PASSED",
+      "title": "红黑树",
+      "language": "zh",
+      "cache_status": "FRESH",
+      "retrieved_at": "2026-10-13T13:08:40.782806+00:00"
+    },
+    "wikipedia_network_fallback": "PASSED",
+    "independent_statuses": "PASSED",
+    "algorithm_api": "PASSED",
+    "local_isolated_execution": "PASSED",
+    "draft_saved_without_grading": "PASSED"
+  },
+  "blocked_attempts": [
+    {
+      "host": "127.0.0.1",
+      "port": 7892
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 7892
+    }
+  ]
+}

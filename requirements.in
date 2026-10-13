@@ -14,3 +14,4 @@ pypdf==6.20.1
 scikit-learn==1.8.0
 joblib==1.5.3
 gunicorn==26.2.0
+whitenoise==6.12.0

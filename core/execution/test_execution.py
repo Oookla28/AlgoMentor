@@ -6,6 +6,8 @@ from core.execution.judge0_client import Judge0Client
 from core.execution.provider import ExecutionLimits, ExecutionResult, validate_program
 from core.exceptions import CodeExecutionError, ValidationError
 
+pytestmark = pytest.mark.django_db
+
 
 @pytest.mark.parametrize("stage,expected", [
     ({"code": 0, "stdout": "5\n", "stderr": ""}, "ACCEPTED"),

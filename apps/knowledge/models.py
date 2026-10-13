@@ -63,3 +63,31 @@ class KnowledgeCorrection(models.Model):
     status = models.CharField(max_length=20,default='PENDING',choices=[('PENDING','待审核'),('APPROVED','已审核'),('REJECTED','已驳回')])
     reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class WikipediaCache(models.Model):
+    """Shared public article cache. Never stores users, conversations or API keys."""
+    query = models.CharField(max_length=255, help_text='API 返回的公开词条标题，不存学生原始问题')
+    normalized_query = models.CharField(max_length=255)
+    public_aliases = models.JSONField(default=dict, help_text='已校验公开概念的规范化别名，不存原始问题')
+    language = models.CharField(max_length=2, choices=[('zh', '中文'), ('en', 'English')])
+    page_id = models.PositiveBigIntegerField()
+    title = models.CharField(max_length=255)
+    summary = models.TextField()
+    source_url = models.URLField(max_length=1000)
+    revision_id = models.PositiveBigIntegerField(null=True, blank=True)
+    retrieved_at = models.DateTimeField()
+    expires_at = models.DateTimeField(db_index=True)
+    last_accessed_at = models.DateTimeField()
+    content_hash = models.CharField(max_length=64)
+    cache_version = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['normalized_query', 'language'], name='unique_wikipedia_public_title'),
+            models.UniqueConstraint(fields=['page_id', 'language'], name='unique_wikipedia_page_language'),
+        ]
+        ordering = ['-retrieved_at']
+
+    def __str__(self):
+        return f'{self.language}: {self.title}'
