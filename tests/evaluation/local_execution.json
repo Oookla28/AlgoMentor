@@ -1,0 +1,70 @@
+{
+  "recorded_at": "2026-10-13T08:43:04.516535+00:00",
+  "deployment": "dedicated_lima_vm_official_piston",
+  "vm": "algomentor-exec",
+  "image": "ghcr.io/engineer-man/piston@sha256:2f66b7456189c4d713aa986d98eccd0b6ee16d26c7ec5f21b30e942756fd127a",
+  "mounts": [
+    {
+      "Type": "volume",
+      "Name": "algomentor-piston-packages",
+      "Source": "/var/lib/docker/volumes/algomentor-piston-packages/_data",
+      "Destination": "/piston/packages",
+      "Driver": "local",
+      "Mode": "z",
+      "RW": true,
+      "Propagation": ""
+    }
+  ],
+  "container_limits": {
+    "PISTON_REPO_URL": "http://192.168.5.2:2099/index",
+    "PISTON_DISABLE_NETWORKING": "true",
+    "PISTON_RUN_TIMEOUT": "3000",
+    "PISTON_RUN_CPU_TIME": "3000",
+    "PISTON_COMPILE_TIMEOUT": "3000",
+    "PISTON_COMPILE_CPU_TIME": "3000",
+    "PISTON_RUN_MEMORY_LIMIT": "268435456",
+    "PISTON_COMPILE_MEMORY_LIMIT": "268435456",
+    "PISTON_OUTPUT_MAX_SIZE": "8192",
+    "PISTON_MAX_PROCESS_COUNT": "16",
+    "PISTON_MAX_CONCURRENT_JOBS": "4",
+    "PISTON_MAX_FILE_SIZE": "10485760"
+  },
+  "outer_memory_bytes": 1610612736,
+  "outer_pids": 128,
+  "ports": {
+    "2000/tcp": [
+      {
+        "HostIp": "127.0.0.1",
+        "HostPort": "2000"
+      }
+    ]
+  },
+  "runtimes": [
+    {
+      "language": "python",
+      "version": "3.12.0",
+      "aliases": [
+        "py",
+        "py3",
+        "python3",
+        "python3.12"
+      ]
+    }
+  ],
+  "raw_smoke": {
+    "run": {
+      "signal": null,
+      "stdout": "ALGOMENTOR_SANDBOX_OK\n",
+      "stderr": "",
+      "code": 0,
+      "output": "ALGOMENTOR_SANDBOX_OK\n",
+      "memory": 11140000,
+      "message": null,
+      "status": null,
+      "cpu_time": 72,
+      "wall_time": 83
+    },
+    "language": "python",
+    "version": "3.12.0"
+  }
+}

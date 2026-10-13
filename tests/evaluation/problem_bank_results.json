@@ -1,0 +1,132 @@
+{
+  "time": "2026-10-13T08:35:55.873053+00:00",
+  "kind": "live_remote_evaluation",
+  "results": [
+    {
+      "problem": "triangular-count",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "halving-count",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "list-insert",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "list-delete",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "linear-search",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "sequential-address",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "linked-reverse",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "head-insert",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "josephus",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "bracket-stack",
+      "status": "ACCEPTED",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "problem": "stack-operations",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "circular-queue",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "linked-queue",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "bf-match",
+      "status": "ACCEPTED",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "problem": "kmp-next",
+      "status": "ACCEPTED",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "problem": "kmp-match",
+      "status": "ACCEPTED",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "problem": "array-address",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "symmetric-index",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "upper-triangle-index",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    },
+    {
+      "problem": "tridiagonal-index",
+      "status": "ACCEPTED",
+      "passed": 5,
+      "total": 5
+    },
+    {
+      "problem": "generalized-depth",
+      "status": "ACCEPTED",
+      "passed": 4,
+      "total": 4
+    }
+  ]
+}

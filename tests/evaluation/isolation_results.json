@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "experiment": "live_remote_isolation",
+  "executed_at": "2026-10-13T08:44:12.884936+00:00",
+  "fixed_programs_only": true,
+  "host_code_execution": false,
+  "results": [
+    {
+      "id": "outbound_network",
+      "verdict": "PASS",
+      "reason": "The kernel denied the fixed external TCP connection.",
+      "raw_executions": [
+        {
+          "probe_id": "outbound_network",
+          "requested_limits": {
+            "time_seconds": 2,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "ACCEPTED",
+            "stdout": "{\"connected\": false, \"errno\": 101, \"timed_out\": false}\n",
+            "stderr": "",
+            "elapsed_seconds": 0.104,
+            "memory_kb": 13570,
+            "provider": "piston",
+            "exit_code": 0,
+            "output_truncated": false,
+            "cpu_seconds": 0.095,
+            "remote_status": null,
+            "remote_message": null,
+            "signal": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "host_files",
+      "verdict": "PASS",
+      "reason": "The host sentinel, application environment file, and SQLite path were unreadable.",
+      "raw_executions": [
+        {
+          "probe_id": "host_files",
+          "requested_limits": {
+            "time_seconds": 2.0,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "ACCEPTED",
+            "stdout": "{\"readable\": [false, false, false]}\n",
+            "stderr": "",
+            "elapsed_seconds": 0.095,
+            "memory_kb": 12988,
+            "provider": "piston",
+            "exit_code": 0,
+            "output_truncated": false,
+            "cpu_seconds": 0.088,
+            "remote_status": null,
+            "remote_message": null,
+            "signal": null
+          }
+        }
+      ],
+      "host_sentinel_confirmed_before_probe": true,
+      "protected_paths": [
+        "$PROJECT/tests/evaluation/isolation-host-sentinel-notsecret.txt",
+        "$PROJECT/.env",
+        "$PROJECT/data/db.sqlite3"
+      ]
+    },
+    {
+      "id": "environment_secrets",
+      "verdict": "PASS",
+      "reason": "Neither application secret variable name was present; values were never printed.",
+      "raw_executions": [
+        {
+          "probe_id": "environment_secrets",
+          "requested_limits": {
+            "time_seconds": 2.0,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "ACCEPTED",
+            "stdout": "{\"present\": {\"DJANGO_SECRET_KEY\": false, \"APP_ENCRYPTION_KEY\": false}}\n",
+            "stderr": "",
+            "elapsed_seconds": 0.094,
+            "memory_kb": 13046,
+            "provider": "piston",
+            "exit_code": 0,
+            "output_truncated": false,
+            "cpu_seconds": 0.086,
+            "remote_status": null,
+            "remote_message": null,
+            "signal": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "process_limit",
+      "verdict": "PASS",
+      "reason": "The bounded child-process probe reached the kernel process limit (EAGAIN).",
+      "raw_executions": [
+        {
+          "probe_id": "process_limit",
+          "requested_limits": {
+            "time_seconds": 3,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "ACCEPTED",
+            "stdout": "{\"soft_limit\": 16, \"hard_limit\": 16, \"exercised\": true, \"spawned\": 14, \"denied_errno\": 11}\n",
+            "stderr": "",
+            "elapsed_seconds": 0.245,
+            "memory_kb": 55734,
+            "provider": "piston",
+            "exit_code": 0,
+            "output_truncated": false,
+            "cpu_seconds": 0.356,
+            "remote_status": null,
+            "remote_message": null,
+            "signal": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "output_limit",
+      "verdict": "PASS",
+      "reason": "Excess output was rejected or truncated and returned within the application cap.",
+      "raw_executions": [
+        {
+          "probe_id": "output_limit",
+          "requested_limits": {
+            "time_seconds": 2.0,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "RUNTIME_ERROR",
+            "stdout": "ALGOMENTOR_OUTPUT_PROBE\n",
+            "stderr": "Sandbox keeper received fatal signal 6\n",
+            "elapsed_seconds": 0.142,
+            "memory_kb": 11078,
+            "provider": "piston",
+            "exit_code": null,
+            "output_truncated": false,
+            "cpu_seconds": 0.077,
+            "remote_status": "OL",
+            "remote_message": "stdout length exceeded",
+            "signal": "SIGKILL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "memory_limit",
+      "verdict": "UNVERIFIED",
+      "reason": "A generic process kill or runtime error alone is insufficient evidence of the memory limit.",
+      "raw_executions": [
+        {
+          "probe_id": "memory_limit",
+          "requested_limits": {
+            "time_seconds": 2,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "RUNTIME_ERROR",
+            "stdout": "",
+            "stderr": "/piston/packages/python/3.12.0/run: line 3:     3 Killed                  python3.12 \"$@\"\n",
+            "elapsed_seconds": 0.11,
+            "memory_kb": 131070,
+            "provider": "piston",
+            "exit_code": 137,
+            "output_truncated": false,
+            "cpu_seconds": 0.102,
+            "remote_status": "RE",
+            "remote_message": "Exited with error status 137",
+            "signal": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "wall_timeout",
+      "verdict": "PASS",
+      "reason": "The fixed program hit the requested one-second execution limit.",
+      "raw_executions": [
+        {
+          "probe_id": "wall_timeout",
+          "requested_limits": {
+            "time_seconds": 1,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "TIME_LIMIT_EXCEEDED",
+            "stdout": "",
+            "stderr": "",
+            "elapsed_seconds": 1.002,
+            "memory_kb": 10988,
+            "provider": "piston",
+            "exit_code": null,
+            "output_truncated": false,
+            "cpu_seconds": 0.075,
+            "remote_status": "TO",
+            "remote_message": "Time limit exceeded (wall clock)",
+            "signal": "SIGKILL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cpu_timeout",
+      "verdict": "PASS",
+      "reason": "The sandbox reported a CPU timeout near one CPU second, before its separate three-second wall limit.",
+      "raw_executions": [
+        {
+          "probe_id": "cpu_timeout",
+          "requested_limits": {
+            "time_seconds": 3,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": 1
+          },
+          "result": {
+            "status": "TIME_LIMIT_EXCEEDED",
+            "stdout": "",
+            "stderr": "",
+            "elapsed_seconds": 1.103,
+            "memory_kb": 10351,
+            "provider": "piston",
+            "exit_code": null,
+            "output_truncated": false,
+            "cpu_seconds": 1.072,
+            "remote_status": "TO",
+            "remote_message": "Time limit exceeded",
+            "signal": "SIGKILL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "temporary_file_isolation",
+      "verdict": "PASS",
+      "reason": "The confirmed temporary marker was absent in a separate execution.",
+      "raw_executions": [
+        {
+          "probe_id": "temporary_file_write",
+          "requested_limits": {
+            "time_seconds": 2.0,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "ACCEPTED",
+            "stdout": "ALGOMENTOR_TEMP_MARKER_WRITTEN\n",
+            "stderr": "",
+            "elapsed_seconds": 0.093,
+            "memory_kb": 13507,
+            "provider": "piston",
+            "exit_code": 0,
+            "output_truncated": false,
+            "cpu_seconds": 0.086,
+            "remote_status": null,
+            "remote_message": null,
+            "signal": null
+          }
+        },
+        {
+          "probe_id": "temporary_file_read",
+          "requested_limits": {
+            "time_seconds": 2.0,
+            "memory_mb": 128,
+            "output_bytes": 8192,
+            "code_bytes": 20000,
+            "stdin_bytes": 20000,
+            "cpu_seconds": null
+          },
+          "result": {
+            "status": "ACCEPTED",
+            "stdout": "{\"marker_exists\": false}\n",
+            "stderr": "",
+            "elapsed_seconds": 0.1,
+            "memory_kb": 14027,
+            "provider": "piston",
+            "exit_code": 0,
+            "output_truncated": false,
+            "cpu_seconds": 0.089,
+            "remote_status": null,
+            "remote_message": null,
+            "signal": null
+          }
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 8,
+    "FAIL": 0,
+    "UNVERIFIED": 1
+  },
+  "all_passed": false,
+  "publication_redaction": "Only host project root in protected_paths is replaced with $PROJECT; execution outputs and verdicts are unchanged."
+}

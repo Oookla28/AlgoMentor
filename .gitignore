@@ -1,0 +1,18 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+data/db.sqlite3*
+data/chroma/
+data/static/
+knowledge/processed/*.joblib
+output/screenshots/
+.DS_Store
+data/install.log
+data/pytest-first.log
+data/pytest-latest.log
+
+# Local verification logs and unredacted host evidence
+data/*.log
+output/private-evidence/

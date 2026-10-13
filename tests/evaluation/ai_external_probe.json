@@ -1,0 +1,20 @@
+[
+  {
+    "probe": "deepseek_models_without_key",
+    "url": "https://api.deepseek.com/models",
+    "http_status": 401,
+    "valid_json": false,
+    "title": null,
+    "elapsed_seconds": 1.045,
+    "inference_verified": false
+  },
+  {
+    "probe": "wikipedia_zh",
+    "url": "https://zh.wikipedia.org/api/rest_v1/page/summary/%E7%BA%A2%E9%BB%91%E6%A0%91",
+    "http_status": 200,
+    "valid_json": true,
+    "title": "红黑树",
+    "elapsed_seconds": 1.215,
+    "inference_verified": null
+  }
+]

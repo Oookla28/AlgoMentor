@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-13",
+  "checks": {
+    "login": "PASS",
+    "empty_dashboard": "PASS",
+    "graph_search_node_click": "PASS",
+    "graph_prerequisites_and_source_links": "PASS",
+    "python_kmp_step": "PASS",
+    "bf_kmp_comparison": {
+      "status": "PASS",
+      "match_index": 5,
+      "kmp_comparisons": 12,
+      "bf_comparisons": 16
+    },
+    "remote_run_auth_error": "PASS: truthful error, no stdout invented",
+    "console_algorithm_errors": []
+  },
+  "screenshots": [
+    "output/screenshots/knowledge-network.png",
+    "output/screenshots/algorithm-lab.png"
+  ],
+  "mobile": {
+    "status": "NOT_VERIFIED",
+    "requested_viewport": [
+      390,
+      844
+    ],
+    "observed_viewport": [
+      1280,
+      720
+    ],
+    "reason": "Viewport capability did not change real browser size; override reset."
+  },
+  "local_execution_verification": {
+    "time": "2026-10-13T08:47:23.925468+00:00",
+    "url": "http://127.0.0.1:8000/problems/triangular-count/",
+    "action": "custom_run_only",
+    "stdin": "4\n",
+    "code": "n = int(input())\nprint(n * (n + 1) // 2)",
+    "observed_status": "ACCEPTED",
+    "observed_stdout": "10\n",
+    "observed_elapsed_seconds": 0.084,
+    "student_submissions_created": 0,
+    "screenshot": "output/screenshots/local-python-execution.png"
+  }
+}

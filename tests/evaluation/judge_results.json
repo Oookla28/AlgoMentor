@@ -1,0 +1,122 @@
+{
+  "executed_at": "2026-10-13T08:35:43.962518+00:00",
+  "experiment": "live_remote_judge",
+  "results": [
+    {
+      "id": "correct",
+      "code": "n=int(input()); print(n*(n+1)//2)",
+      "stdin": "4\n",
+      "expected_stdout": "10\n",
+      "expected_verdict": "ACCEPTED",
+      "observed_verdict": "ACCEPTED",
+      "matches_expected": true,
+      "raw_execution": {
+        "status": "ACCEPTED",
+        "stdout": "10\n",
+        "stderr": "",
+        "elapsed_seconds": 0.091,
+        "memory_kb": 10957,
+        "provider": "piston",
+        "exit_code": 0,
+        "output_truncated": false
+      }
+    },
+    {
+      "id": "wrong_answer",
+      "code": "print(9)",
+      "stdin": "4\n",
+      "expected_stdout": "10\n",
+      "expected_verdict": "WRONG_ANSWER",
+      "observed_verdict": "WRONG_ANSWER",
+      "matches_expected": true,
+      "raw_execution": {
+        "status": "ACCEPTED",
+        "stdout": "9\n",
+        "stderr": "",
+        "elapsed_seconds": 0.081,
+        "memory_kb": 11035,
+        "provider": "piston",
+        "exit_code": 0,
+        "output_truncated": false
+      }
+    },
+    {
+      "id": "syntax_error",
+      "code": "print(\n",
+      "stdin": "",
+      "expected_stdout": "",
+      "expected_verdict": "SYNTAX_ERROR",
+      "observed_verdict": "SYNTAX_ERROR",
+      "matches_expected": true,
+      "raw_execution": {
+        "status": "SYNTAX_ERROR",
+        "stdout": "",
+        "stderr": "  File \"/box/submission/main.py\", line 1\n    print(\n         ^\nSyntaxError: '(' was never closed\n",
+        "elapsed_seconds": 0.079,
+        "memory_kb": 10753,
+        "provider": "piston",
+        "exit_code": 1,
+        "output_truncated": false
+      }
+    },
+    {
+      "id": "runtime_error",
+      "code": "print(1//0)",
+      "stdin": "",
+      "expected_stdout": "",
+      "expected_verdict": "RUNTIME_ERROR",
+      "observed_verdict": "RUNTIME_ERROR",
+      "matches_expected": true,
+      "raw_execution": {
+        "status": "RUNTIME_ERROR",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/box/submission/main.py\", line 1, in <module>\n    print(1//0)\n          ~^^~\nZeroDivisionError: integer division or modulo by zero\n",
+        "elapsed_seconds": 0.082,
+        "memory_kb": 11074,
+        "provider": "piston",
+        "exit_code": 1,
+        "output_truncated": false
+      }
+    },
+    {
+      "id": "timeout",
+      "code": "while True: pass",
+      "stdin": "",
+      "expected_stdout": "",
+      "expected_verdict": "TIME_LIMIT_EXCEEDED",
+      "observed_verdict": "TIME_LIMIT_EXCEEDED",
+      "matches_expected": true,
+      "raw_execution": {
+        "status": "TIME_LIMIT_EXCEEDED",
+        "stdout": "",
+        "stderr": "",
+        "elapsed_seconds": 1.005,
+        "memory_kb": 10531,
+        "provider": "piston",
+        "exit_code": null,
+        "output_truncated": false
+      }
+    },
+    {
+      "id": "boundary_error",
+      "code": "a=list(map(int,input().split())); print(a[0])",
+      "stdin": "\n",
+      "expected_stdout": "",
+      "expected_verdict": "RUNTIME_ERROR",
+      "observed_verdict": "RUNTIME_ERROR",
+      "matches_expected": true,
+      "raw_execution": {
+        "status": "RUNTIME_ERROR",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/box/submission/main.py\", line 1, in <module>\n    a=list(map(int,input().split())); print(a[0])\n                                            ~^^^\nIndexError: list index out of range\n",
+        "elapsed_seconds": 0.085,
+        "memory_kb": 11089,
+        "provider": "piston",
+        "exit_code": 1,
+        "output_truncated": false
+      }
+    }
+  ],
+  "verified_cases": 6,
+  "agreement": 1.0
+}

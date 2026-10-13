@@ -1,0 +1,13 @@
+[
+ {"id":"queue-complexity","query":"队列的入队和出队时间复杂度是多少","expected_pages":[8,9],"expected_text":"O (1)","covered":true},
+ {"id":"queue-full","query":"循环队列判满条件","expected_pages":[9],"expected_text":"rear + 1","covered":true},
+ {"id":"random-access","query":"顺序表为什么可以随机存取","expected_pages":[4],"expected_text":"随机存取","covered":true},
+ {"id":"list-insert","query":"顺序表插入的时间复杂度","expected_pages":[4,5,6],"expected_text":"插入","covered":true},
+ {"id":"linked-list","query":"单链表节点包含哪两个域","expected_pages":[5,6],"expected_text":"指针域","covered":true},
+ {"id":"stack-lifo","query":"栈为什么是后进先出","expected_pages":[7,8],"expected_text":"后进先出","covered":true},
+ {"id":"kmp-next","query":"KMP next数组","expected_pages":[12,13],"expected_text":"next","covered":true},
+ {"id":"matrix-storage","query":"三对角矩阵压缩存储公式","expected_pages":[14],"expected_text":"三对角","covered":true},
+ {"id":"generalized-list","query":"广义表的表头和表尾","expected_pages":[14,15],"expected_text":"表尾","covered":true},
+ {"id":"outside-redblack","query":"红黑树旋转","expected_pages":[],"covered":false},
+ {"id":"outside-physics","query":"量子引力黑洞霍金辐射","expected_pages":[],"covered":false}
+]

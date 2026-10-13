@@ -1,0 +1,652 @@
+{
+  "experiment": "BGE dense retrieval with verified metadata",
+  "embedding": [
+    {
+      "embedding_model": "bge:BAAI/bge-small-zh-v1.5:7999e1d3359715c523056ef9478215996d62a620",
+      "embedding_dimension": 512,
+      "index_version": "7c0879404837f1f8a0c242ca"
+    }
+  ],
+  "cases": [
+    {
+      "id": "queue-complexity",
+      "query": "队列的入队和出队时间复杂度是多少",
+      "expected_pages": [
+        8,
+        9
+      ],
+      "expected_text": "O (1)",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p8-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "队列的定义和特点",
+          "page_number": 8,
+          "content": " 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈的存储空间是动态分配的，相比于顺序栈，更能灵活地适应元素数量的变化。\n\n 队列的定义和特点：\n队列是另一种特殊的线性表，其特殊性在于仅允许在表的一端进行插入操作，在另一端进行\n删除操作。允许插入的一端称为队尾，允许删除的一端称为队头。\n队列的核心特点是遵循 “先进先出”（First In First Out，FIFO）原则，即最先插入队列的元\n素会最先被删除。\n例如，日常生活中的排队买票就是队列的典型实例：先排队的人会先买到票离开，后排队的\n人则需要等待前面的人完成操作。\n队列的基本操作包括：入队（在队尾插入元素）、出队（在队头删除元素）、取队头元素（获\n取队头元素的值但不删除）、判断队空（检查队列是否没有元素）等。\n 队列的存储结构：\n 循环队列：\n循环队列是为了解决顺序队列的 “假溢出” 问题而设计的。顺序队列在元素出队后，队头前\n的空间无法被再次利用，当队尾指针达到数组末尾时，即使队列中还有空闲空间，也会被认\n为是栈满，这种现象称为假溢出。\n循环队列将存储队列元素的数组视为一个环形结构，当队尾指针达到数组末尾时，若数组头\n部还有空闲空间，则队尾指针会绕回数组头部。\n循环队列通常使用两个指针来标识：队头指针（front）指向队头元素的前一个位置，队尾指\n针（rear）指向队尾元素。\n例如，使用 C 语言定义一个容量为 10 的整型循环队列：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6528,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p9-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "牺牲一个存储单元法",
+          "page_number": 9,
+          "content": " 牺牲一个存储单元法：(rear + 1) % MaxSize == front。这种方法通过牺牲一个存储\n单元来区分队满和队空，当队尾指针的下一个位置是队头指针时，认为队列已满。\n\n 标志位法：设置一个标志位 flag，当 flag 为 0 时表示队列可能为空，当 flag 为\n1 时表示队列可能已满。队空条件为 front == rear 且 flag == 0；队满条件为\nfront == rear 且 flag == 1。入队成功后将 flag 设为 1，出队成功后将 flag 设\n为 0。\n 求长度：(rear - front + MaxSize) % MaxSize。\n 入队：先判断队列是否已满，若未满，则将队尾指针后移（(rear + 1) % MaxSize），\n然后将元素存入队尾指针所指位置（若采用牺牲一个存储单元法，则是先存元素再\n移指针，具体取决于定义）。\n 出队：先判断队列是否为空，若不为空，则将队头指针后移（(front + 1) % MaxSize），\n然后取出队头指针所指位置的元素。\n循环队列的所有操作时间复杂度均为 O (1)。\n 链队列：\n链队列是采用链式存储结构实现的队列，通常使用单链表来存储队列中的元素，包含一个队\n头指针（front）和一个队尾指针（rear）。队头指针指向队头节点，队尾指针指向队尾节点。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5955,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p9-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p10-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "操作特点",
+          "page_number": 10,
+          "content": " 操作特点：栈遵循 “后进先出” 原则；队列遵循 “先进先出” 原则。\n 存储结构：\n 栈可采用顺序存储（顺序栈）和链式存储（链栈），顺序栈需注意栈溢出问题，链栈\n则无此问题。\n 队列可采用顺序存储（循环队列）和链式存储（链队列），循环队列需解决队满和队\n空的判断问题，链队列则无需担心队列溢出。\n 应用场景：\n 栈的典型应用包括表达式求值、函数调用过程中的参数和返回地址保存、括号匹配\n检查等。例如，在编译原理中，利用栈来实现表达式的语法分析；在递归函数调用\n中，系统通过栈来保存每一层递归的局部变量和返回地址。\n 队列的典型应用包括操作系统中的进程调度、打印机的任务队列、网络数据的缓冲\n传输等。例如，多个进程竞争使用打印机时，操作系统会将这些打印任务放入队列，\n按照 “先进先出” 的原则依次处理；在网络通信中，数据到达的速度可能快于处理\n速度，此时会将数据放入队列进行缓冲。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.566,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p10-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p8-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "队空条件",
+          "page_number": 8,
+          "content": "#define MaxSize 10\ntypedef struct {\nint data[MaxSize]; // 存储队列元素的数组\nint front; // 队头指针，指向队头元素的前一个位置\nint rear; // 队尾指针，指向队尾元素\n} CirQueue;\n\n循环队列的相关操作及判断条件如下：\n 队空条件：front == rear。\n 队满条件：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.557,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-2/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 6.3869
+    },
+    {
+      "id": "queue-full",
+      "query": "循环队列判满条件",
+      "expected_pages": [
+        9
+      ],
+      "expected_text": "rear + 1",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p8-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "队空条件",
+          "page_number": 8,
+          "content": "#define MaxSize 10\ntypedef struct {\nint data[MaxSize]; // 存储队列元素的数组\nint front; // 队头指针，指向队头元素的前一个位置\nint rear; // 队尾指针，指向队尾元素\n} CirQueue;\n\n循环队列的相关操作及判断条件如下：\n 队空条件：front == rear。\n 队满条件：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5704,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-2/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p9-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "牺牲一个存储单元法",
+          "page_number": 9,
+          "content": " 牺牲一个存储单元法：(rear + 1) % MaxSize == front。这种方法通过牺牲一个存储\n单元来区分队满和队空，当队尾指针的下一个位置是队头指针时，认为队列已满。\n\n 标志位法：设置一个标志位 flag，当 flag 为 0 时表示队列可能为空，当 flag 为\n1 时表示队列可能已满。队空条件为 front == rear 且 flag == 0；队满条件为\nfront == rear 且 flag == 1。入队成功后将 flag 设为 1，出队成功后将 flag 设\n为 0。\n 求长度：(rear - front + MaxSize) % MaxSize。\n 入队：先判断队列是否已满，若未满，则将队尾指针后移（(rear + 1) % MaxSize），\n然后将元素存入队尾指针所指位置（若采用牺牲一个存储单元法，则是先存元素再\n移指针，具体取决于定义）。\n 出队：先判断队列是否为空，若不为空，则将队头指针后移（(front + 1) % MaxSize），\n然后取出队头指针所指位置的元素。\n循环队列的所有操作时间复杂度均为 O (1)。\n 链队列：\n链队列是采用链式存储结构实现的队列，通常使用单链表来存储队列中的元素，包含一个队\n头指针（front）和一个队尾指针（rear）。队头指针指向队头节点，队尾指针指向队尾节点。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5371,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p9-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p8-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "队列的定义和特点",
+          "page_number": 8,
+          "content": " 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈的存储空间是动态分配的，相比于顺序栈，更能灵活地适应元素数量的变化。\n\n 队列的定义和特点：\n队列是另一种特殊的线性表，其特殊性在于仅允许在表的一端进行插入操作，在另一端进行\n删除操作。允许插入的一端称为队尾，允许删除的一端称为队头。\n队列的核心特点是遵循 “先进先出”（First In First Out，FIFO）原则，即最先插入队列的元\n素会最先被删除。\n例如，日常生活中的排队买票就是队列的典型实例：先排队的人会先买到票离开，后排队的\n人则需要等待前面的人完成操作。\n队列的基本操作包括：入队（在队尾插入元素）、出队（在队头删除元素）、取队头元素（获\n取队头元素的值但不删除）、判断队空（检查队列是否没有元素）等。\n 队列的存储结构：\n 循环队列：\n循环队列是为了解决顺序队列的 “假溢出” 问题而设计的。顺序队列在元素出队后，队头前\n的空间无法被再次利用，当队尾指针达到数组末尾时，即使队列中还有空闲空间，也会被认\n为是栈满，这种现象称为假溢出。\n循环队列将存储队列元素的数组视为一个环形结构，当队尾指针达到数组末尾时，若数组头\n部还有空闲空间，则队尾指针会绕回数组头部。\n循环队列通常使用两个指针来标识：队头指针（front）指向队头元素的前一个位置，队尾指\n针（rear）指向队尾元素。\n例如，使用 C 语言定义一个容量为 10 的整型循环队列：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5282,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p10-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "操作特点",
+          "page_number": 10,
+          "content": " 操作特点：栈遵循 “后进先出” 原则；队列遵循 “先进先出” 原则。\n 存储结构：\n 栈可采用顺序存储（顺序栈）和链式存储（链栈），顺序栈需注意栈溢出问题，链栈\n则无此问题。\n 队列可采用顺序存储（循环队列）和链式存储（链队列），循环队列需解决队满和队\n空的判断问题，链队列则无需担心队列溢出。\n 应用场景：\n 栈的典型应用包括表达式求值、函数调用过程中的参数和返回地址保存、括号匹配\n检查等。例如，在编译原理中，利用栈来实现表达式的语法分析；在递归函数调用\n中，系统通过栈来保存每一层递归的局部变量和返回地址。\n 队列的典型应用包括操作系统中的进程调度、打印机的任务队列、网络数据的缓冲\n传输等。例如，多个进程竞争使用打印机时，操作系统会将这些打印任务放入队列，\n按照 “先进先出” 的原则依次处理；在网络通信中，数据到达的速度可能快于处理\n速度，此时会将数据放入队列进行缓冲。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5091,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p10-0/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0139
+    },
+    {
+      "id": "random-access",
+      "query": "顺序表为什么可以随机存取",
+      "expected_pages": [
+        4
+      ],
+      "expected_text": "随机存取",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p4-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "顺序表操作",
+          "page_number": 4,
+          "content": "可以直接访问对应的元素，就是利用了顺序表的随机存取特性。\n 顺序表操作：\n 取值：\n取值操作是指获取顺序表中第 i 个元素的值。由于顺序表是随机存取结构，根据元\n素的索引 i 可以直接计算出其存储地址，因此只需一次访问操作即可完成取值，时\n间复杂度为 O (1)。\n具体步骤：判断 i 的取值是否合法（1≤i≤n），若合法，则返回 LOC (a₁)+(i-1)×k 地\n址处的元素值；若不合法，则返回错误信息。\n 查找：\n查找操作是指在顺序表中查找值为 x 的元素，若找到，则返回该元素的位置索引；\n若未找到，则返回 0 或错误信息。\n查找过程从第一个元素开始，依次将每个元素与 x 进行比较，直到找到相等的元素\n或遍历完整个顺序表。\n最坏情况下，需要比较 n 次（x 是最后一个元素或不存在），时间复杂度为 O (n)。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.7228,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p4-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p11-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "链式存储",
+          "page_number": 11,
+          "content": "顺序存储的优点是随机存取方便，缺点是串的长度固定，可能造成存储空间的浪费或溢出。\n\n 链式存储：\n串的链式存储结构是用链表来存储串中的字符序列，又称为链串。通常每个节点存储一个或\n多个字符，前者称为单字符节点链串，后者称为块链结构。\n单字符节点链串的节点结构如下：\n\ntypedef struct StringNode {\nchar data; // 存储一个字符",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6358,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p11-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p6-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "查找",
+          "page_number": 6,
+          "content": "删除操作的时间复杂度同样主要取决于查找第 i-1 个节点的时间，为 O (n)。\n 查找：\n按值查找：从表头开始，依次比较每个节点的数据域与目标值 x，若找到则返回该\n节点的指针；若遍历完链表仍未找到，则返回 NULL，时间复杂度为 O (n)。\n按位查找：从表头开始，依次移动指针，直到找到第 i 个节点并返回其指针；若 i\n超出链表长度，则返回 NULL，时间复杂度为 O (n)。\n 比较：\n 顺序表与链表：\n 存储方式：顺序表采用连续的存储单元，链表采用任意的存储单元。\n 存取效率：顺序表支持随机存取，按索引访问元素的时间复杂度为 O (1)；链表只能\n顺序存取，访问元素必须从表头开始依次查找，时间复杂度为 O (n)。\n 插入删除操作：顺序表的插入和删除需要移动大量元素，时间复杂度为 O (n)；链表\n的插入和删除只需修改指针，时间复杂度主要取决于查找位置的时间，平均为 O (n)，\n但在已知前驱节点位置时，插入和删除操作可在 O (1) 时间内完成。\n 空间分配：顺序表在静态分配时可能存在存储空间浪费或溢出的问题；链表采用动\n态分配，存储空间利用率高，且不会出现溢出问题（除非内存不足）。\n 单链表、循环链表和双向链表：\n 单链表：最后一个节点的指针域为 NULL，只能从头指针开始遍历整个链表，无法\n从后向前遍历。\n 循环链表：最后一个节点的指针域指向头节点，形成一个环形结构。它可以从任意\n节点开始遍历整个链表，适合用于解决约瑟夫环等问题。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5816,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p6-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p7-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "链栈",
+          "page_number": 7,
+          "content": "顺序栈的操作具有如下特点：\n 入栈时需先判断栈是否已满（top == MaxSize - 1），若已满则无法入栈，称为栈溢\n出。\n 出栈和取栈顶元素时需先判断栈是否为空（top == -1），若为空则无法执行相应操\n作。\n 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈：\n链栈是采用链式存储结构实现的栈，通常使用单链表来存储栈中的元素，链表的头指针即为\n栈顶指针，指向栈顶元素。\n链栈的节点结构与单链表类似，包含数据域和指针域，其中指针域指向其前驱节点（即栈中\n的下一个元素）。\n例如，使用 C 语言定义一个存储整型数据的链栈节点：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5585,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p7-1/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0127
+    },
+    {
+      "id": "list-insert",
+      "query": "顺序表插入的时间复杂度",
+      "expected_pages": [
+        4,
+        5,
+        6
+      ],
+      "expected_text": "插入",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p6-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "查找",
+          "page_number": 6,
+          "content": "删除操作的时间复杂度同样主要取决于查找第 i-1 个节点的时间，为 O (n)。\n 查找：\n按值查找：从表头开始，依次比较每个节点的数据域与目标值 x，若找到则返回该\n节点的指针；若遍历完链表仍未找到，则返回 NULL，时间复杂度为 O (n)。\n按位查找：从表头开始，依次移动指针，直到找到第 i 个节点并返回其指针；若 i\n超出链表长度，则返回 NULL，时间复杂度为 O (n)。\n 比较：\n 顺序表与链表：\n 存储方式：顺序表采用连续的存储单元，链表采用任意的存储单元。\n 存取效率：顺序表支持随机存取，按索引访问元素的时间复杂度为 O (1)；链表只能\n顺序存取，访问元素必须从表头开始依次查找，时间复杂度为 O (n)。\n 插入删除操作：顺序表的插入和删除需要移动大量元素，时间复杂度为 O (n)；链表\n的插入和删除只需修改指针，时间复杂度主要取决于查找位置的时间，平均为 O (n)，\n但在已知前驱节点位置时，插入和删除操作可在 O (1) 时间内完成。\n 空间分配：顺序表在静态分配时可能存在存储空间浪费或溢出的问题；链表采用动\n态分配，存储空间利用率高，且不会出现溢出问题（除非内存不足）。\n 单链表、循环链表和双向链表：\n 单链表：最后一个节点的指针域为 NULL，只能从头指针开始遍历整个链表，无法\n从后向前遍历。\n 循环链表：最后一个节点的指针域指向头节点，形成一个环形结构。它可以从任意\n节点开始遍历整个链表，适合用于解决约瑟夫环等问题。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.668,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p6-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p3-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第一章 绪论",
+          "section": "复杂度衡量",
+          "page_number": 3,
+          "content": "算法执行过程中所需的存储空间。高效的算法应该在保证正确性的前提下，尽可能\n地减少时间和空间的消耗。\n 复杂度衡量：\n算法的复杂度是衡量算法效率的重要指标，主要包括时间复杂度和空间复杂度。\n 时间复杂度：是指算法执行过程中所需基本操作的次数，它是问题规模 n 的函数，\n记为 T (n)。通常使用大 O 表示法来描述时间复杂度，即 T (n)=O (f (n))，其中 f\n(n) 是问题规模 n 的某个函数。大 O 表示法关注的是当 n 趋近于无穷大时，T (n)\n的数量级。例如，一个算法的基本操作次数是 3n²+2n+1，那么它的时间复杂度就\n是 O (n²)。常见的时间复杂度按量级递增排列依次为：O (1)（常数阶）、O (log n)\n（对数阶）、O (n)（线性阶）、O (n log n)（线性对数阶）、O (n²)（平方阶）、O (n³)\n（立方阶）、O (2ⁿ)（指数阶）等，其中 O (1) 效率最高，O (2ⁿ) 效率最低。\n 空间复杂度：是指算法在执行过程中所需临时占用的存储空间的大小，也是问题规\n模 n 的函数，记为 S (n)，通常也用大 O 表示法来描述，即 S (n)=O (g (n))。如\n果算法所需的临时存储空间不随问题规模 n 的变化而变化，即空间复杂度为 O (1)，\n则称该算法是原地工作的。例如，一个算法只需要使用几个固定的变量来存储中间\n结果，那么它的空间复杂度就是 O (1)；而一个需要动态分配大小为 n 的数组的算",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6304,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p3-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p5-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "删除",
+          "page_number": 5,
+          "content": "线性表变为表长为 n+1 的线性表。\n插入过程需要将第 i 个位置及之后的所有元素依次向后移动一个位置，以腾出第 i\n个位置存放新元素 x。\n最坏情况下，需要移动 n 个元素（在第一个位置插入），时间复杂度为 O (n)。\n平均移动元素次数为：假设在每个位置插入的概率相等（均为 1/(n+1)），则平均移\n动次数为 (0+1+2+…+n)/(n+1)=n/2。\n 删除：\n删除操作是指删除顺序表中第 i 个元素，删除后使原表长为 n 的线性表变为表长\n为 n-1 的线性表。\n删除过程需要将第 i+1 个位置及之后的所有元素依次向前移动一个位置，以填补被\n删除元素留下的空缺。\n最坏情况下，需要移动 n-1 个元素（删除第一个元素），时间复杂度为 O (n)。\n平均移动元素次数为：假设删除每个元素的概率相等（均为 1/n），则平均移动次数\n为 (0+1+2+…+(n-1))/n=(n-1)/2。\n 线性表链式表示：\n线性表的链式表示又称为链式存储结构或链表，它是通过一组任意的存储单元来存\n储线性表中的元素，元素之间的逻辑关系通过指针来表示。\n 单链表：\n单链表是最简单的链表形式，每个节点由数据域和指针域两部分组成。\n\nstruct Node {\nint data; // 数据域\nstruct Node* next; // 指针域，指向后继节点\n};",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.554,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p5-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p4-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "插入",
+          "page_number": 4,
+          "content": "平均查找长度 ASL（Average Search Length）是指在查找过程中，平均比较的元素\n次数。对于长度为 n 的顺序表，假设每个元素被查找的概率相等（均为 1/n），则\nASL=(1+2+…+n)/n=(n+1)/2。\n 插入：\n插入操作是指在顺序表的第 i 个位置插入一个新元素 x，插入后使原表长为 n 的",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5538,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p4-2/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.013
+    },
+    {
+      "id": "linked-list",
+      "query": "单链表节点包含哪两个域",
+      "expected_pages": [
+        5,
+        6
+      ],
+      "expected_text": "指针域",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p5-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "数据域",
+          "page_number": 5,
+          "content": "struct Node {\nint data; // 数据域\nstruct Node* next; // 指针域，指向后继节点\n};\n\n 数据域：用于存储数据元素的值。\n 指针域：用于存储指向其后继节点的指针（地址）。\n单链表通过头指针来标识，头指针指向链表的第一个节点；若链表为空，则头指针\n为 NULL。例如，一个存储整数的单链表节点可以表示为：\n 基本操作：\n 创建：\n单链表的创建通常有头插法和尾插法两种方式。\n头插法是从一个空表开始，每次将新节点插入到当前链表的头部（头指针之后）。这\n种方法创建的链表中，元素的插入顺序与链表中元素的顺序相反。\n尾插法是从一个空表开始，设置一个尾指针始终指向当前链表的最后一个节点，每\n次将新节点插入到尾指针之后，并更新尾指针。这种方法创建的链表中，元素的插\n入顺序与链表中元素的顺序一致。\n 插入：\n在单链表的第 i 个位置插入新元素 x，需要先找到第 i-1 个节点，然后将新节点的\n指针域指向第 i 个节点，再将第 i-1 个节点的指针域指向新节点。\n插入操作的时间复杂度主要取决于查找第 i-1 个节点的时间，为 O (n)。\n 删除：\n删除单链表的第 i 个元素，需要先找到第 i-1 个节点，然后将第 i-1 个节点的指\n针域指向第 i+1 个节点，最后释放第 i 个节点的存储空间。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6575,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p5-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p6-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第二章 线性表",
+          "section": "循环链表",
+          "page_number": 6,
+          "content": "从后向前遍历。\n 循环链表：最后一个节点的指针域指向头节点，形成一个环形结构。它可以从任意\n节点开始遍历整个链表，适合用于解决约瑟夫环等问题。\n 双向链表：每个节点除了数据域和指向后继节点的指针外，还增加了一个指向其前\n驱节点的指针。双向链表可以方便地从一个节点访问其前驱和后继节点，使得插入\n和删除操作更加灵活，但需要额外的存储空间来存储前驱指针。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6522,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p6-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p12-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "链式存储",
+          "page_number": 12,
+          "content": "struct StringNode* next; // 指向下一个节点\n} StringNode, *LinkString;\n\n块链结构中，每个节点存储多个字符（如一个块），可以减少指针的数量，提高存储效率。\n例如，每个节点存储 4 个字符：\n\n#define BLOCKSIZE 4\ntypedef struct Block {\nchar ch[BLOCKSIZE]; // 存储多个字符\nstruct Block* next; // 指向下一个块\n} Block, *BlockString;",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5469,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p12-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p15-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "原子节点",
+          "page_number": 15,
+          "content": "struct {\nstruct GLNode* hp; // 表节点的表头指针域\nstruct GLNode* tp; // 表节点的表尾指针域\n} ptr;\n} val;\n} GLNode, *GList;\n\n这种存储结构可以灵活地表示各种广义表，包括空表、原子、子表以及递归表等。\n 原子节点：用于存储原子，包含一个标志域（表示该节点是原子节点）和一个数据\n域（存储原子的值）。\n 表节点：用于存储子表，包含一个标志域（表示该节点是表节点）、一个表头指针域\n（指向子表的表头）和一个表尾指针域（指向子表的表尾）。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5344,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p15-0/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0095
+    },
+    {
+      "id": "stack-lifo",
+      "query": "栈为什么是后进先出",
+      "expected_pages": [
+        7,
+        8
+      ],
+      "expected_text": "后进先出",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p7-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "链栈",
+          "page_number": 7,
+          "content": "顺序栈的操作具有如下特点：\n 入栈时需先判断栈是否已满（top == MaxSize - 1），若已满则无法入栈，称为栈溢\n出。\n 出栈和取栈顶元素时需先判断栈是否为空（top == -1），若为空则无法执行相应操\n作。\n 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈：\n链栈是采用链式存储结构实现的栈，通常使用单链表来存储栈中的元素，链表的头指针即为\n栈顶指针，指向栈顶元素。\n链栈的节点结构与单链表类似，包含数据域和指针域，其中指针域指向其前驱节点（即栈中\n的下一个元素）。\n例如，使用 C 语言定义一个存储整型数据的链栈节点：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6281,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p7-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p7-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "栈的定义和特点",
+          "page_number": 7,
+          "content": "第三章 栈和队列\n 栈的定义和特点：\n栈是一种特殊的线性表，其特殊性在于仅允许在表的一端进行插入和删除操作。这一端被称\n为栈顶，另一端则被称为栈底。\n栈的核心特点是遵循 “后进先出”（Last In First Out，LIFO）原则，即最后插入栈的元素会\n最先被删除。\n例如，日常生活中的叠放书本就是栈的典型实例：最后放在最上面的书本，往往是最先被取\n走的；食堂里叠放的餐盘也遵循这一规律，最后放上的餐盘会被先取用。\n栈的基本操作包括：入栈（在栈顶插入元素）、出栈（删除栈顶元素）、取栈顶元素（获取栈\n顶元素的值但不删除）、判断栈空（检查栈是否没有元素）等。\n 栈的存储结构：\n 顺序栈：\n顺序栈是采用顺序存储结构实现的栈，通常使用一维数组来存储栈中的元素，并通过一个栈\n顶指针（top）来指示栈顶元素的位置。\n假设数组的大小为 MaxSize，栈顶指针 top 的初始值为 - 1（表示栈为空）。当元素入栈时，\ntop 的值加 1，然后将元素存入 top 所指的位置；当元素出栈时，先取出 top 所指位置的\n元素，然后 top 的值减 1。\n例如，使用 C 语言定义一个容量为 10 的整型顺序栈：\n\n#define MaxSize 10\ntypedef struct {\nint data[MaxSize]; // 存储栈元素的数组\nint top; // 栈顶指针，初始值为-1\n} SeqStack;",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.604,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p7-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p10-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "操作特点",
+          "page_number": 10,
+          "content": " 操作特点：栈遵循 “后进先出” 原则；队列遵循 “先进先出” 原则。\n 存储结构：\n 栈可采用顺序存储（顺序栈）和链式存储（链栈），顺序栈需注意栈溢出问题，链栈\n则无此问题。\n 队列可采用顺序存储（循环队列）和链式存储（链队列），循环队列需解决队满和队\n空的判断问题，链队列则无需担心队列溢出。\n 应用场景：\n 栈的典型应用包括表达式求值、函数调用过程中的参数和返回地址保存、括号匹配\n检查等。例如，在编译原理中，利用栈来实现表达式的语法分析；在递归函数调用\n中，系统通过栈来保存每一层递归的局部变量和返回地址。\n 队列的典型应用包括操作系统中的进程调度、打印机的任务队列、网络数据的缓冲\n传输等。例如，多个进程竞争使用打印机时，操作系统会将这些打印任务放入队列，\n按照 “先进先出” 的原则依次处理；在网络通信中，数据到达的速度可能快于处理\n速度，此时会将数据放入队列进行缓冲。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5831,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p10-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p8-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "链栈",
+          "page_number": 8,
+          "content": "typedef struct StackNode {\nint data; // 数据域\nstruct StackNode* next; // 指针域，指向前驱节点\n} StackNode, *LinkStack;\n\n链栈的操作具有如下特点：\n 入栈时只需创建新节点，将其指针域指向当前栈顶节点，再将栈顶指针更新为新节\n点，无需判断栈是否已满（除非内存不足）。\n 出栈时需先判断栈是否为空（栈顶指针为 NULL），若不为空，则取出栈顶节点的数\n据，将栈顶指针更新为栈顶节点的下一个节点，然后释放原栈顶节点的存储空间。\n\n 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈的存储空间是动态分配的，相比于顺序栈，更能灵活地适应元素数量的变化。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.511,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-0/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0092
+    },
+    {
+      "id": "kmp-next",
+      "query": "KMP next数组",
+      "expected_pages": [
+        12,
+        13
+      ],
+      "expected_text": "next",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p12-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "KMP 算法",
+          "page_number": 12,
+          "content": "BF 算法的时间复杂度在最坏情况下为 O (n×m)，其中 n 是主串的长度，m 是模式串的长\n度，适用于模式串较短的情况。\n KMP 算法：\nKMP 算法由 Knuth、Morris 和 Pratt 共同提出，其改进之处在于：当匹配过程中出现字\n符不相等时，不需要回溯主串指针，而是利用已经得到的部分匹配结果，将模式串向右滑动\n尽可能远的距离，从而减少比较次数。\nKMP 算法的核心是计算模式串的部分匹配表（又称 next 数组），next [j] 表示当模式串中\n第 j 个字符与主串中相应字符不匹配时，模式串应该回溯到的位置。\nnext 数组的定义如下：\n next [0] = -1（约定）。\n 对于 j>0，next [j] 是满足 0 < k < j 且 \"T [0..k-1] = T [j - k..j - 1]\" 的最大 k，若\n不存在这样的 k，则 next [j] = 0。\n例如，模式串 T = \"abcac\" 的 next 数组为：next [0] = -1，next [1] = 0，next [2] = 0，\nnext [3] = 0，next [4] = 1。\nKMP 算法的匹配过程与 BF 算法类似，但当出现不匹配时，主串指针 i 不变，模式串指针",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6413,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p12-2/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p13-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "数组",
+          "page_number": 13,
+          "content": "j = next [j]，直到 j = -1 或找到匹配的字符。\nKMP 算法的时间复杂度为 O (n + m)，其中 n 是主串的长度，m 是模式串的长度，效率\n明显高于 BF 算法，尤其适用于主串和模式串都较长的情况。\n 数组：\n 类型定义：\n数组是由相同类型的数据元素构成的有序集合，每个元素可以通过一组下标（Index）来唯\n一确定其在数组中的位置。数组可以是一维的，也可以是多维的。\n一维数组可以看作是线性表的推广，其元素之间是一对一的关系。二维数组可以看作是 “数\n组的数组”，即每个元素都是一个一维数组，元素之间存在行和列的关系。例如，一个 m 行\nn 列的二维数组 A 可以表示为 A [m][n]，其中 A [i][j] 表示第 i 行第 j 列的元素。\n数组一旦定义，其维数和各维的长度就固定不变，因此数组的操作主要是取值和赋值，时间\n复杂度均为 O (1)。\n 顺序存储：\n数组在计算机中只能采用顺序存储结构，即将数组中的元素按某种顺序排列在一组地址连续\n的存储单元中。常见的存储方式有按行优先和按列优先两种。\n 按行优先存储：\n先存储第一行的元素，再存储第二行的元素，依次类推，每行的元素按列下标从小到大的顺\n序存储。大多数编程语言（如 C、C++、Java）采用按行优先存储方式。\n例如，对于二维数组 A [3][4] = {{a₀₀, a₀₁, a₀₂, a₀₃}, {a₁₀, a₁₁, a₁₂, a₁₃}, {a₂₀, a₂₁, a₂₂, a₂₃}}，",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6215,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p13-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p8-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第三章 栈和队列",
+          "section": "队空条件",
+          "page_number": 8,
+          "content": "#define MaxSize 10\ntypedef struct {\nint data[MaxSize]; // 存储队列元素的数组\nint front; // 队头指针，指向队头元素的前一个位置\nint rear; // 队尾指针，指向队尾元素\n} CirQueue;\n\n循环队列的相关操作及判断条件如下：\n 队空条件：front == rear。\n 队满条件：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5038,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-2/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0084
+    },
+    {
+      "id": "matrix-storage",
+      "query": "三对角矩阵压缩存储公式",
+      "expected_pages": [
+        14
+      ],
+      "expected_text": "三对角",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p14-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "三角矩阵",
+          "page_number": 14,
+          "content": "对于上三角矩阵，只需存储主对角线及以上的元素和常数 c（只需存储一次）。按行优先顺\n序存储上三角部分的元素，共有 n (n + 1)/2 个元素，加上常数 c，总存储量为 n (n + 1)/2\n+ 1。对于元素 aᵢⱼ（i ≤ j），其在压缩存储数组中的下标为 k = (i - 1)(2n - i + 2)/2 + (j - i)。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.7021,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p14-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p13-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "三角矩阵",
+          "page_number": 13,
+          "content": "对称矩阵的上三角部分（i <j）和下三角部分（i> j）的元素是对称相等的，因此只需存储下\n三角部分（包括主对角线）的元素即可。\n按行优先顺序存储下三角部分的元素，共有 n (n + 1)/2 个元素。对于元素 aᵢⱼ（i ≥ j），其\n在压缩存储数组中的下标为 k = i (i - 1)/2 + j - 1（假设数组下标从 0 开始）。例如，3 阶\n对称矩阵 A = [[1, 2, 3], [2, 4, 5], [3, 5, 6]]，压缩存储后为 [1, 2, 4, 3, 5, 6]。\n 三角矩阵：\n三角矩阵分为上三角矩阵和下三角矩阵。上三角矩阵是指主对角线以下的元素（i > j）均为\n常数 c（通常为 0）的矩阵；下三角矩阵是指主对角线以上的元素（i < j）均为常数 c 的矩\n阵。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.6225,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p13-2/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p14-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "多对角线矩阵",
+          "page_number": 14,
+          "content": "对于下三角矩阵，存储方式与对称矩阵类似，只需存储主对角线及以下的元素和常数 c，总\n存储量也为 n (n + 1)/2 + 1。\n 多对角线矩阵：\n多对角线矩阵是指矩阵中除了主对角线及其附近几条对角线以外的元素均为零的矩阵，常见\n的有三对角线矩阵（带状矩阵）。\n三对角线矩阵是指对于 n 阶方阵 A，只有当 | i - j| ≤ 1 时，aᵢⱼ ≠ 0，其余元素均为零。\n三对角线矩阵的非零元素共有 3n - 2 个，按行优先顺序存储这些非零元素。对于元素 aᵢⱼ\n（|i - j| ≤ 1），其在压缩存储数组中的下标为 k = 2 (i - 1) + (j - i + 1) = 2i + j - 3（假设数\n组下标从 0 开始）。例如，4 阶三对角线矩阵的非零元素存储顺序为 a₁₁, a₁₂, a₂₁, a₂₂, a₂₃,\na₃₂, a₃₃, a₃₄, a₄₃, a₄₄。\n 广义表：\n 定义及特点：\n广义表（Generalized List）又称列表，是线性表的推广，它是由零个或多个原子（Atom）\n或子表（Sublist）组成的有限序列。原子是指不可再分割的基本元素，如整数、字符等；子\n表是指广义表中的元素本身也是一个广义表。\n广义表通常记为 LS = (a₁, a₂, …, aₙ)，其中 LS 是广义表的名称，aᵢ（1≤i≤n）可以是原子\n或子表，n 是广义表的长度。当 n=0 时，称为空广义表，记为 ()。\n广义表具有以下特点：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5985,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p14-1/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p13-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "按列优先存储",
+          "page_number": 13,
+          "content": "按行优先存储的顺序为：a₀₀, a₀₁, a₀₂, a₀₃, a₁₀, a₁₁, a₁₂, a₁₃, a₂₀, a₂₁, a₂₂, a₂₃。\n对于多维数组，按行优先存储可以推广为：先存储最左边下标变化最慢的维度，再依次存储\n其他维度。\n 按列优先存储：\n先存储第一列的元素，再存储第二列的元素，依次类推，每列的元素按行下标从小到大的顺\n序存储。FORTRAN 语言采用按列优先存储方式。\n例如，上述二维数组 A [3][4] 按列优先存储的顺序为：a₀₀, a₁₀, a₂₀, a₀₁, a₁₁, a₂₁, a₀₂, a₁₂,\na₂₂, a₀₃, a₁₃, a₂₃。\n对于一个 m 行 n 列的二维数组，若每个元素占用 k 个存储单元，且 a₀₀的存储地址为\nLOC (a₀₀)，则按行优先存储时，aᵢⱼ的存储地址为 LOC (aᵢⱼ) = LOC (a₀₀) + (i×n + j)×k；按列\n优先存储时，aᵢⱼ的存储地址为 LOC (aᵢⱼ) = LOC (a₀₀) + (j×m + i)×k。\n 特殊矩阵的压缩存储：\n特殊矩阵是指具有许多相同元素或零元素，且这些元素的分布具有一定规律的矩阵。为了节\n省存储空间，可以对特殊矩阵进行压缩存储，即只存储那些非零且不重复的元素。\n 对称矩阵：\n若一个 n 阶方阵 A 中的元素满足 aᵢⱼ = aⱼᵢ（1≤i, j≤n），则称 A 为对称矩阵。\n对称矩阵的上三角部分（i <j）和下三角部分（i> j）的元素是对称相等的，因此只需存储下",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5847,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p13-1/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0087
+    },
+    {
+      "id": "generalized-list",
+      "query": "广义表的表头和表尾",
+      "expected_pages": [
+        14,
+        15
+      ],
+      "expected_text": "表尾",
+      "covered": true,
+      "retrieved": [
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p14-3",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "表头和表尾",
+          "page_number": 14,
+          "content": " 表头和表尾：\n广义表的表头（Head）是指广义表的第一个元素，可以是原子或子表；表尾（Tail）是指广\n义表中除表头以外的其余元素构成的广义表，一定是一个广义表。\n例如：\n 对于广义表 LS = (a, b, c)，表头是 a，表尾是 (b, c)。\n 对于广义表 LS = ((a, b), c)，表头是 (a, b)，表尾是 (c)。\n 对于广义表 LS = ()，表头和表尾均不存在（或为空）。\n 对于广义表 LS = (a)，表头是 a，表尾是 ()。\n 存储结构：\n由于广义表的元素可以是原子或子表，且具有递归性和多层次性，因此通常采用链式存储结\n构。每个节点分为两类：原子节点和表节点。\n\ntypedef enum {ATOM, LIST} ElemTag; // ATOM 表示原子节点，LIST 表示表节点\ntypedef struct GLNode {\nElemTag tag; // 标志域\nunion {\nchar atom; // 原子节点的数据域",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.681,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p14-3/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p14-2",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "递归性",
+          "page_number": 14,
+          "content": "或子表，n 是广义表的长度。当 n=0 时，称为空广义表，记为 ()。\n广义表具有以下特点：\n 递归性：广义表可以是其自身的子表，例如 LS = (1, (2, LS))。\n 多层次性：广义表的元素可以是原子，也可以是子表，子表的元素还可以是子表，\n从而形成多层次结构，例如 LS = (1, (2, (3, 4)), 5)。\n 共享性：一个广义表可以被多个广义表共享，即多个广义表可以包含同一个子表。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.5876,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p14-2/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p15-0",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "原子节点",
+          "page_number": 15,
+          "content": "struct {\nstruct GLNode* hp; // 表节点的表头指针域\nstruct GLNode* tp; // 表节点的表尾指针域\n} ptr;\n} val;\n} GLNode, *GList;\n\n这种存储结构可以灵活地表示各种广义表，包括空表、原子、子表以及递归表等。\n 原子节点：用于存储原子，包含一个标志域（表示该节点是原子节点）和一个数据\n域（存储原子的值）。\n 表节点：用于存储子表，包含一个标志域（表示该节点是表节点）、一个表头指针域\n（指向子表的表头）和一个表尾指针域（指向子表的表尾）。",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.4739,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p15-0/"
+        },
+        {
+          "chunk_id": "97b065357e4afda4c3d8d0a1-p14-1",
+          "document_name": "数据结构与算法知识库文档.pdf",
+          "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+          "chapter": "第四章 串、数组和广义表",
+          "section": "多对角线矩阵",
+          "page_number": 14,
+          "content": "对于下三角矩阵，存储方式与对称矩阵类似，只需存储主对角线及以下的元素和常数 c，总\n存储量也为 n (n + 1)/2 + 1。\n 多对角线矩阵：\n多对角线矩阵是指矩阵中除了主对角线及其附近几条对角线以外的元素均为零的矩阵，常见\n的有三对角线矩阵（带状矩阵）。\n三对角线矩阵是指对于 n 阶方阵 A，只有当 | i - j| ≤ 1 时，aᵢⱼ ≠ 0，其余元素均为零。\n三对角线矩阵的非零元素共有 3n - 2 个，按行优先顺序存储这些非零元素。对于元素 aᵢⱼ\n（|i - j| ≤ 1），其在压缩存储数组中的下标为 k = 2 (i - 1) + (j - i + 1) = 2i + j - 3（假设数\n组下标从 0 开始）。例如，4 阶三对角线矩阵的非零元素存储顺序为 a₁₁, a₁₂, a₂₁, a₂₂, a₂₃,\na₃₂, a₃₃, a₃₄, a₄₃, a₄₄。\n 广义表：\n 定义及特点：\n广义表（Generalized List）又称列表，是线性表的推广，它是由零个或多个原子（Atom）\n或子表（Sublist）组成的有限序列。原子是指不可再分割的基本元素，如整数、字符等；子\n表是指广义表中的元素本身也是一个广义表。\n广义表通常记为 LS = (a₁, a₂, …, aₙ)，其中 LS 是广义表的名称，aᵢ（1≤i≤n）可以是原子\n或子表，n 是广义表的长度。当 n=0 时，称为空广义表，记为 ()。\n广义表具有以下特点：",
+          "source_type": "original",
+          "version": "1",
+          "score": 0.471,
+          "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p14-1/"
+        }
+      ],
+      "hit_at_4": true,
+      "abstained": false,
+      "source_integrity": true,
+      "duration_seconds": 0.0084
+    },
+    {
+      "id": "outside-redblack",
+      "query": "红黑树旋转",
+      "expected_pages": [],
+      "covered": false,
+      "retrieved": [],
+      "hit_at_4": null,
+      "abstained": true,
+      "source_integrity": true,
+      "duration_seconds": 0.0079
+    },
+    {
+      "id": "outside-physics",
+      "query": "量子引力黑洞霍金辐射",
+      "expected_pages": [],
+      "covered": false,
+      "retrieved": [],
+      "hit_at_4": null,
+      "abstained": true,
+      "source_integrity": true,
+      "duration_seconds": 0.0069
+    }
+  ],
+  "metrics": {
+    "covered_cases": 9,
+    "hit_at_4": 1.0,
+    "source_integrity": true,
+    "outside_abstention": 2
+  },
+  "generation_comparison": {
+    "status": "NOT_VERIFIED",
+    "reason": "未调用个人 DeepSeek Key；不能用离线测试代替模型回答质量实验。"
+  },
+  "agent_experiment": {
+    "status": "NOT_VERIFIED"
+  },
+  "code_experiment": {
+    "status": "NOT_VERIFIED",
+    "evidence": "execution_probe.json"
+  },
+  "fact_consistency": {
+    "status": "REQUIRES_HUMAN_REVIEW",
+    "note": "原始生成回答必须逐项人工对照资料；未以 LLM 自评伪造指标。"
+  }
+}
