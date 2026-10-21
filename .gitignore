@@ -16,3 +16,6 @@ data/pytest-latest.log
 # Local verification logs and unredacted host evidence
 data/*.log
 output/private-evidence/
+
+# Local interview material; keep out of the public repository and delivery ZIP.
+INTERVIEW_DEFENSE.md

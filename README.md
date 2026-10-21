@@ -678,6 +678,5 @@ ALGOMENTOR_LIVE_WIKIPEDIA=1 .venv/bin/pytest -q tests/integration/test_live_wiki
 | [SECURITY.md](SECURITY.md) | 密钥、权限、执行边界与生产要求 |
 | [TESTING.md](TESTING.md) | 测试范围、真实实验与结果解释 |
 | [WIKIPEDIA_OFFLINE_REPORT.md](WIKIPEDIA_OFFLINE_REPORT.md) | Wikipedia / 缓存 / 服务恢复 / 离线功能、逐文件修改与本轮验收 |
-| [INTERVIEW_DEFENSE.md](INTERVIEW_DEFENSE.md) | 面试答辩自述、架构讲解、演示流程与技术追问参考 |
 | [DELIVERY_REPORT.md](DELIVERY_REPORT.md) | 开发完成情况、验收证据与尚未验证的环节 |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | 开发命令与工程维护 |
