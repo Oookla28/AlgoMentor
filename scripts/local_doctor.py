@@ -58,7 +58,10 @@ def main():
 
     try:
         loader = MigrationLoader(connection, ignore_no_migrations=True)
-        unapplied = sorted(f'{app}.{name}' for app, name in loader.unapplied_migrations)
+        unapplied = sorted(
+            f'{app}.{name}'
+            for app, name in (set(loader.disk_migrations) - set(loader.applied_migrations))
+        )
         add('PASS' if not unapplied else 'FAIL', 'migrations', unapplied[:10] or 'up to date')
     except Exception as exc:
         add('FAIL', 'migrations', type(exc).__name__)

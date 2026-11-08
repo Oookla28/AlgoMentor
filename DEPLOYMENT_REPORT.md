@@ -1,12 +1,14 @@
 # 本地部署报告
 
+> 2026-11-08 续建更新：以下初始记录保留；最新部署为源提交 `b798c22`，实际工作台地址 `http://127.0.0.1:8010/workbench/`，部署目录数据/`.env`/既有 Chroma 保留，启动 `scripts/local_start.sh`、停止 `scripts/local_stop.sh`、诊断 `python scripts/local_doctor.py`。完整记录见 `FINAL_CONTINUATION_REPORT.md` 与 `LOCAL_PREVIEW.md`。
+
 - 源目录：`/Volumes/半岛铁盒/实验室/AlgoMentor`
 - 部署目录：`/Volumes/半岛铁盒/实验室考核部署`
-- 源提交：`c2a9c71f54a6874eeac18e0289525ada6d6c651f`（分支 `main`，未提交文件数 2）
-- 创建时间：2026-11-08 20:32:14 CST
+- 源提交：`b798c22`（分支 `main`；续建前基线 `1c927e0`）
+- 创建时间：2026-11-08（Asia/Shanghai）
 - 端口：`8010`
 - Chroma：`/tmp/algomentor-deploy-chroma`
-- 备份：`/Volumes/半岛铁盒/实验室考核部署.backup.20261108_203155`
+- 数据库快照：`/Volumes/半岛铁盒/实验室考核部署/data/backups/`
 
 ## 已验证
 
