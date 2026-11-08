@@ -186,7 +186,7 @@
             <span class="algomentor-workbench-taskmeta">
               <span class="pill {% if task.status == 'SUCCEEDED' or task.status == 'COMPLETED' %}teal{% elif task.status == 'FAILED' %}red{% elif task.status == 'ABSTAINED' or task.status == 'PARTIAL' %}amber{% else %}blue{% endif %}">{{ task.status_label }}</span>
               <span>{{ task.stage }}</span>
-              <span>{{ task.created_at|slice:':16' }} · {{ task.run_id|slice:':8' }}</span>
+              <span>{{ task.created_at_label }} · {{ task.run_id|slice:':8' }}</span>
             </span>
           </button>
           {% empty %}

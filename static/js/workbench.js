@@ -76,7 +76,7 @@
     meta.append(
       pill,
       node('span', {}, task.stage || ''),
-      node('span', {}, `${String(task.created_at || '').slice(0, 16)} · ${String(task.run_id || '').slice(0, 8)}`),
+      node('span', {}, `${task.created_at_label || String(task.created_at || '').slice(0, 16)} · ${String(task.run_id || '').slice(0, 8)}`),
     );
     button.append(meta);
     button.addEventListener('click', () => selectTask(task.run_id));
@@ -267,6 +267,9 @@
         }
         const meta = item.querySelector('.algomentor-workbench-taskmeta');
         if (meta && meta.children.length > 1) meta.children[1].textContent = task.stage || '';
+        if (meta && meta.children.length > 2 && task.created_at_label) {
+          meta.children[2].textContent = `${task.created_at_label} · ${String(task.run_id || '').slice(0, 8)}`;
+        }
       }
     });
     const url = new URL(window.location.href);

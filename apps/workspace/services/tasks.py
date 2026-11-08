@@ -268,6 +268,7 @@ def serialize_task(run, include_steps=False, include_evidence=True, staff=False)
         'cancel_requested': run.cancel_requested,
         'metrics': metrics,
         'created_at': run.created_at.isoformat() if run.created_at else '',
+        'created_at_label': timezone.localtime(run.created_at).strftime('%m-%d %H:%M') if run.created_at else '',
         'finished_at': run.finished_at.isoformat() if run.finished_at else '',
         'artifacts': artifacts,
         'skill_activations': activations,
