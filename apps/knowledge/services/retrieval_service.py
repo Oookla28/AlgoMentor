@@ -20,6 +20,21 @@ class Citation:
     version: str
     score: float
     url: str
+    # Additive EvidenceRAG fields. Defaults keep old constructors and JSON consumers working.
+    parent_chunk_id: str = ''
+    heading_path: str = ''
+    chunk_type: str = ''
+    char_start: int | None = None
+    char_end: int | None = None
+    evidence_id: str = ''
+    matched_content: str = ''
+    context: str = ''
+    media_asset_id: str = ''
+    start_time: float | None = None
+    end_time: float | None = None
+    authority_level: int = 3
+    freshness: str = ''
+    source_uri: str = ''
 
 class VectorStore(Protocol):
     def search(self, query: str, k: int) -> list[Citation]: ...
@@ -34,6 +49,7 @@ def retrieve_knowledge(query: str, top_k: int | None = None) -> list[Citation]:
     hits = []
     # Each document/index has its own dimensions and vocabulary; never mix vectors.
     for document in documents:
+        if not document.index_version or not document.collection_name: continue  # advanced-only uploads
         if document.embedding_model != embedding_identity(): continue
         store = Chroma(collection_name=document.collection_name,persist_directory=str(settings.CHROMA_PATH),embedding_function=cached_embeddings(document.index_version),collection_metadata={'hnsw:space':'cosine'})
         for item,distance in store.similarity_search_with_score(query,k=k):
@@ -52,6 +68,29 @@ def retrieve_knowledge(query: str, top_k: int | None = None) -> list[Citation]:
 
 
 def citations_json(citations): return [asdict(c) for c in citations]
+
+
+def retrieve_knowledge_with_trace(query, top_k=None, mode=None, user=None):
+    """Compatibility wrapper used by advanced UI/API; the legacy function is unchanged.
+
+    Legacy mode keeps the original return semantics (a list of Citations inside
+    RetrievalResult) and raises the same validation/index errors.
+    """
+    from .hybrid_retrieval import RetrievalResult, advanced_retrieve
+    mode = (mode or getattr(settings, 'EVIDENCE_RAG_DEFAULT_MODE', 'legacy')).strip().lower()
+    if mode not in ('legacy', 'advanced'):
+        raise ValidationError('检索模式仅支持 legacy 或 advanced。')
+    if mode == 'advanced':
+        return advanced_retrieve(query, top_k=top_k, user=user)
+    return RetrievalResult(
+        citations=retrieve_knowledge(query, top_k=top_k),
+        mode='legacy',
+        original_query=query,
+        query_variants=[query],
+        fallback={'used': False, 'reason': '', 'warnings': []},
+        evidence_sufficient=False,
+        embedding_provider=getattr(settings, 'EMBEDDING_PROVIDER', ''),
+    )
 
 
 def verified_citation_ids(text: str, citations: list[Citation]) -> list[Citation]:

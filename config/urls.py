@@ -3,6 +3,7 @@ from django.urls import path,include
 from core import views as core_views
 from apps.accounts import views as accounts
 from apps.knowledge import views as knowledge
+from apps.knowledge import views_evidence as evidence
 from apps.tutor import views as tutor
 from apps.analytics import views as analytics
 from apps.problems.urls import api_patterns as problem_api
@@ -35,6 +36,16 @@ urlpatterns=[
  path('api/v1/knowledge/local/',knowledge.local_search),
  path('api/v1/knowledge/wikipedia/',knowledge.wikipedia_search),
  path('api/v1/knowledge/points/',knowledge.points_api),
+ # EvidenceRAG Studio: additive maintenance API. All writes require staff and CSRF.
+ path('api/v1/knowledge/tree/',evidence.tree),
+ path('api/v1/knowledge/documents/upload/',evidence.upload_document),
+ path('api/v1/knowledge/documents/<int:document_id>/',evidence.document_detail),
+ path('api/v1/knowledge/documents/<int:document_id>/reindex/',evidence.reindex_document_api),
+ path('api/v1/knowledge/chunks/<str:chunk_id>/restore/',evidence.chunk_restore),
+ path('api/v1/knowledge/chunks/<str:chunk_id>/',evidence.chunk_dispatch),
+ path('api/v1/knowledge/traces/<str:trace_id>/',evidence.trace_detail),
+ path('api/v1/knowledge/conflicts/<str:conflict_id>/',evidence.conflict_detail),
+ path('api/v1/knowledge/media/<str:asset_id>/file/',evidence.media_file),
  path('api/v1/analytics/agent-traces/',analytics.traces),
  path('api/v1/',include(problem_api+learning_api+graph_api)),
 ]

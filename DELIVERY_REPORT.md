@@ -115,3 +115,112 @@ ALGOMENTOR_LIVE_EXECUTION=1 .venv/bin/pytest -q tests/integration/test_live_exec
 7. 提交错误和正确程序，展示用例真实结果、错题保留、掌握度更新及图谱变化；查看不同用户隔离。
 8. 启动report_worker，生成本周报告，展示任务状态、CrewAI研究员与写手逻辑，逐项核对数据库数字。
 9. 如凭据缺失，当场展示真实配置/授权错误，并说明该线上环节待验证，不能表演伪造结果。
+
+---
+
+## 第九部分：EvidenceRAG Studio 增量交付记录（2026-11-08）
+
+### 1. 交付范围与基线
+
+| 项目 | 内容 |
+| --- | --- |
+| 上游快照 | `423b644` |
+| 基线 HEAD | `e710827` |
+| 功能分支 | `feat/evidence-rag-studio` |
+| 基线测试 | 320 passed / 2 skipped |
+| 增量后测试 | **371 passed / 2 skipped** |
+| 系统检查 | `manage.py check` 无问题 |
+| 迁移检查 | `makemigrations --check` 无变化 |
+| 基线记录 | `docs/evidence_rag/baseline.md` |
+
+增量不是重写：旧版 RAG、Citation、搜索 API、`[来源N]`、聊天时序、
+知识图谱、代码评测、报告、Wikipedia 与离线学习都保留。所有新增
+数据库字段可空或有默认值，旧数据无需回填。
+
+### 2. 实际新增能力
+
+| 能力 | 实现位置 | 交付状态 |
+| --- | --- | --- |
+| MIME 路由与多模态适配 | `mime_router.py`、`multimodal_loader.py`、`evidence_schema.py` | 完成；OCR/ASR/DOCX 可选后端未安装 |
+| 结构感知递归切片 | `boundary_detector.py`、`hierarchical_chunker.py` | 完成；课程 PDF 实测 8 父块 / 29 子块 |
+| 父块/子块层次 | `models.py`、`hierarchical_chunker.py` | 完成；迁移 `0004` |
+| Small2Big | `small2big_service.py` | 完成；token budget + 父块/兄弟上下文 |
+| BM25 稀疏检索 | `sparse_retrieval.py` | 完成；无外部服务依赖 |
+| 独立高级 Chroma 索引 | `advanced_index_service.py` | 完成；TF-IDF 2048 维实测，BGE 高级索引 UNVERIFIED |
+| 查询路由与改写 | `query_router.py`、`query_rewriter.py` | 完成；原始查询始终保留，LLM 改写默认关闭 |
+| 多查询 + RRF | `hybrid_retrieval.py`、`rrf_service.py` | 完成；逐路轨迹落库 |
+| 确定性重排 | `rerank_service.py` | 完成；交叉编码器 optional |
+| 检索轨迹 | `trace_service.py`、`models.py` | 完成；查询级 + 逐路级 |
+| 冲突检测与仲裁 | `claim_service.py`、`conflict_service.py` | 完成；规则后端 |
+| claim 级引用核验 | `citation_verifier.py` | 完成；旧 `verified_citation_ids` 未改 |
+| 管理 API | `views_evidence.py`、`config/urls.py` | 完成；staff + CSRF + 事务 |
+| 片段树/轨迹/冲突/媒体 UI | `templates/knowledge/*`、`static/css/evidence-rag.css`、`static/js/knowledge.js` | 完成；浏览器实测 |
+| 可选依赖说明 | `requirements-rag-multimodal.in` | 完成；核心依赖未加重型包 |
+| 文档同步 | README / ARCHITECTURE / IMPLEMENTATION_PLAN / TESTING / 本报告 | 完成 |
+
+### 3. 真实验证证据
+
+1. **自动测试**：增量后 371 passed / 2 skipped；新增 51 项覆盖切片、
+   Small2Big、稀疏/稠密/RRF/重排、改写、冲突、引用核验、多模态、
+   CRUD/权限/CSRF 与高级入库命令。旧测试未删除、未修改断言。
+2. **课程 PDF 入库**：15 页 → 旧版 35 片段；高级 8 父块 / 29 子块；
+   TF-IDF 2048 维；高级 collection `ev-adv-3276aef3b4b6faa840345085`。
+3. **高级检索**：查询“循环队列判满条件”返回 6 条证据、70 行逐路轨迹，
+   dense 与 sparse 两路均出现；结果含父块、heading path、字符范围、
+   Small2Big 上下文与 Evidence ID。
+4. **离线检索评测**：`scripts/evaluate_evidence_rag.py` 在 TF-IDF 高级索引上
+   得到 advanced 9/9 库内命中、2/2 库外拒答；同环境 legacy 为 6/9 与 2/2。
+   结果写入 `tests/evaluation/evidence_rag_results.json`，只作为本机小样本，
+   不宣称生产准确率。
+5. **浏览器 QA**：真实 Chrome 中 `demo_staff` 登录后验证：
+   - `/knowledge/` 显示“高级检索”和“管理员维护”；
+   - 勾选高级检索后显示“高级检索模式”、6 张证据卡、查询变体、
+     dense/sparse 轨迹表与 Small2Big 面板；
+   - “切片树”显示 8 父块 / 29 子块；
+   - “管理员维护”显示上传、重建索引、加载片段、编辑片段控件。
+6. **权限**：普通学生页面不出现“管理员维护”；写接口返回 403；
+   无 CSRF 的写请求返回 403；媒体文件仅登录用户可读，路径穿越返回 404。
+
+### 4. 明确未验证项
+
+| 项目 | 状态 | 说明 |
+| --- | --- | --- |
+| 真实 BGE 高级索引 | UNVERIFIED | 本机未下载 BGE 权重；高级链路用 TF-IDF 完成集成验证 |
+| 交叉编码器重排 | OPTIONAL / UNVERIFIED | 默认确定性后端；缺模型时自动回退 |
+| LLM 查询改写 | OPTIONAL / UNVERIFIED | 默认关闭；无 Key 时确定性改写 |
+| 图片 OCR | OPTIONAL / UNVERIFIED | 未安装 pytesseract/tesseract；缺失路径有 warning |
+| 视频 ASR/关键帧 | OPTIONAL / UNVERIFIED | 未安装 faster-whisper/ffmpeg；保留原文件与人工标注 |
+| 离线冷启动验证 | ENVIRONMENT-LIMITED | 初始化后页面/静态/RAG/百科缓存通过；停在未部署的本机 Piston；BGE 权重未装 |
+| DeepSeek 在线生成 | NOT_VERIFIED | 未使用个人付费 Key |
+
+### 5. 复现命令
+
+```bash
+python manage.py check
+python manage.py migrate
+python manage.py ingest_knowledge
+python manage.py ingest_knowledge --advanced
+python manage.py runserver
+pytest -q
+python scripts/verify_environment.py
+python scripts/verify_offline.py
+```
+
+高级检索 API：
+
+```bash
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/search/?q=循环队列判满条件&mode=advanced'
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/tree/'
+```
+
+### 6. 交付约束核对
+
+- 未修改 `templates/base.html` 与 `static/css/app.css`；
+- 未引入 React/Vue/Node 构建链；
+- 未覆盖旧 Chroma collection；
+- 未删除/重命名旧模型字段；
+- 未改变 `Citation` 旧字段与搜索 API 旧字段；
+- 未把改写查询当事实；
+- 未在页面显示 traceback、服务器路径或 API Key；
+- 未删除任何原测试；
+- 可选依赖缺失不会阻止 Django 启动或旧 PDF RAG。

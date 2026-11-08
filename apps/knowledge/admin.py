@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import KnowledgePoint,KnowledgeDocument,KnowledgeChunk,KnowledgeCorrection,KnowledgeRelation,Course,Chapter
+from .models import (KnowledgePoint,KnowledgeDocument,KnowledgeChunk,KnowledgeCorrection,KnowledgeRelation,Course,Chapter,
+                     MediaAsset,EvidenceClaim,KnowledgeQueryTrace,KnowledgeRetrievalTrace,KnowledgeConflict)
 admin.site.register([KnowledgePoint,KnowledgeDocument,KnowledgeChunk,KnowledgeRelation,Course,Chapter])
+admin.site.register([MediaAsset,EvidenceClaim,KnowledgeQueryTrace,KnowledgeRetrievalTrace,KnowledgeConflict])
 
 @admin.register(KnowledgeCorrection)
 class CorrectionAdmin(admin.ModelAdmin):

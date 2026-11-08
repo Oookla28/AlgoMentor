@@ -658,7 +658,6 @@ ALGOMENTOR_LIVE_EXECUTION=1 .venv/bin/pytest -q tests/integration/test_live_exec
 | Piston 提交闭环 | 真实隔离执行通过，使用 pytest 数据库验证成绩与用户隔离 |
 | 离线冷启动 | 新 WSGI 进程阻断外部 DNS / socket 和主机代理后通过，本地模型、静态资源、课程、百科缓存与执行均可用 |
 | 既有学生数据 | 账户、聊天、提交、掌握度、错题和报告行的只读指纹核对未变 |
-
 离线验证前需完成模型与索引准备、创建至少一个注册账户、预热“红黑树”缓存，并启动本机 Piston（端口 2000）。收集本地静态资源后执行：
 
 ```bash
@@ -680,3 +679,265 @@ ALGOMENTOR_LIVE_WIKIPEDIA=1 .venv/bin/pytest -q tests/integration/test_live_wiki
 | [WIKIPEDIA_OFFLINE_REPORT.md](WIKIPEDIA_OFFLINE_REPORT.md) | Wikipedia / 缓存 / 服务恢复 / 离线功能、逐文件修改与本轮验收 |
 | [DELIVERY_REPORT.md](DELIVERY_REPORT.md) | 开发完成情况、验收证据与尚未验证的环节 |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | 开发命令与工程维护 |
+| [docs/evidence_rag/baseline.md](docs/evidence_rag/baseline.md) | EvidenceRAG 增量开发前的审计与基线结果 |
+
+<a id="evidence-rag"></a>
+
+## 七、研究型 EvidenceRAG 扩展
+
+### 1. 为什么增加这一层
+
+原有 AlgoMentor 已经具备课程 RAG、引用、智能体、代码评测、知识图谱和
+离线学习。本扩展不是重写项目，而是在原有链路上增加一套可解释、可维护、
+冲突感知的检索实验层，用于回答以下研究问题：
+
+1. 结构感知的递归字符切片与父块/子块层次，能否在不改变旧索引的前提下
+   提升课程证据的可读性与可追溯性？
+2. 稀疏 BM25 与稠密 BGE/Chroma 的多查询融合（RRF），是否比单路稠密检索
+   更稳定？
+3. 当不同来源的表述互相冲突时，系统能否显式展示冲突、来源、时间与权威性，
+   而不是静默选择一条？
+4. 图片 OCR、人工标注与视频 ASR/关键帧证据，能否进入同一套引用与核验契约？
+
+### 2. 与原有体验的兼容策略
+
+- 旧版 `retrieve_knowledge(query, top_k=None)`、`Citation` 字段、旧搜索 API、
+  `[来源N]`、`verified_citation_ids()` 全部保留；
+- 旧 Chroma collection 不覆盖、不改维度；高级索引使用独立
+  `latest_index_version` 与 `ev-adv-*` collection；
+- 默认 `EVIDENCE_RAG_DEFAULT_MODE=legacy`，普通学生仍然看到原有搜索、
+  原文与本地学习入口；
+- 高级功能默认折叠；高级索引不可用时自动回退旧版稠密检索；
+- 不修改 `templates/base.html` 与 `static/css/app.css` 的全局视觉系统，
+  新增样式全部使用 `.evidence-rag-*` 前缀和现有 CSS 变量；
+- 不引入 React/Vue/Node 构建链。
+
+### 3. 项目贡献
+
+- 统一的 `EvidenceUnit` 证据结构，覆盖文本、图片、视频与音频；
+- 结构感知递归字符切割 + 父块/子块 + Small2Big；
+- 查询路由、确定性查询改写、稀疏/稠密多查询 Fan-out、RRF、确定性重排；
+- 检索轨迹（查询级 + 逐路召回级）与知识片段树；
+- 规则化主张抽取、冲突检测、权威性/时效性仲裁；
+- claim 级引用核验、无证据拒答与生成契约；
+- 管理员片段维护 API 与页面（CSRF、事务、索引一致性）；
+- 可选多模态适配器与缺依赖降级。
+
+<a id="requirement-mapping"></a>
+
+## 八、作业要求与功能映射
+
+| 作业要求 | 实现模块 | 入口文件 | API/命令 | 验证方式 |
+| --- | --- | --- | --- | --- |
+| 统一知识入库 | `multimodal_loader.py` / `mime_router.py` | `apps/knowledge/services` | `POST /api/v1/knowledge/documents/upload/` | `test_multimodal_loader.py`、`test_evidence_api.py` |
+| 结构感知递归切片 | `hierarchical_chunker.py` / `boundary_detector.py` | `apps/knowledge/services` | `ingest_knowledge --advanced` | `test_hierarchical_chunker.py` |
+| 父块—子块层次 | `hierarchical_chunker.py` / `models.py` | `apps/knowledge` | `GET /api/v1/knowledge/tree/` | `test_advanced_ingestion.py` |
+| Small2Big | `small2big_service.py` | `apps/knowledge/services` | advanced retrieval | `test_small2big.py` |
+| BM25/词法检索 | `sparse_retrieval.py` | `apps/knowledge/services` | advanced retrieval | `test_retrieval_advanced.py` |
+| BGE/Chroma 稠密检索 | `embedding_service.py` / `advanced_index_service.py` | `apps/knowledge/services` | `ingest_knowledge` | 旧版测试 + TF-IDF 高级索引集成测试 |
+| 查询改写 | `query_router.py` / `query_rewriter.py` | `apps/knowledge/services` | advanced retrieval | 改写/回退测试 |
+| 多查询 Fan-out | `hybrid_retrieval.py` | `apps/knowledge/services` | advanced retrieval | 轨迹测试（逐路召回；确定性顺序执行以保证可复现） |
+| RRF 排名融合 | `rrf_service.py` | `apps/knowledge/services` | advanced retrieval | RRF 单元测试 |
+| 可选交叉编码器重排 | `rerank_service.py` | `apps/knowledge/services` | `EVIDENCE_RAG_RERANK_BACKEND=cross_encoder` | 缺依赖回退测试（在线模型 UNVERIFIED） |
+| 检索轨迹 | `trace_service.py` / `models.py` | `apps/knowledge` | `GET /api/v1/knowledge/traces/<id>/` | `test_evidence_api.py` |
+| 知识片段可视化 | `templates/knowledge/index.html` / `knowledge.js` | `templates`、`static` | “切片树”页签 | 浏览器 QA |
+| 片段增删改查 | `views_evidence.py` | `apps/knowledge` | `GET/PATCH/DELETE /api/v1/knowledge/chunks/<id>/` | `test_evidence_api.py` |
+| 图片 OCR / 标注 | `multimodal_loader.py` / `MediaAsset` | `apps/knowledge` | upload + annotation | `test_multimodal_loader.py`（OCR 依赖缺失路径） |
+| 视频 ASR / 关键帧 | `multimodal_loader.py` / `MediaAsset` | `apps/knowledge` | upload + annotation | 元数据/时间戳测试（真实 ASR UNVERIFIED） |
+| 冲突证据识别 | `claim_service.py` / `conflict_service.py` | `apps/knowledge/services` | advanced retrieval | `test_conflict_service.py` |
+| 来源/时间/版本/权威性仲裁 | `conflict_service.py` / `models.py` | `apps/knowledge` | `GET /api/v1/knowledge/conflicts/<id>/` | 冲突仲裁测试 |
+| 结构化引用核验 | `citation_verifier.py` / `retrieval_service.py` | `apps/knowledge/services` | `[来源N]` | `test_citation_verifier.py` |
+| 无证据拒答 | `hybrid_retrieval.py` / `prompt_service.py` | `apps/knowledge`、`apps/tutor` | advanced retrieval / chat | 证据不足测试 + 生成契约 |
+| 离线与降级 | `advanced_index_service.py` / `query_rewriter.py` | `apps/knowledge/services` | 自动 fallback | fallback 测试 |
+| 文档同步 | 本 README、ARCHITECTURE、IMPLEMENTATION_PLAN、TESTING、DELIVERY_REPORT | 仓库根目录 | — | 文档审阅 |
+| 测试与评测 | `apps/knowledge/tests/*` | `apps/knowledge/tests` | `pytest -q` | 371 passed / 2 skipped |
+| 检索评测脚本 | `scripts/evaluate_evidence_rag.py` | `tests/evaluation/rag_cases.json` | `python scripts/evaluate_evidence_rag.py` | advanced 9/9、拒答 2/2；legacy 6/9（TF-IDF） |
+
+<a id="rag-pipeline"></a>
+
+## 九、研究型检索链路
+
+```mermaid
+flowchart LR
+  A[PDF / DOCX / Markdown / 文本 / 图片 / 视频] --> B[MIME Router]
+  B --> C[Multimodal Loader]
+  C --> D[EvidenceUnit]
+  D --> E[结构感知递归字符切片]
+  E --> F[Parent / Child]
+  F --> G[Sparse BM25]
+  F --> H[Dense BGE / Chroma]
+  Q[原始查询] --> R[Query Router]
+  R --> W[Query Rewrite]
+  W --> G
+  W --> H
+  G --> X[RRF]
+  H --> X
+  X --> Y[Rerank]
+  Y --> Z[Small2Big]
+  Z --> C2[Conflict Arbitration]
+  C2 --> G2[Grounded Answer]
+  G2 --> V[Citation Verification]
+```
+
+文字链路：
+
+```text
+上传 → 解析 → EvidenceUnit → 结构感知递归切片 → Parent/Child
+→ Sparse + Dense → Query Rewrite → Fan-out → RRF → Rerank
+→ Small2Big → Conflict Arbitration → Grounded Answer
+→ Citation Verification
+```
+
+关键约束：
+
+- 查询改写只用于召回，永远不作为事实证据；
+- 每条可验证结论必须有 `[来源N]`；
+- 冲突时并列展示 A/B、来源、版本与时间；置信度差距不足时标记
+  `UNRESOLVED`，不静默选择；
+- 证据不足时返回 `evidence_sufficient=false`，回答侧明确拒答；
+- 高相似但结论相反的片段会进入冲突检测，出现次数多不代表正确。
+
+<a id="evidence-data-model"></a>
+
+## 十、数据模型
+
+| 模型 | 作用 | 关键字段 |
+| --- | --- | --- |
+| `KnowledgeDocument` | 文档级元数据 | `source_type`、`authority_level`、`valid_from/to`、`parser_name`、`ingestion_status`、`latest_index_version` |
+| `KnowledgeChunk` | 原文/父块/子块/媒体片段 | `parent_chunk`、`chunk_type`、`heading_path`、`char_start/end`、`token_count`、`content_hash`、`is_active`、`deleted_at` |
+| `MediaAsset` | 图片/视频/音频证据 | `asset_id`、`modality`、`sha256`、`bbox`、`start_time/end_time`、`ocr_text`、`asr_text`、`manual_annotation` |
+| `EvidenceClaim` | 从片段抽取的可核验主张 | `subject`、`predicate`、`object`、`normalized_text`、`contradiction_group`、`detector_score` |
+| `KnowledgeQueryTrace` | 查询级轨迹 | `query_variants`、`retrieval_mode`、`selected_chunk_ids`、`latency_ms`、`fallback_reason` |
+| `KnowledgeRetrievalTrace` | 逐路召回轨迹 | `retriever_name`、`query_variant`、`rank`、`raw_score`、`rrf_score`、`rerank_score`、`selected` |
+| `KnowledgeConflict` | 冲突案例与仲裁 | `claim_a/b`、`conflict_type`、`confidence`、`authority_scores`、`freshness_scores`、`verdict` |
+
+旧数据继续可读：所有新增字段都有默认值或允许为空；迁移只新增字段与表，
+不删除、不重命名旧字段。
+
+<a id="advanced-config"></a>
+
+## 十一、高级模式配置
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `EVIDENCE_RAG_ENABLED` | `true` | 是否启用增量模块 |
+| `EVIDENCE_RAG_DEFAULT_MODE` | `legacy` | 旧搜索 API 的默认模式 |
+| `EVIDENCE_RAG_CHAT_MODE` | `legacy` | 聊天是否走高级检索兼容接口 |
+| `EVIDENCE_RAG_INDEX_VERSION` | `adv-v1` | 高级索引标签；与 embedding identity 一起哈希 |
+| `EVIDENCE_RAG_PARENT_TOKEN_MIN/MAX` | 1200 / 2000 | 父块初始 token 目标 |
+| `EVIDENCE_RAG_CHILD_TOKEN_MIN/MAX` | 300 / 500 | 子块初始 token 目标 |
+| `EVIDENCE_RAG_CHILD_OVERLAP_RATIO` | 0.12 | 子块重叠比例 |
+| `EVIDENCE_RAG_RRF_K` | 60 | RRF 公式中的 k |
+| `EVIDENCE_RAG_TOP_K` | 6 | 最终证据条数上限 |
+| `EVIDENCE_RAG_ROUTE_TOP_K` | 20 | 每路召回候选数 |
+| `EVIDENCE_RAG_CONTEXT_TOKEN_BUDGET` | 1800 | Small2Big 总上下文预算 |
+| `EVIDENCE_RAG_DENSE_MIN_SCORE` | 0.20 | 稠密召回最低余弦相似度 |
+| `EVIDENCE_RAG_MIN_RERANK_SCORE` | 0.12 | 最终重排最低分 |
+| `EVIDENCE_RAG_MIN_LEXICAL_OVERLAP` | 0.20 | 证据门控：多字词法覆盖门槛（实现中取一半作为候选预门控） |
+| `EVIDENCE_RAG_MIN_DENSE_SUPPORT` | 0.35 | 无词法覆盖时允许通过的稠密语义分数 |
+| `EVIDENCE_RAG_RERANK_BACKEND` | `deterministic` | `deterministic` 或 `cross_encoder` |
+| `EVIDENCE_RAG_QUERY_REWRITE_LLM` | `false` | 是否允许 LLM 改写；失败自动回退 |
+| `EVIDENCE_RAG_CONFLICT_SIMILARITY` | 0.55 | 冲突检测的相似度门槛 |
+| `EVIDENCE_RAG_CONFLICT_SCORE_GAP` | 0.12 | 低于该差距时判为 `UNRESOLVED` |
+| `EVIDENCE_RAG_OCR_ENABLED` | `false` | 是否尝试图片 OCR |
+| `EVIDENCE_RAG_ASR_ENABLED` | `false` | 是否尝试视频/音频 ASR |
+| `EVIDENCE_RAG_MAX_UPLOAD_BYTES` | 20 MiB | 上传大小上限 |
+| `CHROMA_PATH` | `data/chroma` | 可显式指向其他持久化目录 |
+
+模式说明：
+
+- **legacy**：仅旧版 650/80 字符切片 + 旧 Chroma collection；
+- **advanced hybrid**：父块/子块 + BM25 + 稠密 + 多查询 + RRF + 重排；
+- **multimodal optional**：图片/视频原文件保留，OCR/ASR/关键帧为可选后端；
+- **offline fallback**：无 LLM Key 时使用确定性改写；无高级索引时回退旧检索；
+- **embedding version**：高级索引绑定 embedding identity 与
+  `EVIDENCE_RAG_INDEX_VERSION`，变更后必须重建；
+- **rebuild**：`ingest_knowledge --advanced --rebuild` 只重建高级集合，
+  不触碰旧 collection。
+
+<a id="evidence-usage"></a>
+
+## 十二、使用方式
+
+```bash
+python manage.py check
+python manage.py migrate
+python manage.py ingest_knowledge
+python manage.py ingest_knowledge --advanced
+python manage.py ingest_knowledge --advanced --rebuild
+python manage.py ingest_knowledge --advanced-only --path knowledge/original/课程讲义.md
+python manage.py runserver
+pytest -q
+python scripts/verify_offline.py
+```
+
+页面入口：
+
+1. `/knowledge/`：原有搜索 + “高级检索”开关；
+2. “切片树”页签：文档 → 父块 → 子块；
+3. 高级搜索结果：查询变体、逐路召回、RRF/重排分数、冲突、媒体证据、
+   Small2Big 上下文；
+4. `source/<chunk_id>/`：父块/子块、字符范围、媒体预览、视频时间戳跳转；
+5. 管理员登录后可见“管理员维护”：上传、重建索引、编辑/软删除/恢复片段。
+
+API 示例：
+
+```bash
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/search/?q=循环队列判满条件&mode=advanced'
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/tree/'
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/traces/<trace_id>/'
+```
+
+<a id="evidence-testing"></a>
+
+## 十三、测试、限制与验证记录
+
+### 1. 自动测试
+
+- 基线：320 passed，2 skipped；
+- 增量后：**371 passed，2 skipped**（新增 51 项：切片、Small2Big、
+  稀疏/稠密/RRF/重排、改写、冲突、引用核验、多模态、CRUD/权限/CSRF、
+  高级入库命令）；
+- 默认测试不调用真实 DeepSeek、Wikipedia 或外部网络，不下载模型，
+  不依赖 Docker/GPU；
+- 旧测试未删除、未修改断言以换取通过。
+- 离线检索评测：`python scripts/evaluate_evidence_rag.py`。在 TF-IDF
+  高级索引上，9 个库内问题 advanced 命中 9/9，2 个库外问题拒答 2/2；
+  同一环境 legacy 命中 6/9。结果写入
+  `tests/evaluation/evidence_rag_results.json`，只反映本机小样本，
+  不宣称生产准确率。
+
+### 2. 浏览器验证
+
+使用真实浏览器完成：
+
+- `demo_staff` 登录后 `/knowledge/` 渲染“高级检索”和“管理员维护”；
+- 勾选高级检索并搜索“循环队列判满条件”，出现 6 条证据、查询变体、
+  dense/sparse 逐路轨迹与 Small2Big 面板；
+- “切片树”显示 8 个父块 / 29 个子块；“管理员维护”显示上传、重建索引、
+  加载片段与编辑片段控件；
+- 普通学生页面不出现“管理员维护”。
+
+### 3. 未验证与可选能力
+
+| 能力 | 状态 | 原因 |
+| --- | --- | --- |
+| 真实 BGE 高级索引 | UNVERIFIED | 本机未预下载 BGE 权重；高级链路用 TF-IDF 2048 维完成集成验证 |
+| 交叉编码器重排 | OPTIONAL / UNVERIFIED | 默认关闭；缺依赖时自动回退确定性重排 |
+| LLM 查询改写 | OPTIONAL / UNVERIFIED | 默认关闭；无 Key 时使用确定性 heuristic |
+| 图片 OCR | OPTIONAL / UNVERIFIED | 未安装 pytesseract/tesseract；缺失时返回 `OCR_UNAVAILABLE` |
+| 视频 ASR / 关键帧 | OPTIONAL / UNVERIFIED | 未安装 faster-whisper/ffmpeg；缺失时保留原文件与人工标注 |
+| 离线冷启动探针 | ENVIRONMENT-LIMITED | 初始化后页面/静态/RAG/百科缓存通过，停在未部署的本机 Piston；BGE 权重未装，未伪造通过 |
+| 在线 DeepSeek 生成 | NOT_VERIFIED | 未使用用户付费 Key |
+
+### 4. 限制
+
+- 父块/子块 token 是确定性估算（CJK 字符 ≈ 1 token，拉丁词 ≈ 1 token），
+  不是特定 tokenizer 的精确计数；
+- 规则化主张抽取与冲突检测覆盖否定、数字、单位、版本、年份和高相似
+  相反表述，不等同于完整 NLI；
+- 图片/视频的原始像素/文件不进入文本 Chroma，仅文本证据参与检索；
+- 上传接口默认只允许 staff，单文件上限 20 MiB；生产环境应接入对象存储
+  与更严格的 MIME/病毒扫描；
+- 本机 Chroma 在部分外接卷上可能因文件锁限制写入，可通过 `CHROMA_PATH`
+  指向支持 SQLite 锁的本地目录。

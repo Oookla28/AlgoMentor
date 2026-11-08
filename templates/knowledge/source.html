@@ -1,1 +1,148 @@
-{% extends 'base.html' %}{% load static %}{% block title %}原文来源 · 数构智学{% endblock %}{% block page_name %}knowledge{% endblock %}{% block breadcrumb %}课程原文{% endblock %}{% block content %}<div class="page-head"><div><p class="eyebrow">VERIFY THE EVIDENCE</p><h1>课程原文</h1><p class="page-subtitle">{{ chunk.document.name }} · 第 {{ chunk.page_number }} 页</p></div><a class="button secondary" href="{% url 'knowledge:index' %}">返回知识库</a></div><div class="layout-two"><section class="card"><div class="card-header"><div><h2>{{ chunk.chapter }}</h2><div class="sub">{{ chunk.section }} · 片段 {{ chunk.chunk_id }}</div></div><span class="pill teal">课程原始资料</span></div><div class="card-body" style="padding-top:0">{% for item in page_chunks %}<p class="prose" style="white-space:pre-wrap;padding:15px;{% if item.chunk_id == chunk.chunk_id %}background:#eff6f2;border-left:3px solid #8bb59d;border-radius:0 7px 7px 0;{% endif %}">{{ item.content }}</p>{% endfor %}</div></section><aside class="stack"><section class="card"><div class="card-header"><h2>来源元数据</h2></div><div class="card-body" style="padding-top:0"><dl class="info-list" style="grid-template-columns:75px 1fr"><dt>文件名</dt><dd>{{ chunk.document.name }}</dd><dt>原文页码</dt><dd>{{ chunk.page_number }}</dd><dt>文档版本</dt><dd>{{ chunk.document.version }}</dd><dt>来源类型</dt><dd>{{ chunk.source_type }}</dd><dt>文件哈希</dt><dd style="font-size:8px;font-family:monospace">{{ chunk.document.document_hash }}</dd></dl></div></section><section class="card"><div class="card-header"><h2>关联勘误</h2></div>{% for correction in corrections %}<div class="correction-card"><span class="pill {% if correction.status == 'APPROVED' %}teal{% else %}amber{% endif %}">{{ correction.get_status_display }}</span><p class="prose" style="margin:12px 0;font-size:11px">{{ correction.suggested_statement }}</p><p class="muted" style="font-size:10px">依据：{{ correction.verification }}</p></div>{% empty %}<div class="empty-state compact"><p>本片段暂无关联勘误。</p></div>{% endfor %}</section></aside></div>{% endblock %}
+{% extends 'base.html' %}{% load static %}
+{% block title %}原文来源 · 数构智学{% endblock %}
+{% block page_name %}knowledge{% endblock %}
+{% block breadcrumb %}课程原文{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/evidence-rag.css' %}">{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="eyebrow">VERIFY THE EVIDENCE</p>
+    <h1>课程原文</h1>
+    <p class="page-subtitle">{{ chunk.document.name }} · 第 {{ chunk.page_number }} 页 · {{ chunk.get_chunk_type_display|default:'原文片段' }}</p>
+  </div>
+  <a class="button secondary" href="{% url 'knowledge:index' %}">返回知识库</a>
+</div>
+
+<div class="layout-two">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2>{{ chunk.chapter }}</h2>
+        <div class="sub">{{ chunk.section }} · 片段 {{ chunk.chunk_id }}</div>
+      </div>
+      <span class="pill teal">课程原始资料</span>
+    </div>
+    <div class="card-body" style="padding-top:0">
+      {% if parent %}
+      <details class="evidence-rag-panel" style="margin-bottom:14px">
+        <summary>父块上下文 · {{ parent.heading_path|default:parent.chunk_id }}</summary>
+        <p class="prose" style="white-space:pre-wrap;margin-top:10px">{{ parent.content }}</p>
+        <p class="evidence-rag-muted">父块 {{ parent.chunk_id }} · 第 {{ parent.page_number }} 页 · {{ parent.token_count }} tokens</p>
+      </details>
+      {% endif %}
+      {% for item in page_chunks %}
+      <p class="prose" style="white-space:pre-wrap;padding:15px;{% if item.chunk_id == chunk.chunk_id %}background:#eff6f2;border-left:3px solid #8bb59d;border-radius:0 7px 7px 0;{% endif %}">{{ item.content }}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card-header"><h2>来源元数据</h2></div>
+      <div class="card-body" style="padding-top:0">
+        <dl class="info-list" style="grid-template-columns:75px 1fr">
+          <dt>文件名</dt><dd>{{ chunk.document.name }}</dd>
+          <dt>原文页码</dt><dd>{{ chunk.page_number }}</dd>
+          <dt>文档版本</dt><dd>{{ chunk.document.version }}</dd>
+          <dt>来源类型</dt><dd>{{ chunk.source_type }}</dd>
+          <dt>片段类型</dt><dd>{{ chunk.get_chunk_type_display }}</dd>
+          {% if chunk.heading_path %}<dt>标题路径</dt><dd>{{ chunk.heading_path }}</dd>{% endif %}
+          {% if chunk.parent_chunk %}<dt>父块</dt><dd><a href="{% url 'knowledge:source' chunk.parent_chunk.chunk_id %}">{{ chunk.parent_chunk.chunk_id }}</a></dd>{% endif %}
+          {% if chunk.char_start is not None %}<dt>字符范围</dt><dd>{{ chunk.char_start }} – {{ chunk.char_end }}（{{ chunk.token_count }} tokens）</dd>{% endif %}
+          {% if chunk.media_asset_id %}<dt>媒体证据</dt><dd>{{ chunk.media_asset.asset_id }} · {{ chunk.media_asset.get_modality_display }}</dd>{% endif %}
+          <dt>文件哈希</dt><dd style="font-size:8px;font-family:monospace">{{ chunk.document.document_hash }}</dd>
+        </dl>
+      </div>
+    </section>
+
+    {% if chunk.media_asset %}
+    <section class="card">
+      <div class="card-header"><h2>媒体证据</h2></div>
+      <div class="card-body" style="padding-top:0">
+        <div class="evidence-rag-media-card">
+          {% if chunk.media_asset.modality == 'image' %}
+          <img src="/api/v1/knowledge/media/{{ chunk.media_asset.asset_id }}/file/" alt="{{ chunk.media_asset.caption|default:'图片证据' }}" loading="lazy">
+          {% elif chunk.media_asset.modality == 'video' %}
+          <video id="evidence-rag-player" controls preload="metadata" src="/api/v1/knowledge/media/{{ chunk.media_asset.asset_id }}/file/"></video>
+          {% if chunk.media_asset.start_time is not None %}
+          <div class="evidence-rag-time-list">
+            <button class="button text small" type="button" data-seek="{{ chunk.media_asset.start_time }}">跳转到 {{ chunk.media_asset.start_time }} 秒</button>
+            {% if chunk.media_asset.end_time is not None %}<span class="evidence-rag-muted">结束于 {{ chunk.media_asset.end_time }} 秒</span>{% endif %}
+          </div>
+          {% endif %}
+          {% else %}
+          <audio controls preload="metadata" src="/api/v1/knowledge/media/{{ chunk.media_asset.asset_id }}/file/"></audio>
+          {% endif %}
+          <p class="evidence-rag-media-caption">{{ chunk.media_asset.manual_annotation|default:chunk.media_asset.caption|default:chunk.media_asset.ocr_text|default:chunk.media_asset.asr_text|default:'无文字标注' }}</p>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if claims %}
+    <section class="card">
+      <div class="card-header"><h2>可核验主张</h2></div>
+      <div class="card-body" style="padding-top:0">
+        {% for claim in claims %}
+        <div class="evidence-rag-claim">
+          <strong>主张 {{ forloop.counter }}</strong>
+          <div>
+            <div>{{ claim.normalized_text }}</div>
+            <code>{{ claim.claim_id }}</code>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if children %}
+    <section class="card">
+      <div class="card-header"><h2>子块</h2></div>
+      <div class="card-body" style="padding-top:0">
+        {% for child in children %}
+        <p class="evidence-rag-tree-child"><a href="{% url 'knowledge:source' child.chunk_id %}">{{ child.chunk_id }}</a><span>第 {{ child.page_number }} 页</span></p>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if siblings %}
+    <section class="card">
+      <div class="card-header"><h2>相邻片段</h2></div>
+      <div class="card-body" style="padding-top:0">
+        {% for sibling in siblings %}
+        <p class="evidence-rag-tree-child"><a href="{% url 'knowledge:source' sibling.chunk_id %}">{{ sibling.chunk_id }}</a><span>第 {{ sibling.page_number }} 页</span></p>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <div class="card-header"><h2>关联勘误</h2></div>
+      {% for correction in corrections %}
+      <div class="correction-card">
+        <span class="pill {% if correction.status == 'APPROVED' %}teal{% else %}amber{% endif %}">{{ correction.get_status_display }}</span>
+        <p class="prose" style="margin:12px 0;font-size:11px">{{ correction.suggested_statement }}</p>
+        <p class="muted" style="font-size:10px">依据：{{ correction.verification }}</p>
+      </div>
+      {% empty %}
+      <div class="empty-state compact"><p>本片段暂无关联勘误。</p></div>
+      {% endfor %}
+    </section>
+  </aside>
+</div>
+<script>
+  (() => {
+    'use strict';
+    const player = document.getElementById('evidence-rag-player');
+    document.querySelectorAll('[data-seek]').forEach(button => {
+      button.addEventListener('click', () => {
+        if (!player) return;
+        const target = Number(button.dataset.seek);
+        if (Number.isFinite(target)) player.currentTime = target;
+      });
+    });
+  })();
+</script>
+{% endblock %}
