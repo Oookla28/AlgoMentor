@@ -8,7 +8,7 @@
 | --- | --- |
 | 续建前基线 | `1c927e0`，`main`，工作区干净，`398 passed / 2 skipped` |
 | 本轮功能提交 | `b798c22`（私有 Evidence 工作台、任务运行、Skills、三领域 Demo） |
-| 最终文档/评测提交 | `3ad1f75` |
+| 最终文档/评测提交 | `0b6683f`（其后仅可能有报告文字修订；以 `git log -1` 为准） |
 | 最终完整回归 | **423 passed / 2 skipped**（源仓库；skip 为显式 live Piston / Wikimedia 集成） |
 | 源仓库 | `/Volumes/半岛铁盒/实验室/AlgoMentor` |
 | 交付目录 | `/Volumes/半岛铁盒/实验室考核部署`（无 `.git`，保留既有数据） |
