@@ -41,6 +41,10 @@ class BudgetExceeded(Exception):
         self.code = code
 
 
+class RunCancelled(Exception):
+    """Raised between steps when the owner cancels a queued/running task."""
+
+
 @dataclass(frozen=True)
 class AgentBudget:
     max_steps: int = 20
@@ -153,12 +157,30 @@ def _claim_proxies(evidence_items):
     return claims
 
 
+STAGE_BY_STEP = {
+    'START': '读取资料',
+    'ROUTE': '识别任务',
+    'PLAN': '规划步骤',
+    'RETRIEVE': '查找依据',
+    'EVIDENCE_GATE': '核对证据',
+    'RETRIEVE_MORE': '补充检索',
+    'CALL_TOOL': '调用工具',
+    'CONFLICT_CHECK': '检查冲突',
+    'VERIFY': '核验引用',
+    'ANSWER': '整理输出',
+    'ABSTAIN': '已拒答',
+    'FAILED': '执行失败',
+    'END': '完成',
+}
+
+
 class StepRecorder:
-    def __init__(self, run, budget):
+    def __init__(self, run, budget, cancel_check=None, starting_index=0):
         self.run = run
         self.budget = budget
+        self.cancel_check = cancel_check
         self.started = time.monotonic()
-        self.step_index = 0
+        self.step_index = max(0, int(starting_index or 0))
         self.tokens = 0
         self.tool_calls = 0
         self.last_step_id = ''
@@ -167,6 +189,8 @@ class StepRecorder:
         return int((time.monotonic() - self.started) * 1000)
 
     def check(self):
+        if self.cancel_check is not None and self.cancel_check():
+            raise RunCancelled()
         if self.step_index >= self.budget.max_steps:
             raise BudgetExceeded('STEP_BUDGET')
         if self.tokens >= self.budget.max_tokens:
@@ -193,7 +217,10 @@ class StepRecorder:
             index_version=index_version, model=model, failure_code=failure_code,
         )
         self.last_step_id = step_id
-        AgentRun.objects.filter(pk=self.run.pk).update(step_count=self.step_index)
+        AgentRun.objects.filter(pk=self.run.pk).update(
+            step_count=self.step_index,
+            stage=STAGE_BY_STEP.get(step_type, self.run.stage),
+        )
         return row
 
 
@@ -208,10 +235,14 @@ def _index_context():
     return '', 0, 'none'
 
 
-def _run_tool(recorder, user, tool_id, args, provider, index_version, model, hop_id=0):
+def _run_tool(recorder, user, tool_id, args, provider, index_version, model, hop_id=0,
+              scope_document_ids=None):
     if recorder.tool_calls >= recorder.budget.max_tool_calls:
         raise BudgetExceeded('TOOL_BUDGET')
-    result = execute_tool(tool_id, user, **args)
+    call_args = dict(args)
+    if scope_document_ids is not None:
+        call_args['document_ids'] = scope_document_ids
+    result = execute_tool(tool_id, user, **call_args)
     recorder.record(
         'CALL_TOOL', input_summary={'tool': tool_id, 'args': args},
         output_summary={'ok': result.ok, 'evidence_ids': list(result.evidence_ids), 'message': result.message},
@@ -358,13 +389,33 @@ def _build_answer(query, gate, evidence_items):
             return ' '.join(parts), citations, gate
     selected = _select_spans(query, items, limit=2)
     citations = [_citation_from_item(item) for item, _span in selected]
-    parts = ['根据检索到的课程证据：']
+    parts = ['根据检索到的资料证据：']
     for index, (_item, span) in enumerate(selected, 1):
         parts.append(f'[来源{index}] {span}')
     return ' '.join(parts), citations, gate
 
 
-def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', budget=None):
+def _workspace_index_context(workspace):
+    from apps.knowledge.models import KnowledgeDocument
+    from apps.workspace.services.documents import active_document_ids
+    document = (
+        KnowledgeDocument.objects.filter(pk__in=active_document_ids(workspace))
+        .exclude(latest_index_version='').order_by('-created_at').first()
+    )
+    if document is not None:
+        advanced = ((document.source_metadata or {}).get('advanced') or {})
+        return document.latest_index_version, advanced.get('embedding_dimension', 0), 'advanced'
+    document = (
+        KnowledgeDocument.objects.filter(pk__in=active_document_ids(workspace))
+        .exclude(index_version='').order_by('-created_at').first()
+    )
+    if document is not None:
+        return document.index_version, document.embedding_dimension, 'legacy'
+    return '', 0, 'none'
+
+
+def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', budget=None,
+                       run=None, workspace=None, cancel_check=None):
     require_user(user)
     query = (query or '').strip()
     if not query or len(query) > 2000:
@@ -372,22 +423,48 @@ def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', b
     pack = get_domain_pack(domain)
     if pack is None:
         raise ValidationError('未知领域知识包。', code='DOMAIN_PACK_NOT_FOUND')
+    if workspace is None and run is not None and run.workspace_id:
+        workspace = run.workspace
     budget = budget or AgentBudget.from_settings()
     provider = getattr(settings, 'EMBEDDING_PROVIDER', '')
     model = getattr(settings, 'EMBEDDING_MODEL', '')
-    index_version, dimension, index_kind = _index_context()
+    if workspace is not None:
+        index_version, dimension, index_kind = _workspace_index_context(workspace)
+    else:
+        index_version, dimension, index_kind = _index_context()
     caps = capability_map()
-    run = AgentRun.objects.create(
-        run_id=uuid.uuid4().hex, user=user, domain=pack.pack_id, query=query, mode=mode,
-        budget=asdict(budget),
-        metrics={
-            'provider': provider, 'model': model, 'dimension': dimension,
-            'index_version': index_version, 'index_kind': index_kind,
-            'threshold': getattr(settings, 'PLATFORM_GATE_MIN_SUPPORT', 0.30),
-            'tokens_estimated': True, 'capabilities': {name: entry['state'] for name, entry in caps.items()},
-        },
-    )
-    recorder = StepRecorder(run, budget)
+    scope_document_ids = None
+    if workspace is not None:
+        from apps.workspace.services.documents import active_document_ids
+        scope_document_ids = active_document_ids(workspace)
+    metrics = {
+        'provider': provider, 'model': model, 'dimension': dimension,
+        'index_version': index_version, 'index_kind': index_kind,
+        'threshold': getattr(settings, 'PLATFORM_GATE_MIN_SUPPORT', 0.30),
+        'tokens_estimated': True, 'capabilities': {name: entry['state'] for name, entry in caps.items()},
+    }
+    if workspace is not None:
+        metrics['workspace_id'] = workspace.pk
+        metrics['scope_document_count'] = len(scope_document_ids or [])
+    if run is None:
+        run = AgentRun.objects.create(
+            run_id=uuid.uuid4().hex, user=user, domain=pack.pack_id, query=query, mode=mode,
+            workspace=workspace, task_type='grounded_qa', status='RUNNING', stage='读取资料',
+            budget=asdict(budget), metrics=metrics,
+        )
+    else:
+        run.user = user
+        run.domain = pack.pack_id
+        run.query = query
+        run.mode = mode
+        run.workspace = workspace
+        run.task_type = run.task_type or 'grounded_qa'
+        run.status = 'RUNNING'
+        run.stage = '读取资料'
+        run.error_code = ''
+        run.metrics = {**(run.metrics or {}), **metrics}
+        run.save(update_fields=['user', 'domain', 'query', 'mode', 'workspace', 'task_type', 'status', 'stage', 'error_code', 'metrics'])
+    recorder = StepRecorder(run, budget, cancel_check=cancel_check, starting_index=run.steps.count())
     evidence_items = []
     attempted = set()
     gate = None
@@ -402,11 +479,12 @@ def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', b
         task = tasks[0] if tasks else None
         recorder.record('ROUTE', input_summary=route.to_dict(), output_summary={'pack': pack.pack_id, 'task': task.task_id if task else ''}, decision='ROUTED', reason_code='DOMAIN_PACK_SELECTED', provider=provider, index_version=index_version, model=model)
         planned = ['keyword_search']
-        if not route.is_short or route.has_code or route.possible_conflict or domain == 'general_documents':
+        if (not route.is_short or route.has_code or route.possible_conflict
+                or workspace is not None or 'semantic_retrieval' in pack.capabilities):
             planned.append('semantic_search')
         recorder.record('PLAN', input_summary={'route': route.to_dict()}, output_summary={'actions': planned}, decision='PLANNED', reason_code='INITIAL_RETRIEVAL', provider=provider, index_version=index_version, model=model)
         for tool_id in planned:
-            result, items = _run_tool(recorder, user, tool_id, {'query': query, 'top_k': 10}, provider, index_version, model, hop_id=0)
+            result, items = _run_tool(recorder, user, tool_id, {'query': query, 'top_k': 10}, provider, index_version, model, hop_id=0, scope_document_ids=scope_document_ids)
             attempted.add(tool_id)
             if result.ok:
                 evidence_items.extend(items)
@@ -430,7 +508,7 @@ def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', b
                 recorder.record('RETRIEVE_MORE', output_summary=rationale, decision='STOP', reason_code=rationale.get('reason', 'NO_ACTION'), provider=provider, index_version=index_version, model=model)
                 break
             recorder.record('RETRIEVE_MORE', input_summary={'state': gate.to_dict()}, output_summary=rationale, decision=action.action_id, reason_code='ADAPTIVE_ACTION', provider=provider, index_version=index_version, model=model)
-            result, items = _run_tool(recorder, user, action.tool_id, action.args, provider, index_version, model, hop_id=loops + 1)
+            result, items = _run_tool(recorder, user, action.tool_id, action.args, provider, index_version, model, hop_id=loops + 1, scope_document_ids=scope_document_ids)
             attempted.add(action.action_id)
             if result.ok:
                 evidence_items = _dedupe(evidence_items + items)
@@ -459,6 +537,14 @@ def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', b
                 error_code = 'CITATION_VERIFICATION_FAILED'
             recorder.record('ABSTAIN', input_summary={'gate': gate.to_dict() if gate else {}, 'verification': verification}, decision='ABSTAINED', reason_code=error_code, provider=provider, index_version=index_version, model=model)
         recorder.record('END', output_summary={'status': status}, decision='END', reason_code='RUN_FINISHED', provider=provider, index_version=index_version, model=model, force=True)
+    except RunCancelled:
+        status = 'CANCELLED'
+        error_code = 'CANCELLED_BY_USER'
+        answer = answer or '任务已取消，已保留完成步骤与已获取证据。'
+        try:
+            recorder.record('ABSTAIN', output_summary={'cancelled': True}, decision='CANCELLED', reason_code=error_code, provider=provider, index_version=index_version, model=model, force=True)
+        except Exception:
+            pass
     except BudgetExceeded as exc:
         status = 'ABSTAINED'
         error_code = f'BUDGET_EXCEEDED:{exc.code}'
@@ -475,7 +561,10 @@ def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', b
         except Exception:
             pass
     finally:
-        run.status = status
+        final_status = 'SUCCEEDED' if status == 'COMPLETED' and run.workspace_id else status
+        stage = '完成' if final_status in ('COMPLETED', 'SUCCEEDED') else '已取消' if final_status == 'CANCELLED' else '已拒答' if final_status == 'ABSTAINED' else '执行失败'
+        run.status = final_status
+        run.stage = stage
         run.answer_text = answer
         run.citations = citation_dicts
         run.evidence_count = len(evidence_items)
@@ -486,11 +575,17 @@ def run_evidence_agent(user, query, domain='data_structures', mode='adaptive', b
             'latency_ms': recorder.elapsed_ms(),
             'tool_calls': recorder.tool_calls,
             'tokens_estimated': recorder.tokens,
+            'budget_used': {
+                'steps': recorder.step_index,
+                'tokens_estimated': recorder.tokens,
+                'tool_calls': recorder.tool_calls,
+                'latency_ms': recorder.elapsed_ms(),
+            },
             'gate': gate.to_dict() if gate else {},
             'citation_check': verification if 'verification' in locals() else {},
             'conflicts': len(gate.conflicts) if gate else 0,
             'retrieve_more_loops': locals().get('loops', 0),
         }
         run.finished_at = timezone.now()
-        run.save(update_fields=['status', 'answer_text', 'citations', 'evidence_count', 'step_count', 'error_code', 'metrics', 'finished_at'])
-    return AgentOutcome(run.run_id, status, answer, citation_dicts, len(evidence_items), recorder.step_index, run.metrics)
+        run.save(update_fields=['status', 'stage', 'answer_text', 'citations', 'evidence_count', 'step_count', 'error_code', 'metrics', 'finished_at'])
+    return AgentOutcome(run.run_id, final_status, answer, citation_dicts, len(evidence_items), recorder.step_index, run.metrics)

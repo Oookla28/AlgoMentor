@@ -1,0 +1,108 @@
+"""Small, explicitly-labelled development set for the three demo domains.
+
+These cases are hand-written for this repository, not a large human-annotated
+benchmark. Gold terms are short source phrases, not chunk IDs, so the set is not
+tied to one chunking policy.
+"""
+
+CASES = (
+    {
+        'case_id': 'generic-queue-full',
+        'workspace': '资料问答示例',
+        'task_type': 'grounded_qa',
+        'query': '循环队列的判满条件是什么？',
+        'answerable': True,
+        'gold_document': 'learning_notes',
+        'gold_terms': ['(rear + 1) % max_size == front', '队满条件'],
+    },
+    {
+        'case_id': 'generic-queue-empty',
+        'workspace': '资料问答示例',
+        'task_type': 'grounded_qa',
+        'query': '循环队列判空条件是什么？',
+        'answerable': True,
+        'gold_document': 'learning_notes',
+        'gold_terms': ['front == rear', '判空'],
+    },
+    {
+        'case_id': 'generic-complexity',
+        'workspace': '资料问答示例',
+        'task_type': 'grounded_qa',
+        'query': '循环队列入队和出队的时间复杂度是多少？',
+        'answerable': True,
+        'gold_document': 'learning_notes',
+        'gold_terms': ['O(1)', '时间复杂度'],
+    },
+    {
+        'case_id': 'generic-outside',
+        'workspace': '资料问答示例',
+        'task_type': 'grounded_qa',
+        'query': '黑洞霍金辐射的温度是多少？',
+        'answerable': False,
+        'gold_document': '',
+        'gold_terms': [],
+    },
+    {
+        'case_id': 'guided-queue-outline',
+        'workspace': '资料问答示例',
+        'task_type': 'guided_learning',
+        'query': '我想理解循环队列的判满与判空',
+        'answerable': True,
+        'gold_document': 'learning_notes',
+        'gold_terms': ['判满', '判空'],
+    },
+    {
+        'case_id': 'paper-method-compare',
+        'workspace': '文献比较示例',
+        'task_type': 'paper_comparison',
+        'query': '比较这些论文的方法',
+        'answerable': True,
+        'gold_document': 'paper_a',
+        'gold_terms': ['块稀疏注意力', 'EvidenceCover'],
+    },
+    {
+        'case_id': 'paper-limitation-compare',
+        'workspace': '文献比较示例',
+        'task_type': 'paper_comparison',
+        'query': '比较这些论文的局限',
+        'answerable': True,
+        'gold_document': 'paper_a',
+        'gold_terms': ['多模态', '标注者一致性'],
+    },
+    {
+        'case_id': 'paper-outside-arabic',
+        'workspace': '文献比较示例',
+        'task_type': 'paper_comparison',
+        'query': '这些论文是否报告了阿拉伯语实验结果？',
+        'answerable': False,
+        'gold_document': '',
+        'gold_terms': [],
+    },
+    {
+        'case_id': 'code-exception',
+        'workspace': '代码分析示例',
+        'task_type': 'code_investigation',
+        'query': '库存扣减的异常处理有什么问题？',
+        'answerable': True,
+        'gold_document': 'inventory.py',
+        'gold_terms': ['except Exception', 'pass'],
+    },
+    {
+        'case_id': 'code-none-compare',
+        'workspace': '代码分析示例',
+        'task_type': 'code_investigation',
+        'query': '这段代码如何比较 None？',
+        'answerable': True,
+        'gold_document': 'inventory.py',
+        'gold_terms': ['item == None', 'is None'],
+    },
+    {
+        'case_id': 'code-outside-kubernetes',
+        'workspace': '代码分析示例',
+        'task_type': 'code_investigation',
+        'query': '项目是否使用了 Kubernetes 部署？',
+        'answerable': False,
+        'gold_document': '',
+        'gold_terms': [],
+    },
+)

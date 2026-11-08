@@ -50,7 +50,7 @@
           {% if chunk.parent_chunk %}<dt>父块</dt><dd><a href="{% url 'knowledge:source' chunk.parent_chunk.chunk_id %}">{{ chunk.parent_chunk.chunk_id }}</a></dd>{% endif %}
           {% if chunk.char_start is not None %}<dt>字符范围</dt><dd>{{ chunk.char_start }} – {{ chunk.char_end }}（{{ chunk.token_count }} tokens）</dd>{% endif %}
           {% if chunk.media_asset_id %}<dt>媒体证据</dt><dd>{{ chunk.media_asset.asset_id }} · {{ chunk.media_asset.get_modality_display }}</dd>{% endif %}
-          <dt>文件哈希</dt><dd style="font-size:8px;font-family:monospace">{{ chunk.document.document_hash }}</dd>
+          <dt>文件哈希</dt><dd style="font-size:8px;font-family:'SimSun','宋体','STSong','Songti SC',serif">{{ chunk.document.document_hash }}</dd>
         </dl>
       </div>
     </section>

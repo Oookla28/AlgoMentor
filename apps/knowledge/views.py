@@ -13,9 +13,22 @@ def index(request):
     if request.GET.get('chapter','').isdigit(): points=points.filter(chapter=int(request.GET['chapter']))
     return render(request,'knowledge/index.html',{'points':points,'documents':KnowledgeDocument.objects.all(),'corrections':KnowledgeCorrection.objects.select_related('chunk'),'chunks':KnowledgeChunk.objects.all(),'page_title':'课程知识库'})
 
+def _require_chunk_access(user, chunk):
+    """Private workspace documents are unreadable outside their workspace."""
+    from django.core.exceptions import PermissionDenied
+    from apps.workspace.permissions import can_read
+    links = list(chunk.document.workspace_links.select_related('workspace'))
+    if not links:
+        return
+    if any(can_read(user, link.workspace) for link in links):
+        return
+    raise PermissionDenied
+
+
 @login_required
 def source(request,chunk_id):
     chunk=get_object_or_404(KnowledgeChunk.objects.select_related('document','parent_chunk','media_asset'),chunk_id=chunk_id)
+    _require_chunk_access(request.user, chunk)
     page=KnowledgeChunk.objects.filter(document=chunk.document,page_number=chunk.page_number)
     parent=chunk.parent_chunk
     children=chunk.children.filter(is_active=True)[:12]

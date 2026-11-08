@@ -1,5 +1,23 @@
 # 工程架构与决策
 
+## 2026-11-08 续建：工作空间与任务运行层
+
+```text
+Browser (Django Templates + workbench.js)
+  -> apps/workspace (Workspace / WorkspaceMember / WorkspaceDocument / TaskArtifact / SkillActivation)
+  -> apps/platform (DomainPack / TaskPack / ToolSpec / AgentRun / AgentStep / Evidence / Claim / ConflictSet)
+  -> apps/knowledge (advanced index / hybrid retrieval / citation verifier)
+  -> SQLite worker (workbench_worker) + Chroma
+```
+
+- **权限边界**：`apps/workspace/permissions.py` 统一计算私有/共享/成员读写；所有检索工具接收 `document_ids` 作用域，`read_child/read_parent/read_siblings/read_source_page` 在服务端拒绝越界片段；私有文档的 `/knowledge/source/<chunk_id>/` 也做权限检查。
+- **索引隔离**：同一文件上传到不同空间时，`KnowledgeDocument.document_hash` 使用 workspace 加盐，切片 ID 使用目标文档哈希（`chunk_document(..., hash_override=...)`），避免跨空间复用片段。
+- **任务状态机**：`AgentRun` 扩展 QUEUED / RUNNING / WAITING_USER / SUCCEEDED / PARTIAL / FAILED / CANCELLED；worker 用 SQLite 短事务领取、lease/heartbeat 防双执行、过期租约重排、取消标志在步骤间检查。
+- **执行器**：`grounded_qa` 复用显式状态机；`guided_learning`、`paper_comparison`、`code_investigation` 为抽取式/静态执行器，保存证据、Claim、阶段与产物；不保存完整思维链。
+- **Skill Runtime**：`apps/platform/skills/runtime.py` 只先读取元数据，按任务选择最多 2 个 Skill，懒加载正文；工具范围 = TaskPack ∩ DomainPack ∩ Skill 声明 ∩ 已批准 ToolSpec ∩ 当前能力。路径穿越、符号链接、超大文件与 YAML 解析均有硬限制。
+- **产物**：Markdown/HTML/diff 存在 `TaskArtifact`，下载需要任务所有者或空间读权限；HTML 由转义后的最小渲染器生成，不执行文档内 HTML/脚本。
+- **兼容**：旧 API、旧 Citation、旧 Chroma、旧 650/80 切片、旧课程页面保持；`templates/base.html` 仅加入工作台导航，`app.css` 仅按用户要求统一宋体字体栈。
+
 ## 模块边界
 
 Django 模块化单体，SQLite 持久化用户状态，无 Node 工程、Redis、Celery 或微服务。页面层只解析请求和返回模板 / JSON；服务组织业务事务；领域算法独立于 HTTP；core 提供 LLM、加密、异常与隔离执行适配。

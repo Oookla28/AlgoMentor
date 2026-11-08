@@ -1,12 +1,15 @@
 """Domain/task pack registry. Lookup is by id; no caller branches on a domain name."""
 
-from . import data_structures, general_documents
+from . import data_structures, general_documents, generic, research_literature, software_engineering, task_packs
 
 
 def _builders():
     return {
         'data_structures': data_structures.build_domain_pack,
         'general_documents': general_documents.build_domain_pack,
+        'generic': generic.build_domain_pack,
+        'research_literature': research_literature.build_domain_pack,
+        'software_engineering': software_engineering.build_domain_pack,
     }
 
 
@@ -23,11 +26,21 @@ def get_domain_pack(pack_id: str):
 
 def list_task_packs(pack_id: str | None = None):
     packs = []
-    for module in (data_structures, general_documents):
+    for module in (data_structures, general_documents, generic, research_literature, software_engineering):
         for task in module.build_task_packs():
             if pack_id is None or task.domain_pack_id == pack_id:
                 packs.append(task)
+    for task in task_packs.build_task_packs():
+        if pack_id is None or task.domain_pack_id in (pack_id, '*'):
+            packs.append(task)
     return packs
+
+
+def get_task_pack(task_id: str, pack_id: str):
+    for task in list_task_packs(pack_id):
+        if task.task_id == task_id:
+            return task
+    return None
 
 
 def sync_manifests():

@@ -1,5 +1,16 @@
 # 安全与部署约束
 
+## 2026-11-08 工作台增量
+
+- **工作空间是硬门禁**：私有空间只有所有者/成员可读；共享空间所有登录用户可读、仅 staff/owner/editor 可写；staff 不自动获得私有空间访问权。API、任务、产物、原文页均按空间校验。
+- **索引隔离**：同一文件上传到不同空间使用加盐 `document_hash`，切片 ID 使用目标文档哈希；检索通过 `document_ids` 与 Chroma `document_hash` 过滤，不依赖“检索后删除”。
+- **上传边界**：文件名 sanitize、扩展名 allowlist、20 MB 限制、上传目录隔离；解析器不执行文件内容。私有上传默认不进入共享课程空间。
+- **Skill 不授权**：Skill 的 `allowed-tools` 只能收窄服务端交集；YAML `safe_load`、路径穿越/符号链接/大小限制；上游脚本不执行；开发 Skill 仅参考，未安装。
+- **代码分析不执行用户代码**：只读检索 + 静态模式 + 文本建议 diff；产品任务状态固定 `UNVERIFIED`。Piston/Judge0 仍为可选且未验证；禁止回退到宿主 subprocess。
+- **任务运行**：SQLite 短事务领取 + lease/heartbeat；取消在步骤间检查；外部副作用不明时不盲目重试；不保存完整 chain-of-thought 与密钥。
+- **产物下载**：需要任务所有者或空间读权限；`Content-Disposition: attachment` + `nosniff`；HTML 产物由转义渲染器生成。
+- **本地部署**：仅监听 `127.0.0.1`；不暴露公网；既有 `.env`/加密主密钥/数据库不覆盖；停止脚本只结束本项目 PID 并校验命令与工作目录。
+
 学生代码不在 Django 主机上 exec、eval 或普通 subprocess 执行。唯一执行边界为配置的隔离 Piston / Judge0。禁止挂载应用目录、SQLite、`.env` 到执行容器；配置实例时要求禁网、CPU/内存/输出约束由服务实际落实。公共执行权限不足必须返回 JUDGE_ERROR，不提供危险本地回退。
 
 开发 `.env` 权限 0600，生产 SECRET_KEY 与 APP_ENCRYPTION_KEY 强制配置；备份主密钥，勿写 Git 或日志。个人 Key 按认证用户查找、Fernet 加密，只回传掩码。轮换时设置新的 APP_ENCRYPTION_KEY 和旧 APP_ENCRYPTION_PREVIOUS_KEYS，运行 `manage.py rotate_api_keys`，确认全部数据能够解密后移除旧密钥。改动主密钥但不保留旧值会使已有 Key 不可恢复。

@@ -1,0 +1,98 @@
+{
+  "lockfile_version": 1,
+  "generated_at": "2026-11-08",
+  "scope": "development-agent references only; not installed into the product runtime",
+  "pinning_status": "SOURCE_NOT_FETCHED",
+  "reason": "本机 DNS/出网受限，无法读取上游文件并计算真实 commit/hash；禁止伪造。",
+  "permission_note": "这些条目不参与产品运行，不授予任何工具或数据权限。",
+  "sources": [
+    {
+      "id": "dev-frontend-design",
+      "repo": "anthropics/skills",
+      "path": "skills/frontend-design/SKILL.md",
+      "license": "Apache-2.0 (skill-local LICENSE.txt)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "新增工作台的信息层级与排版审查；未改变现有主题、字体与布局骨架。"
+    },
+    {
+      "id": "dev-webapp-testing",
+      "repo": "anthropics/skills",
+      "path": "skills/webapp-testing/SKILL.md",
+      "license": "Apache-2.0 (skill-local LICENSE.txt)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "浏览器旅程与截图验收方法；未安装其依赖，也未执行上游脚本。"
+    },
+    {
+      "id": "dev-systematic-debugging",
+      "repo": "obra/superpowers",
+      "path": "skills/systematic-debugging/SKILL.md",
+      "license": "MIT (repository LICENSE)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "回归失败定位流程参考。"
+    },
+    {
+      "id": "dev-test-driven-development",
+      "repo": "obra/superpowers",
+      "path": "skills/test-driven-development/SKILL.md",
+      "license": "MIT (repository LICENSE)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "新增逻辑先写失败测试的流程参考。"
+    },
+    {
+      "id": "dev-verification-before-completion",
+      "repo": "obra/superpowers",
+      "path": "skills/verification-before-completion/SKILL.md",
+      "license": "MIT (repository LICENSE)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "完成声明绑定本轮命令与退出码。"
+    },
+    {
+      "id": "dev-skill-creator",
+      "repo": "openai/skills",
+      "path": "skills/.system/skill-creator/SKILL.md",
+      "license": null,
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "原生 Skill 的结构参考；未导入 Codex 专有工具依赖。"
+    },
+    {
+      "id": "runtime-literature-review-reference",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "path": "skills/literature-review/SKILL.md",
+      "license": "MIT (skill frontmatter)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "文献字段抽取与比较边界的参考；本项目 runtime Skill 为独立重写。"
+    },
+    {
+      "id": "runtime-scientific-critical-thinking-reference",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "path": "skills/scientific-critical-thinking/SKILL.md",
+      "license": "MIT (skill frontmatter)",
+      "upstream_commit_sha": null,
+      "source_sha256": null,
+      "installation_state": "REFERENCE_ONLY_NOT_INSTALLED",
+      "audit_state": "SOURCE_NOT_FETCHED",
+      "used_for": "实验公平性与领域限制检查的参考；未导入临床分级模板。"
+    }
+  ]
+}

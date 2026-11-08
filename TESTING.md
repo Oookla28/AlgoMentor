@@ -14,6 +14,18 @@ Piston 运行列表读取成功不等于执行成功。本机现已部署独立 
 
 本次完整自动测试：218 passed、1 skipped；跳过项显式执行 `ALGOMENTOR_LIVE_EXECUTION=1 .venv/bin/pytest -q tests/integration/test_live_execution.py` 后 1 passed。该实测只写 pytest 测试数据库，验证真实 API 运行/提交、错题重做、学习证据、幂等和用户隔离，不污染正式学生记录。隔离探针本次 8 PASS、0 FAIL、1 UNVERIFIED：内存分配被终止，返回峰值约128MiB，但API未给OOM标记，保留未验证；网络/文件/环境/进程/输出/墙钟/CPU/临时文件检查均有实际证据。
 
+## Evidence 工作台增量测试（2026-11-08）
+
+- 完整回归：`422 passed, 2 skipped`（skip 为显式 live Piston / Wikimedia 集成）。
+- 新增测试：
+  - `apps/workspace/tests/test_workspace_permissions.py`：私有/共享/成员权限、移除资料退出检索范围、跨空间任务拒绝。
+  - `apps/workspace/tests/test_skill_runtime.py`：6 个原生 Skill、选择上限、工具权限交集、路径穿越、符号链接、超大文件、注册表缺失降级。
+  - `apps/workspace/tests/test_workspace_tasks.py`：真实问答与拒答、取消/重试、过期租约、文献比较 Markdown/HTML、代码调查 `UNVERIFIED` 与建议 diff、加盐切片 ID。
+  - `apps/workspace/tests/test_workbench_api.py`：页面、空间/任务 API、跨用户 403、产物下载隔离、私有原文访问控制、共享空间只读。
+- 真实 worker：在部署库执行 `manage.py workbench_worker --once`，排队任务变为 `SUCCEEDED`。
+- 真实浏览器（1440/390/768/1920）：登录、新建空间、上传并检索、引用定位、文献比较下载、代码分析下载、刷新恢复、重试；控制台 0 error，无横向溢出。
+- 工作台评测：`manage.py evaluate_workbench --username demo_student`；结果写入 `tests/evaluation/workbench_results.json`，包含逐例原始结果与限制说明。
+
 ## Wikipedia 与离线增量验收
 
 本轮基线218通过、1跳过；最终320通过、2默认跳过。两个真实集成分别单独执行通过：真实LangChain+官方Wikipedia（规划LLM明确为测试替身）与真实Piston提交闭环。用户要求的四个概念实际API全部通过，额外合计6项；18项预热词表实际核对通过。离线冷启动在新WSGI进程、一次性数据库副本、外部DNS/socket与主机代理阻断下通过，DEBUG=False静态、BGE/Chroma、课程/图谱/算法、真实百科缓存和本机执行均可用。既有学生行指纹未变。完整证据与命令见 WIKIPEDIA_OFFLINE_REPORT.md 和 tests/evaluation/wikipedia_incremental_tests.json。未调用用户付费DeepSeek。

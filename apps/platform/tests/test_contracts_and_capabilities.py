@@ -7,12 +7,21 @@ from apps.platform.tools import list_tool_specs
 
 def test_domain_packs_are_pluggable_and_distinct():
     packs = {pack.pack_id: pack for pack in list_domain_packs()}
-    assert set(packs) == {'data_structures', 'general_documents'}
+    assert set(packs) == {
+        'data_structures', 'general_documents', 'generic',
+        'research_literature', 'software_engineering',
+    }
     assert packs['data_structures'].chunk_policy['child_token_max'] > 0
     assert packs['data_structures'].authority_policy['official_course_level'] == 1
     assert packs['general_documents'].authority_policy['official_course_level'] == 3
     assert get_domain_pack('missing') is None
     assert any(task.domain_pack_id == 'general_documents' for task in list_task_packs())
+    task_ids = {task.task_id for task in list_task_packs()}
+    assert {'grounded_qa', 'guided_learning', 'paper_comparison', 'code_investigation'} <= task_ids
+    assert any(task.task_id == 'paper_comparison' and task.domain_pack_id == 'research_literature'
+               for task in list_task_packs())
+    assert any(task.task_id == 'code_investigation' and task.domain_pack_id == 'software_engineering'
+               for task in list_task_packs())
 
 
 def test_tool_specs_declare_permissions_timeouts_and_costs():

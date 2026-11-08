@@ -22,6 +22,20 @@
 
 ---
 
+## Evidence 工作台续建状态（2026-11-08）
+
+| 阶段 | 状态 | 交付 |
+| --- | --- | --- |
+| P0 盘点与保护 | Done | `docs/continuation/implementation_inventory.md`；SQLite 备份；源/目标 Git 与数据核对 |
+| P1 用户体验 | Done | 工作台空间切换、上传、解析状态、提问、来源定位、阶段记录、草稿恢复 |
+| P2 领域与任务 | Done | 五个 DomainPack；grounded_qa / guided_learning / paper_comparison / code_investigation |
+| P3 Agent 运行 | Done | QUEUED→…→CANCELLED；worker、lease、重试、恢复、预算、产物 |
+| P4 Skill 集成 | Done（开发 Skill 仅参考） | 6 个原生 Skill；`skills.lock.json` 标记 SOURCE_NOT_FETCHED；权限交集与安全测试 |
+| P5 证据策略 | Done（复用既有） | Small2Big 用于比较任务；scope 过滤；主张/引用核验 |
+| P6 三领域 Demo | Done | 资料问答、文献比较（Markdown/HTML）、代码分析（报告 + patch） |
+| P7 科研评测 | Done（小样本） | 11 条开发集；`tests/evaluation/workbench_results.json` |
+| P8 部署与 README | Done | `local_setup/start/stop/status/doctor`；实际 8010 部署；浏览器验收截图 |
+
 ## EvidenceRAG Studio 增量实施状态（2026-11-08）
 
 | 模块 | 实现 | 状态 | 验证结果 / 剩余问题 |

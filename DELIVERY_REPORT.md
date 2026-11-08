@@ -1,5 +1,7 @@
 # 数构智学开发与验收报告
 
+> 2026-11-08 续建补充：本轮在既有 EvidenceRAG / 平台增量上增加“私有工作空间 + Evidence 工作台 + 任务运行 + 原生 Skills + 三领域 Demo”。完整细节见 `FINAL_CONTINUATION_REPORT.md`、`docs/continuation/implementation_inventory.md` 与 `tests/evaluation/workbench_results.json`。完整回归 422 passed / 2 skipped；真实部署 `http://127.0.0.1:8010/workbench/`。
+
 > 本文保留初始发布版本的验收记录。Wikipedia 与离线学习增量的最新功能、320 项回归和冷启动证据见 [增量开发报告](WIKIPEDIA_OFFLINE_REPORT.md)。
 
 记录日期：2026-10-13（Asia/Shanghai）。完整源代码位于 AlgoMentor/。本报告区分已实现、本机测试和真实服务验证。本机隔离执行已接通；线上 AI 全档位、CrewAI 与完整安全审计仍不能宣称全部验收通过。

@@ -1,5 +1,20 @@
 # EvidenceRAG / Platform 评测协议
 
+## 2026-11-08 追加：工作台三领域开发集
+
+- 数据：`apps/workspace/evaluation/cases.py`，11 条手写案例（8 条可答、3 条不可答），覆盖 generic / research_literature / software_engineering。
+- 每次运行保存：git SHA、config hash、dataset hash、embedding provider/model/revision、逐例原始结果、阶段摘要、引用、产物数量、失败原因。
+- 指标：
+  - `retrieval_recall`：gold term 在工作台证据/产物中的覆盖率（gold term 是原文短语，不是 chunk_id）。
+  - `mrr`：首条含 gold term 的证据排名倒数。
+  - `answerability_accuracy`：可答问题有引用且非拒答；不可答问题拒答/部分拒答。
+  - `citation_presence_rate_answerable`：可答问题的引用出现率。
+  - `unsupported_claim_rate`：`verify_answer` 的无支持主张比例。
+  - `latency_p50/p95`、`tool_calls`、`steps`、`skill activations`。
+- 当前结果（部署环境，TF-IDF）：answerability **1.0**、Recall **1.0**、MRR **0.9375**、unsupported claim **0.0455**、p50 **628 ms** / p95 **6094 ms**；逐例见 `tests/evaluation/workbench_results.json`。
+- 解释边界：开发集规模小；案例由本项目编写，未做多人独立标注；TF-IDF 是词法基线，不是 BGE；代码分析没有真实隔离执行，执行状态为 `UNVERIFIED`；文献比较不是系统综述。
+
+
 ## 1. 目的与边界
 
 本协议用于区分三类问题：

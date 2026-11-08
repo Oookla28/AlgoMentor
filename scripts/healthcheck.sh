@@ -21,8 +21,11 @@ check_status() {
 
 check_status "login page" "$BASE/accounts/login/" "200"
 check_status "static css" "$BASE/static/css/app.css" "200"
+check_status "workbench css" "$BASE/static/css/workbench.css" "200"
 check_status "knowledge page (unauthenticated redirect)" "$BASE/knowledge/" "302"
+check_status "workbench page (unauthenticated redirect)" "$BASE/workbench/" "302"
 check_status "capability API (unauthenticated)" "$BASE/api/v1/platform/capabilities/" "401"
+check_status "workbench status API (unauthenticated)" "$BASE/api/v1/workbench/status/" "401"
 
 if [ "$FAILED" -ne 0 ]; then
   echo "健康检查失败" >&2

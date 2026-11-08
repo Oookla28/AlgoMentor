@@ -1,0 +1,246 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Evidence 工作台 · 数构智学{% endblock %}
+{% block page_name %}workbench{% endblock %}
+{% block breadcrumb %}Evidence 工作台{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/evidence-rag.css' %}"><link rel="stylesheet" href="{% static 'css/workbench.css' %}">{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="eyebrow">EVIDENCE-GROUNDED WORKBENCH</p>
+    <h1>Evidence 工作台</h1>
+    <p class="page-subtitle">上传自己的资料，选择任务，得到带原文出处的回答或可下载产物。检索、工具与核验在后台完成。</p>
+  </div>
+  <div class="page-head-actions">
+    <span class="pill {% if worker.online %}teal{% else %}amber{% endif %}" id="worker-pill" title="任务 worker 状态">
+      <span class="status-dot {% if not worker.online %}muted{% endif %}"></span>
+      {% if worker.online %}任务服务在线{% else %}任务服务未启动{% endif %}
+    </span>
+    <button class="button secondary" type="button" id="workbench-create-toggle">新建空间</button>
+  </div>
+</div>
+
+{% if not workspaces %}
+<div class="notice warning">还没有可用的工作空间。点击“新建空间”开始；空间创建后即可上传私有资料。</div>
+{% endif %}
+
+<section class="algomentor-workbench-workspacebar" aria-label="工作空间切换">
+  <label class="algomentor-workbench-field">
+    <span>当前工作空间</span>
+    <select id="workbench-workspace-select" aria-label="选择工作空间">
+      {% for workspace in workspaces %}
+      <option value="{{ workspace.id }}" {% if selected_workspace and workspace.id == selected_workspace.id %}selected{% endif %}>
+        {{ workspace.name }} · {{ workspace.domain_pack_id }}{% if workspace.visibility == 'shared' %} · 共享{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </label>
+  {% if selected_workspace %}
+  <div class="algomentor-workbench-workspacemeta">
+    <span class="pill {% if selected_workspace.visibility == 'shared' %}gray{% else %}teal{% endif %}">{% if selected_workspace.visibility == 'shared' %}共享只读空间{% else %}私有空间{% endif %}</span>
+    <span class="algomentor-workbench-muted">{{ selected_workspace.domain_pack_id }} · {{ selected_workspace.document_counts.ready|default:0 }} 份可检索 · {{ selected_workspace.document_counts.partial|default:0 }} 份部分可用</span>
+    {% if not selected_workspace.can_write %}<span class="pill amber">只读：上传与修改仅限空间所有者/教师</span>{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<div class="algomentor-workbench-layout">
+  <div class="algomentor-workbench-main">
+    {% if selected_workspace %}
+    <section class="card algomentor-workbench-card">
+      <div class="card-header">
+        <div><h2>空间资料</h2><div class="sub">私有上传默认只在本空间检索；共享课程资料由教师维护。</div></div>
+        <span class="pill gray" id="document-count-pill">{{ selected_workspace.documents|length }} 份</span>
+      </div>
+      <div class="card-body">
+        {% if selected_workspace.can_write %}
+        <div class="algomentor-workbench-upload" id="workbench-upload-zone">
+          <label class="algomentor-workbench-drop">
+            <input type="file" id="workbench-file-input" accept=".pdf,.docx,.md,.markdown,.txt,.text,.csv,.json,.yaml,.yml,.py,.java,.c,.cpp,.png,.jpg,.jpeg,.webp,.mp3,.wav,.mp4" multiple>
+            <span>选择文件或拖入此处</span>
+            <small>支持 PDF / DOCX / Markdown / 文本 / 代码 / 图片 / 音视频；单文件不超过 20 MB。</small>
+          </label>
+          <div class="algomentor-workbench-upload-actions">
+            <button class="button primary" type="button" id="workbench-upload-button" disabled>上传并解析</button>
+            <span class="algomentor-workbench-muted" id="workbench-upload-status" aria-live="polite">尚未选择文件</span>
+          </div>
+        </div>
+        {% else %}
+        <p class="algomentor-workbench-muted">这是共享空间，只有空间所有者或教师可以上传与修改资料。你仍可以在下方提问。</p>
+        {% endif %}
+        <div class="algomentor-workbench-doclist" id="workbench-doc-list" aria-live="polite">
+          {% for document in selected_workspace.documents %}
+          <div class="algomentor-workbench-doc" data-document-id="{{ document.id }}">
+            <div class="algomentor-workbench-doc-main">
+              <strong>{{ document.name }}</strong>
+              <div class="algomentor-workbench-docmeta">
+                {% if document.status == 'ready' %}<span class="pill teal">可检索</span>{% elif document.status == 'partial' %}<span class="pill amber">部分可用</span>{% elif document.status == 'failed' %}<span class="pill red">解析失败</span>{% elif document.status == 'removed' %}<span class="pill gray">已移除</span>{% else %}<span class="pill blue">解析中</span>{% endif %}
+                <span>{{ document.source_type|default:'文件' }}{% if document.page_count %} · {{ document.page_count }} 页{% endif %}</span>
+                {% if document.error %}<span class="algomentor-workbench-error">{{ document.error }}</span>{% endif %}
+              </div>
+            </div>
+            {% if selected_workspace.can_write %}
+            <div class="algomentor-workbench-docactions">
+              {% if document.status == 'failed' or document.status == 'partial' %}<button class="button secondary small" type="button" data-doc-action="retry" data-document-id="{{ document.id }}">重试</button>{% endif %}
+              {% if document.status == 'removed' %}<button class="button secondary small" type="button" data-doc-action="restore" data-document-id="{{ document.id }}">恢复</button>{% else %}<button class="button secondary small" type="button" data-doc-action="remove" data-document-id="{{ document.id }}">移除</button>{% endif %}
+            </div>
+            {% endif %}
+          </div>
+          {% empty %}
+          <div class="algomentor-workbench-empty" id="workbench-doc-empty">
+            <strong>还没有资料</strong>
+            <p>先上传一份资料，解析完成后即可提问。共享课程空间已包含课程原文。</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="card algomentor-workbench-card">
+      <div class="card-header">
+        <div><h2>提出任务</h2><div class="sub">普通界面只显示阶段与结果；完整步骤可在结果下方展开。</div></div>
+        <span class="pill blue" id="workbench-domain-pill">{{ selected_workspace.domain_pack_id }}</span>
+      </div>
+      <div class="card-body">
+        <div class="algomentor-workbench-formgrid">
+          <label class="algomentor-workbench-field">
+            <span>任务类型</span>
+            <select id="workbench-task-type">
+              {% for task in task_types %}
+              <option value="{{ task.task_id }}">{{ task.name }}{% if task.task_id == 'paper_comparison' %}（至少 2 篇）{% endif %}</option>
+              {% empty %}
+              <option value="grounded_qa">有据问答</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="algomentor-workbench-field">
+            <span>质量与预算</span>
+            <select id="workbench-task-mode">
+              <option value="quick">快速 · 更少步骤与调用</option>
+              <option value="standard" selected>标准 · 平衡质量与成本</option>
+              <option value="deep">深入 · 更多检索与工具预算</option>
+            </select>
+          </label>
+        </div>
+        <label class="algomentor-workbench-field">
+          <span>任务目标</span>
+          <textarea id="workbench-query" rows="4" maxlength="2000" placeholder="例如：循环队列判满与判空的条件是什么？请给出原文依据。"></textarea>
+        </label>
+        <div class="algomentor-workbench-submitrow">
+          <button class="button primary" type="button" id="workbench-submit">提交任务</button>
+          <span class="algomentor-workbench-muted" id="workbench-submit-hint">Ctrl/⌘ + Enter 提交；输入会自动保存，刷新后可恢复。</span>
+        </div>
+        <div class="notice warning" id="workbench-inline-error" hidden></div>
+        {% if not selected_workspace.document_counts.ready and not selected_workspace.document_counts.partial %}
+        <div class="notice warning">当前空间还没有可检索资料。上传并等待解析完成后才能提交任务。</div>
+        {% endif %}
+        <p class="algomentor-workbench-muted">说明：没有配置模型 Key 时，检索、原文阅读和抽取式任务仍可用；生成式回答会明确标注不可用，不会用预制答案冒充。</p>
+      </div>
+    </section>
+
+    <section class="card algomentor-workbench-card algomentor-workbench-result" id="workbench-result" hidden>
+      <div class="card-header">
+        <div><h2 id="workbench-result-title">任务结果</h2><div class="sub" id="workbench-result-meta"></div></div>
+        <div class="algomentor-workbench-resultactions">
+          <span class="pill" id="workbench-result-status"></span>
+          <button class="button secondary small" type="button" id="workbench-cancel" hidden>取消</button>
+          <button class="button secondary small" type="button" id="workbench-retry" hidden>重试</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="algomentor-workbench-progress" id="workbench-progress" aria-live="polite"></div>
+        <div class="prose algomentor-workbench-answer" id="workbench-answer"></div>
+        <div class="algomentor-workbench-artifacts" id="workbench-artifacts"></div>
+        <div class="algomentor-workbench-citations" id="workbench-citations"></div>
+        <details class="evidence-rag-panel" id="workbench-evidence-panel">
+          <summary>证据与原文定位</summary>
+          <div id="workbench-evidence"></div>
+        </details>
+        <details class="evidence-rag-panel" id="workbench-skill-panel">
+          <summary>已加载的方法 Skill</summary>
+          <div id="workbench-skills"></div>
+        </details>
+        <details class="evidence-rag-panel" id="workbench-step-panel">
+          <summary>阶段记录（摘要）</summary>
+          <div class="table-scroll"><table class="evidence-rag-route-table"><thead><tr><th>步骤</th><th>类型</th><th>决策</th><th>延迟</th><th>工具</th><th>失败</th></tr></thead><tbody id="workbench-steps"></tbody></table></div>
+        </details>
+        <div class="algomentor-workbench-feedback" id="workbench-feedback" hidden>
+          <span class="algomentor-workbench-muted">这个结果有帮助吗？</span>
+          <button class="button secondary small" type="button" data-feedback="1">有帮助</button>
+          <button class="button secondary small" type="button" data-feedback="-1">未解决</button>
+        </div>
+      </div>
+    </section>
+    {% else %}
+    <section class="card algomentor-workbench-card"><div class="card-body"><div class="algomentor-workbench-empty"><strong>创建第一个工作空间</strong><p>工作空间用于隔离你的私有资料。创建后可上传文件并提交任务。</p><button class="button primary" type="button" id="workbench-create-empty">新建空间</button></div></div></section>
+    {% endif %}
+  </div>
+
+  <aside class="algomentor-workbench-side">
+    <section class="card algomentor-workbench-card">
+      <div class="card-header"><div><h2>任务记录</h2><div class="sub">刷新或重开页面后仍可查看</div></div></div>
+      <div class="card-body">
+        <div class="algomentor-workbench-tasklist" id="workbench-task-list">
+          {% for task in initial_tasks %}
+          <button class="algomentor-workbench-task{% if forloop.first %} active{% endif %}" type="button" data-run-id="{{ task.run_id }}">
+            <span class="algomentor-workbench-taskquery">{{ task.query|truncatechars:60 }}</span>
+            <span class="algomentor-workbench-taskmeta">
+              <span class="pill {% if task.status == 'SUCCEEDED' or task.status == 'COMPLETED' %}teal{% elif task.status == 'FAILED' %}red{% elif task.status == 'ABSTAINED' or task.status == 'PARTIAL' %}amber{% else %}blue{% endif %}">{{ task.status_label }}</span>
+              <span>{{ task.stage }}</span>
+              <span>{{ task.created_at|slice:':16' }} · {{ task.run_id|slice:':8' }}</span>
+            </span>
+          </button>
+          {% empty %}
+          <div class="algomentor-workbench-empty compact" id="workbench-task-empty"><strong>还没有任务</strong><p>提交任务后，阶段和结果会出现在这里。</p></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="card algomentor-workbench-card">
+      <div class="card-header"><div><h2>能力状态</h2><div class="sub">只显示真实探针结果</div></div></div>
+      <div class="card-body">
+        <div class="algomentor-workbench-statuslist">
+          <div><span>任务 worker</span><strong class="{% if worker.online %}ok{% else %}warn{% endif %}">{% if worker.online %}在线{% else %}未启动{% endif %}</strong></div>
+          <div><span>向量索引 / Embedding</span><strong>{{ capabilities.embedding.state|default:'unknown' }}</strong></div>
+          <div><span>重排</span><strong>{{ capabilities.reranker.state|default:'unknown' }}</strong></div>
+          <div><span>LLM 生成</span><strong>{{ capabilities.llm.state|default:'unknown' }}</strong></div>
+          <div><span>隔离代码执行</span><strong>{{ capabilities.piston.state|default:'unknown' }}</strong></div>
+          <div><span>OCR / ASR</span><strong>{{ capabilities.ocr.state|default:'unknown' }} / {{ capabilities.asr.state|default:'unknown' }}</strong></div>
+        </div>
+        <p class="algomentor-workbench-muted">Embedding 为 tfidf 时是词法基线，不是 BGE 语义模型。缺少执行服务时，代码分析只给静态证据与建议 diff。</p>
+      </div>
+    </section>
+
+    <section class="card algomentor-workbench-card">
+      <div class="card-header"><div><h2>项目原生 Skills</h2><div class="sub">只加载与当前任务匹配的少量方法</div></div></div>
+      <div class="card-body">
+        <div class="algomentor-workbench-skillcatalog">
+          {% for skill in skills.skills %}
+          <div><strong>{{ skill.name }}</strong><span class="pill {% if skill.state == 'available' %}teal{% else %}amber{% endif %}">{{ skill.state }}</span><p>{{ skill.description|truncatechars:80 }}</p></div>
+          {% empty %}
+          <p class="algomentor-workbench-muted">Skill 注册表不可用，基础任务路径仍可运行。</p>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<div class="modal" id="workbench-create-modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="workbench-create-title">
+    <div class="modal-head"><h2 id="workbench-create-title">新建私有工作空间</h2><button class="icon-button" type="button" id="workbench-create-close" aria-label="关闭">×</button></div>
+    <label class="algomentor-workbench-field"><span>名称</span><input type="text" id="workbench-new-name" maxlength="120" placeholder="例如：机器学习论文阅读"></label>
+    <label class="algomentor-workbench-field"><span>领域包</span><select id="workbench-new-domain">
+      {% for pack in domain_packs %}<option value="{{ pack.pack_id }}">{{ pack.name }} · {{ pack.pack_id }}</option>{% endfor %}
+    </select></label>
+    <label class="algomentor-workbench-field"><span>说明（可选）</span><textarea id="workbench-new-description" rows="2" maxlength="2000"></textarea></label>
+    <div class="notice warning" id="workbench-create-error" hidden></div>
+    <div class="form-actions"><button class="button primary" type="button" id="workbench-create-submit">创建空间</button><button class="button secondary" type="button" id="workbench-create-cancel">取消</button></div>
+  </div>
+</div>
+
+{{ workspaces|json_script:"workbench-workspaces-data" }}
+{{ initial_tasks|json_script:"workbench-tasks-data" }}
+{{ task_types|json_script:"workbench-task-types-data" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/workbench.js' %}" defer></script>{% endblock %}

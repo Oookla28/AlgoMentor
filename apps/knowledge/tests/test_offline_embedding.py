@@ -11,6 +11,7 @@ from apps.knowledge.services.embedding_service import BGEEmbeddings, embedding_i
 def test_bge_queries_use_pinned_local_weights_without_remote_download(settings, monkeypatch):
     factory = Mock()
     monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(SentenceTransformer=factory))
+    settings.EMBEDDING_PROVIDER = 'bge'
     settings.LOCAL_EMBEDDING_OFFLINE_MODE = True
     BGEEmbeddings()
     assert factory.call_args.kwargs['local_files_only'] is True

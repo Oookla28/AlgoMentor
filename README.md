@@ -19,23 +19,27 @@
 
 > 不是“让大模型自由回答”的聊天壳，而是把课程资料变成可切片、可检索、可核验、可拒答、可维护的证据链。学生默认仍使用原搜索/聊天/代码评测；管理员获得切片树、轨迹、冲突、Claim/Evidence 映射与能力健康。
 
+**Evidence 工作台（本轮新增）**：普通用户可以建立私有工作空间、上传自己的资料、提交有据问答 / 引导式学习 / 文献比较 / 代码问题分析任务，查看真实阶段、引用与可下载产物。私有资料不会进入其他用户或共享课程空间的检索范围。
+
 ### 三分钟 Demo
 
 ```bash
-# 1. 本地部署（目标目录不存在时创建；存在时先备份）
-bash scripts/local_deploy.sh
-# 2. 启动（默认 127.0.0.1:8010）
-bash scripts/run_local.sh
-# 3. 健康检查
+# 1. 本地准备/安全升级（保留 data、.env 与既有索引；先做 SQLite 快照）
+bash scripts/local_setup.sh
+# 2. 启动 Web + 任务 worker（默认 127.0.0.1:8010，占用时自动换端口）
+bash scripts/local_start.sh
+# 3. 健康检查与诊断
 bash scripts/healthcheck.sh
+python scripts/local_doctor.py
 ```
 
 浏览器打开 `http://127.0.0.1:8010/`：
 
-1. 使用本地演示账号登录（部署脚本会打印；仅本机演示）；
-2. 进入“课程知识库”，搜索“循环队列判满条件”，打开“高级检索”；
-3. 查看来源卡片、证据上下文与友好拒答；管理员额外看到“切片树 / 管理员维护 / 平台控制台”；
-4. 管理员打开 `/platform/`，查看 Capability Health 并运行显式 Evidence Agent。
+1. 使用本地演示账号登录（既有账户密码不重置；新建账户的随机凭据只写入本机私有文件）；
+2. 进入“Evidence 工作台”，选择“资料问答示例”，上传一份自己的资料或直接提问“循环队列判满条件是什么？”；
+3. 点击 `[来源1]` / “查看完整原文”定位原文；在“文献比较示例”提交“比较这些论文的方法与局限”并下载 Markdown/HTML；
+4. 在“代码分析示例”提交“库存扣减的异常处理有什么问题？”，查看只读发现、`UNVERIFIED` 执行状态与建议 diff；
+5. 管理员额外看到“切片树 / 管理员维护 / 平台控制台”（`/platform/`）。
 
 ### 研究问题
 
@@ -64,6 +68,12 @@ flowchart LR
   P --> T[Retrieval Trace / Claim / ConflictSet]
   K --> X[Agent 状态机 ROUTE→PLAN→RETRIEVE→GATE→VERIFY]
   X --> T
+  W --> B[Evidence 工作台 / 私有 Workspace]
+  B --> Q[任务队列 + SQLite worker + 租约/取消/重试]
+  Q --> X
+  Q --> S2[Skill Runtime：按任务懒加载，权限交集]
+  Q --> A2[TaskArtifact：回答 / 文献对照 / 代码报告 / 建议 diff]
+  S2 --> T
 ```
 
 ### 代码入口索引
@@ -80,19 +90,30 @@ flowchart LR
 | 领域/工具/Agent 契约 | `apps/platform/contracts/`、`domains/`、`tools/`、`agent/` |
 | 能力探针 | `apps/platform/capabilities.py` |
 | 评测指标/脚本 | `apps/platform/evaluation/metrics.py`、`scripts/evaluate_platform.py` |
-| 本地部署 | `scripts/local_deploy.sh`、`scripts/run_local.sh`、`scripts/healthcheck.sh` |
-| 研究文档 | `docs/research/RESEARCH_CARD.md`、`docs/evidence_rag/evaluation_protocol.md` |
+| 私有工作空间/权限 | `apps/workspace/models.py`、`permissions.py`、`services/workspaces.py` |
+| 工作台上传/任务/产物 | `apps/workspace/views.py`、`services/documents.py`、`services/tasks.py`、`services/executor.py` |
+| 任务 worker | `apps/workspace/management/commands/workbench_worker.py` |
+| Skill Runtime / 原生 Skill | `apps/platform/skills/runtime.py`、`agent_skills/registry.json`、`agent_skills/runtime/` |
+| 工作台前端 | `templates/workbench/index.html`、`static/js/workbench.js`、`static/css/workbench.css` |
+| 工作台评测 | `apps/workspace/evaluation/cases.py`、`manage.py evaluate_workbench` |
+| 本地部署/诊断 | `scripts/local_setup.sh`、`local_start.sh`、`local_stop.sh`、`local_status.sh`、`local_doctor.py` |
+| 研究文档 | `docs/research/RESEARCH_CARD.md`、`docs/evidence_rag/evaluation_protocol.md`、`docs/continuation/implementation_inventory.md` |
 
 ### 功能状态（严格区分“已实现”和“已验证”）
 
 | 能力 | 状态 | 证据 / 限制 |
 | --- | --- | --- |
-| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 原回归 320；增量后 398 passed / 2 skipped |
+| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 本轮完整回归 **422 passed / 2 skipped** |
+| 私有工作空间、成员/共享只读、上传解析状态 | **Implemented + Locally validated** | 新建/上传/检索/移除/恢复与跨用户 403 浏览器+API 验收 |
+| 任务队列、worker、租约、取消、重试、刷新恢复 | **Implemented + Locally validated** | 真实 `workbench_worker` 处理排队任务；浏览器刷新从 URL 恢复、重试生成新 run |
+| 三领域任务：有据问答/引导学习、文献比较、代码分析 | **Implemented + Locally validated** | 11 条开发集：answerability 1.0、Recall mean 1.0、MRR 0.94；回答 422 回归 |
+| Skill Runtime + 6 个原生 Skill | **Implemented + Locally validated** | 懒加载、版本/hash、工具权限交集、路径/符号链接/大小测试；结果中记录激活 |
+| 全局字体统一宋体 | **Implemented + Validated** | `app.css`、`evidence-rag.css` 与两处模板内联样式；主题与布局未换肤 |
 | 结构感知递归切片、Parent/Child、Small2Big | **Implemented + Validated** | 15 页课程 PDF → 8 父块 / 29 子块；单元/集成测试 |
 | BM25 + Dense + 多查询 Fan-out + RRF + 确定性重排 | **Implemented + Validated（TF-IDF）** | advanced 小样本 9/9 命中、库外 2/2 拒答 |
 | Evidence Gate、无证据拒答、冲突检测/仲裁 | **Implemented + Validated** | 平台评测 19 例：拒答 precision/recall 1.0，冲突 5/5 |
 | Claim/Evidence/Conflict/Trace 平台模型 | **Implemented + Validated** | 状态机与 API 测试；不保存完整思维链 |
-| 可插拔领域包（data_structures / general_documents） | **Implemented + Validated** | 两个 manifest、任务包、工具契约、评测案例 |
+| 可插拔领域包（data_structures / general_documents / generic / research_literature / software_engineering） | **Implemented + Validated** | 五个 manifest；任务包不再有重复定义 |
 | 显式 Agent 状态机 + 预算 + 工具权限/超时 | **Implemented + Validated** | 单元测试覆盖权限拒绝、超时、无效调用、预算拒答 |
 | BGE 高级索引 | **Unverified** | 本机无本地权重；未用 TF-IDF 冒充 BGE |
 | Cross-Encoder 重排 | **Optional / Unverified** | 默认确定性重排；缺模型自动回退 |
@@ -108,12 +129,13 @@ flowchart LR
 | B0 legacy dense | **RUNNABLE** | 9 个库内问题命中 6/9，库外拒答 2/2 |
 | B1 advanced + TF-IDF | **RUNNABLE** | 库内命中 **9/9**，库外拒答 **2/2**，parent recovery **100%** |
 | 平台 19 例（含冲突/拒答/多跳） | **RUNNABLE** | advanced 100%，legacy 75%，冲突 **5/5**，拒答 precision/recall **1.0/1.0**，unsupported claim **0** |
+| 工作台开发集 11 例（三领域，TF-IDF） | **RUNNABLE** | answerability **1.0**，Recall@k **1.0**，MRR **0.9375**，citation presence（可答案）**1.0**，unsupported claim **0.0455**，p50 **628 ms** / p95 **6094 ms** |
 | B2 advanced + BGE | **UNVERIFIED** | 缺本地 BGE 权重 |
 | B3 BGE + reranker | **UNVERIFIED** | 依赖 B2 |
 | B4 B3 + adaptive routing | **UNVERIFIED** | 依赖 B2；TF-IDF adaptive 仅工程探针 |
 | B5 B4 + conflict verifier | **UNVERIFIED** | 依赖 B2 |
 
-完整原始结果：`tests/evaluation/evidence_rag_results.json`、`tests/evaluation/platform_results.json`。小样本结果不构成生产准确率或学习效果结论。
+完整原始结果：`tests/evaluation/evidence_rag_results.json`、`tests/evaluation/platform_results.json`、`tests/evaluation/workbench_results.json`。小样本结果不构成生产准确率或学习效果结论；工作台案例为 11 条手写开发集，不是 120–180 条人工标注集。
 
 ### 快速复现
 
@@ -124,15 +146,18 @@ python manage.py migrate
 python manage.py ingest_knowledge
 python manage.py ingest_knowledge --advanced
 pytest -q
+python manage.py seed_workbench_demo --username demo_student
+python manage.py workbench_worker --once
 python scripts/evaluate_evidence_rag.py
 python scripts/evaluate_platform.py
+python manage.py evaluate_workbench --username demo_student
 ```
 
 ### 兼容性承诺
 
 - `advanced=false` 时旧搜索 API 的 JSON 字段、排序、错误码与空结果语义保持不变；新增字段不进入 legacy 序列化。
 - `retrieve_knowledge`、`Citation` 旧字段、`[来源N]`、`verified_citation_ids()` 保留。
-- 不修改 `templates/base.html` 与 `static/css/app.css`；新增样式仅 `.evidence-rag-*` / `platform` 范围。
+- `templates/base.html` 与 `static/css/app.css` 只做最小功能性变更：增加“Evidence 工作台”导航入口、按用户要求统一宋体字体栈；主题、侧栏、顶部栏、布局骨架与响应式规则未换肤。新增工作台样式在 `.algomentor-workbench-*` 命名空间。
 - 旧 Chroma collection 不被覆盖；高级索引使用独立 `latest_index_version` 与 `ev-adv-*` collection。
 - 旧 650/80 切片继续可用；旧数据无需回填。
 
@@ -143,14 +168,19 @@ python scripts/evaluate_platform.py
 - 适配器/评测置信度是工程 proxy，未做验证集校准；`U(action)` 权重尚未校准。
 - 外部卷上的 Chroma 可能因 SQLite 文件锁失败；部署脚本默认使用 `/tmp` 下的 Chroma 路径，需在稳定磁盘上重建。
 - 未完成 BGE、Cross-Encoder、OCR/ASR、本机 Piston、手机实机与生产安全验证。
+- 工作台资料解析在请求内同步完成；大文件会延长单次上传请求时间，尚未拆成独立解析队列。
+- 文献比较只覆盖本空间已获取正文，缺失字段标为“未获得/未报告”，不构成系统综述。
+- 代码分析只做只读静态证据与建议 diff，不在主机执行用户代码；执行状态固定为 `UNVERIFIED`。
+- 工作台评测是 11 条手写开发集，未做多人独立标注、置信区间与跨语料泛化。
 
 ### 前沿研究路线
 
 1. **B2–B5 真实实验**：在具备 BGE/Cross-Encoder 的环境跑完整矩阵，报告 Recall@k、MRR、nDCG、parent recovery、claim citation precision/recall、ECE/Brier。
 2. **校准与路由**：用验证集校准 `U(action)` 与证据门控阈值；比较规则路由与学习型路由器。
 3. **多模态证据**：真实 OCR/ASR/关键帧与跨模态对齐，验证图片/视频时间戳证据的引用质量。
-4. **领域扩展**：增加第三领域（如操作系统/数据库），验证核心 Agent 无领域硬编码。
-5. **学习效果**：在合规前提下做前后测/对照实验，区分检索质量与学习增益。
+4. **领域扩展**：当前已有 generic / research_literature / software_engineering 三个可运行领域；下一步增加操作系统/数据库等领域并保持核心 Agent 无硬编码。
+5. **Skills 假设**：在同一任务、同一预算下比较“无 Skill / 本项目 Skill”，检验 Skill 是否提高任务完成质量与跨领域迁移，而不增加越权和幻觉。
+6. **学习效果**：在合规前提下做前后测/对照实验，区分检索质量与学习增益；工作台的自测题不进入正式成绩。
 
 ---
 

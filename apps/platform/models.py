@@ -45,13 +45,31 @@ class ToolSpecRecord(models.Model):
 
 
 class AgentRun(models.Model):
-    STATUS = [('RUNNING', '运行中'), ('COMPLETED', '已完成'), ('ABSTAINED', '拒答'), ('FAILED', '失败')]
+    STATUS = [
+        ('QUEUED', '排队中'), ('RUNNING', '运行中'), ('WAITING_USER', '等待用户'),
+        ('COMPLETED', '已完成'), ('SUCCEEDED', '已完成'), ('PARTIAL', '部分完成'),
+        ('ABSTAINED', '拒答'), ('FAILED', '失败'), ('CANCELLED', '已取消'),
+    ]
     run_id = models.CharField(max_length=64, unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='platform_agent_runs')
+    workspace = models.ForeignKey(
+        'workspace.Workspace', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='agent_runs',
+    )
     domain = models.CharField(max_length=100, default='data_structures')
+    task_type = models.CharField(max_length=50, blank=True, default='grounded_qa')
+    task_pack_id = models.CharField(max_length=100, blank=True, default='')
     query = models.TextField()
     mode = models.CharField(max_length=30, default='adaptive')
-    status = models.CharField(max_length=20, default='RUNNING', choices=STATUS)
+    requested_mode = models.CharField(max_length=20, default='standard')
+    status = models.CharField(max_length=20, default='RUNNING', choices=STATUS, db_index=True)
+    stage = models.CharField(max_length=50, blank=True, default='')
+    input_payload = models.JSONField(default=dict, blank=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    cancel_requested = models.BooleanField(default=False)
+    lease_expires_at = models.DateTimeField(null=True, blank=True)
+    heartbeat_at = models.DateTimeField(null=True, blank=True)
+    worker_id = models.CharField(max_length=64, blank=True, default='')
     answer_text = models.TextField(blank=True, default='')
     citations = models.JSONField(default=list, blank=True)
     evidence_count = models.PositiveIntegerField(default=0)

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "note": "本项目原生 Skill 目录。仅声明方法与工具白名单，不授予任何权限。",
+  "skills": [
+    {
+      "id": "grounded-knowledge-answering",
+      "version": "1.0.0",
+      "name": "有据知识问答",
+      "description": "在指定工作空间内检索证据，按主张核验引用，证据不足时部分回答或拒答。",
+      "entry": "runtime/grounded-knowledge-answering/SKILL.md",
+      "task_types": ["grounded_qa"],
+      "domains": ["*"],
+      "allowed_tools": ["keyword_search", "semantic_search", "read_child", "read_parent", "read_siblings"],
+      "max_reference_tokens": 1200,
+      "enabled": true
+    },
+    {
+      "id": "guided-learning",
+      "version": "1.0.0",
+      "name": "引导式学习",
+      "description": "从空间资料生成可核验提纲、分层提示和一次自测；不伪造掌握度提升。",
+      "entry": "runtime/guided-learning/SKILL.md",
+      "task_types": ["guided_learning"],
+      "domains": ["*"],
+      "allowed_tools": ["keyword_search", "semantic_search", "read_child", "read_parent"],
+      "max_reference_tokens": 1200,
+      "enabled": true
+    },
+    {
+      "id": "evidence-paper-comparison",
+      "version": "1.0.0",
+      "name": "文献证据比较",
+      "description": "按统一字段抽取论文方法、实验、结论与局限，缺失证据明确标注，不把三篇文献称为系统综述。",
+      "entry": "runtime/evidence-paper-comparison/SKILL.md",
+      "task_types": ["paper_comparison"],
+      "domains": ["research_literature", "generic"],
+      "allowed_tools": ["keyword_search", "semantic_search", "read_child", "read_parent", "read_siblings"],
+      "max_reference_tokens": 1600,
+      "enabled": true
+    },
+    {
+      "id": "repository-investigation",
+      "version": "1.0.0",
+      "name": "只读代码调查",
+      "description": "定位代码证据、解释风险并给出建议 diff；不执行用户代码，执行状态必须显式标注未验证。",
+      "entry": "runtime/repository-investigation/SKILL.md",
+      "task_types": ["code_investigation"],
+      "domains": ["software_engineering"],
+      "allowed_tools": ["keyword_search", "semantic_search", "read_child", "read_parent", "read_siblings"],
+      "max_reference_tokens": 1600,
+      "enabled": true
+    },
+    {
+      "id": "experiment-review",
+      "version": "1.0.0",
+      "name": "实验公平性复核",
+      "description": "检查复现条件、数据泄漏、对照公平性和失败案例；领域不适用的检查项必须跳过并说明。",
+      "entry": "runtime/experiment-review/SKILL.md",
+      "task_types": ["grounded_qa", "paper_comparison"],
+      "domains": ["*"],
+      "allowed_tools": ["keyword_search", "semantic_search", "read_child", "read_parent"],
+      "max_reference_tokens": 1200,
+      "enabled": true
+    },
+    {
+      "id": "task-recovery",
+      "version": "1.0.0",
+      "name": "任务恢复",
+      "description": "读取已完成步骤与证据，判断安全续跑或重试；只读操作可重试，外部副作用不得盲目重复。",
+      "entry": "runtime/task-recovery/SKILL.md",
+      "task_types": ["grounded_qa", "guided_learning", "paper_comparison", "code_investigation"],
+      "domains": ["*"],
+      "allowed_tools": ["read_child", "read_parent", "read_siblings"],
+      "max_reference_tokens": 800,
+      "enabled": true
+    }
+  ]
+}

@@ -1,5 +1,61 @@
 # 本地部署说明
 
+## 2026-11-08 续建：Evidence 工作台本地预览
+
+### 实际交付
+
+- 源仓库：`/Volumes/半岛铁盒/实验室/AlgoMentor`
+- 交付目录：`/Volumes/半岛铁盒/实验室考核部署`
+- 实际地址：`http://127.0.0.1:8010/workbench/`
+- 运行方式：Django `runserver 127.0.0.1:8010 --noreload --insecure` + `manage.py workbench_worker --poll 2`
+- PID：`data/run/server.pid`、`data/run/worker.pid`；端口：`data/run/port.txt`
+- 日志：`data/run/server.log`、`data/run/worker.log`
+- 数据库：`data/db.sqlite3`；Chroma：`/tmp/algomentor-deploy-chroma`
+- 数据库快照：`data/backups/<timestamp>/db.sqlite3`（SQLite backup API，不直接复制活跃主文件）
+
+### 命令
+
+```bash
+# 首次安装或安全升级：保留 data/.env/既有索引，不重置密码
+/Volumes/半岛铁盒/实验室考核部署/scripts/local_setup.sh
+
+# 启动 Web + worker；端口占用时从 8020-8099 选择替代端口
+/Volumes/半岛铁盒/实验室考核部署/scripts/local_start.sh
+
+# 状态/诊断
+/Volumes/半岛铁盒/实验室考核部署/scripts/local_status.sh
+/Volumes/半岛铁盒/实验室/.venv/bin/python /Volumes/半岛铁盒/实验室考核部署/scripts/local_doctor.py
+
+# 停止：只结束本项目记录且命令/工作目录匹配的 PID
+/Volumes/半岛铁盒/实验室考核部署/scripts/local_stop.sh
+
+# 回滚
+ls /Volumes/半岛铁盒/实验室考核部署/data/backups/
+# 停止服务后，用对应快照替换 data/db.sqlite3；代码回滚请使用独立 Git 工作树/备份，勿 reset --hard
+```
+
+### 环境与安全
+
+- `.env` 不存在时才生成新的 `DJANGO_SECRET_KEY` 与 `APP_ENCRYPTION_KEY`；已存在时从不覆盖，避免既有 BYOK 密文失效。
+- 默认 `EMBEDDING_PROVIDER=tfidf`、`RAG_MIN_SCORE=0.2`，明确是词法基线，不是 BGE。
+- 只监听 `127.0.0.1`，不暴露公网/局域网。
+- 演示账户：既有 `demo_student` / `demo_staff` 密码不重置；新建账户的随机密码只写入 `data/run/demo_credentials.txt`（0600）。
+- 工作台 worker 未启动时任务保持 QUEUED，UI 会显示“任务服务未启动”；启动 worker 后自动继续。
+- 代码分析不执行用户代码；没有隔离执行服务时状态为 `UNVERIFIED`。
+
+### 验收证据
+
+- 完整回归：`422 passed, 2 skipped`
+- 工作台开发集：`tests/evaluation/workbench_results.json`
+- 浏览器截图：`/Users/oookla/Downloads/workbench-1440.png`、`workbench-qa.png`、`workbench-paper.png`、`workbench-code.png`、`workbench-retry.png`、`workbench-390.png`、`workbench-768.png`、`workbench-1920.png`
+
+### 已知阻塞
+
+- BGE / Cross-Encoder / 在线 LLM / OCR / ASR / Piston 未验证；不得把词法结果写成 BGE 结论。
+- 资料解析仍在上传请求内同步执行，大文件耗时较长。
+- 工作台评测为 11 条手写开发集，不是大规模人工标注。
+
+
 ## 1. 目标与路径
 
 | 项目 | 默认值 |

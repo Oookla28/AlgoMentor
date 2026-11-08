@@ -1,5 +1,14 @@
 # Research Card · EvidenceRAG Studio
 
+## 2026-11-08 追加：工作台与 Skills 研究问题
+
+- **H4（任务运行）**：显式 QUEUED→…→CANCELLED 状态机 + 租约/预算/取消，是否能在不重复副作用的情况下提高任务可恢复性与用户可见性？
+- **H5（Skills）**：在相同任务、相同预算下，加载项目原生 Skill 是否提高跨领域任务完成质量与工具选择正确率，同时不增加越权或幻觉？
+- **H6（领域迁移）**：同一核心 Agent 在 generic / research_literature / software_engineering 三个领域完成闭环，是否证明领域包可插拔而非三套硬编码页面？
+
+当前可报告证据：三领域 11 例开发集 answerability 1.0、Recall 1.0、MRR 0.9375；Skill 激活与工具权限交集有自动化测试；但 Skills 的质量增益尚未做对照实验，不能宣称已证明。
+
+
 ## 1. 基本信息
 
 | 项目 | 内容 |

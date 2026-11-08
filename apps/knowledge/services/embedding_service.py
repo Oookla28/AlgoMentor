@@ -26,17 +26,22 @@ class BGEEmbeddings(Embeddings):
         return self.model.encode('为这个句子生成表示以用于检索相关文章：'+text,normalize_embeddings=True).tolist()
 
 class TfidfEmbeddings(Embeddings):
-    """Corpus-fitted Chinese character n-gram baseline, explicitly distinct from BGE."""
+    """Corpus-fitted Chinese character n-gram baseline, explicitly distinct from BGE.
+
+    The vectorizer is fitted once per index version and then reused. Re-fitting
+    per uploaded document would change the vector dimension and corrupt the
+    shared Chroma collection, so an existing vectorizer always wins.
+    """
     def __init__(self, path: Path, texts: list[str] | None = None):
         import joblib
         from sklearn.feature_extraction.text import TfidfVectorizer
-        if texts is not None:
+        if path.is_file():
+            self.vectorizer = joblib.load(path)
+        elif texts is not None:
             self.vectorizer = TfidfVectorizer(analyzer='char',ngram_range=(1,3),max_features=2048,sublinear_tf=True)
             self.vectorizer.fit(texts)
             path.parent.mkdir(parents=True,exist_ok=True)
             joblib.dump(self.vectorizer,path)
-        elif path.is_file():
-            self.vectorizer = joblib.load(path)
         else:
             raise KnowledgeRetrievalError('本地词向量未初始化，请执行 ingest_knowledge。')
     def embed_documents(self,texts): return self.vectorizer.transform(texts).toarray().tolist()

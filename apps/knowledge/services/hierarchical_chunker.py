@@ -224,7 +224,8 @@ def _chunk(prefix: str, index: int, chunk_type: str, parent_id: str, text: str, 
 
 
 def chunk_document(document: LoadedDocument, parent_token_min=None, parent_token_max=None,
-                   child_token_min=None, child_token_max=None, overlap_ratio=None) -> ChunkingResult:
+                   child_token_min=None, child_token_max=None, overlap_ratio=None,
+                   hash_override: str = '') -> ChunkingResult:
     parent_token_min = parent_token_min or getattr(settings, 'EVIDENCE_RAG_PARENT_TOKEN_MIN', 1200)
     parent_token_max = parent_token_max or getattr(settings, 'EVIDENCE_RAG_PARENT_TOKEN_MAX', 2000)
     child_token_min = child_token_min or getattr(settings, 'EVIDENCE_RAG_CHILD_TOKEN_MIN', 300)
@@ -288,7 +289,7 @@ def chunk_document(document: LoadedDocument, parent_token_min=None, parent_token
         merged.append((start, end))
     parent_spans = merged
 
-    prefix = f'adv-{document.document_hash[:12]}'
+    prefix = f'adv-{(hash_override or document.document_hash)[:12]}'
     parents = []
     children = []
     overlap_tokens = max(1, int(child_token_max * overlap_ratio))

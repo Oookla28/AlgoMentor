@@ -1,5 +1,6 @@
 """Advanced hierarchical indexing: parent/child chunks plus an independent Chroma collection."""
 
+from datetime import date, datetime
 import hashlib
 from pathlib import Path
 
@@ -24,6 +25,21 @@ def advanced_index_version() -> str:
 
 def collection_name_for(index_version: str) -> str:
     return f'ev-{index_version}'[:63]
+
+
+def _json_safe(value):
+    """Keep parser metadata serialisable; never let an object break an ingest."""
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Path):
+        return str(value)
+    return str(value)
 
 
 def _relative(path: Path) -> str:
@@ -114,7 +130,9 @@ def parse_and_store_advanced(document, parsed: ParsedDocument):
             parents = []
             chunk_ids = [chunk.chunk_id for chunk in children]
         else:
-            result = chunk_document(parsed.document)
+            # Use the target document row's hash (workspace uploads may be salted)
+            # so identical files in different workspaces never share chunk IDs.
+            result = chunk_document(parsed.document, hash_override=document.document_hash)
             parent_rows = {}
             parents = []
             for parent in result.parents:
@@ -140,7 +158,7 @@ def parse_and_store_advanced(document, parsed: ParsedDocument):
         document.page_count = len(parsed.document.pages)
         document.ingestion_status = 'parsed'
         document.latest_index_version = ''
-        document.source_metadata = {
+        document.source_metadata = _json_safe({
             **(document.source_metadata or {}),
             'advanced': {
                 'structure_confidence': getattr(result, 'structure_confidence', 0.0) if not parsed.media else 1.0,
@@ -150,7 +168,7 @@ def parse_and_store_advanced(document, parsed: ParsedDocument):
                 'stale_vector_ids': stale_ids,
             },
             **parsed.metadata,
-        }
+        })
         document.save(update_fields=['source_type', 'parser_name', 'parser_version', 'page_count', 'ingestion_status', 'latest_index_version', 'source_metadata'])
     return {
         'parents': len(parents),
@@ -180,6 +198,7 @@ def _vector_metadata(document, chunk) -> dict:
         'chunk_type': chunk.chunk_type,
         'authority_level': document.authority_level,
         'content_hash': chunk.content_hash,
+        'workspace_id': (document.source_metadata or {}).get('workspace_id', ''),
     }
 
 
@@ -218,13 +237,25 @@ def index_advanced_chunks(document, rebuild: bool = False) -> dict:
         Document(page_content=chunk.content, metadata=_vector_metadata(document, chunk))
         for chunk in chunks
     ]
-    store.add_documents(documents, ids=[chunk.chunk_id for chunk in chunks])
+    chunk_ids = [chunk.chunk_id for chunk in chunks]
+    store.add_documents(documents, ids=chunk_ids)
+    # The collection is shared by every document in the same index version, so
+    # an exact collection-count check is wrong. Verify this document's IDs only.
     try:
-        count = store._collection.count()
+        stored = store.get(ids=chunk_ids)
+        present = len(stored.get('ids') or [])
     except Exception:
-        count = len(chunks)
-    if count != len(chunks):
-        raise KnowledgeRetrievalError('高级向量索引数量与数据库不一致。', code='ADVANCED_INDEX_COUNT_MISMATCH')
+        present = None
+    if present is not None:
+        if present != len(chunk_ids):
+            raise KnowledgeRetrievalError('高级向量索引数量与数据库不一致。', code='ADVANCED_INDEX_COUNT_MISMATCH')
+    else:
+        try:
+            count = store._collection.count()
+        except Exception:
+            count = len(chunk_ids)
+        if count < len(chunk_ids):
+            raise KnowledgeRetrievalError('高级向量索引数量与数据库不一致。', code='ADVANCED_INDEX_COUNT_MISMATCH')
     document.latest_index_version = index_version
     document.ingestion_status = 'ready'
     document.source_metadata = {
@@ -250,15 +281,44 @@ def index_advanced_chunks(document, rebuild: bool = False) -> dict:
     }
 
 
-def ingest_advanced(path, annotation: str = '', caption: str = '', rebuild: bool = True, index: bool = True):
+def _workspace_scoped_hash(parsed_hash: str, workspace) -> tuple[object, str]:
+    """Return (reusable_document, target_hash) for a private workspace upload.
+
+    A workspace document must never attach itself to a course/global document or
+    another user's private document merely because the file bytes are identical.
+    Reuse is only allowed inside the same workspace; otherwise a salted hash
+    creates an independent document row and an independent vector identity.
+    """
+    from apps.knowledge.models import KnowledgeDocument
+    from apps.workspace.models import WorkspaceDocument
+
+    existing = KnowledgeDocument.objects.filter(document_hash=parsed_hash).first()
+    if existing is None:
+        return None, parsed_hash
+    if workspace is None:
+        return existing, parsed_hash
+    link = WorkspaceDocument.objects.filter(document=existing).first()
+    if link is not None and link.workspace_id == workspace.pk:
+        return existing, parsed_hash
+    salted = hashlib.sha256(f'{parsed_hash}|workspace:{workspace.pk}'.encode('utf-8')).hexdigest()
+    salted_document = KnowledgeDocument.objects.filter(document_hash=salted).first()
+    if salted_document is not None:
+        salted_link = WorkspaceDocument.objects.filter(document=salted_document).first()
+        if salted_link is not None and salted_link.workspace_id == workspace.pk:
+            return salted_document, salted
+    return None, salted
+
+
+def ingest_advanced(path, annotation: str = '', caption: str = '', rebuild: bool = True, index: bool = True,
+                    workspace=None):
     from apps.knowledge.models import KnowledgeDocument
     path = Path(path)
     parsed = load_any(path, annotation=annotation, caption=caption)
-    existing = KnowledgeDocument.objects.filter(document_hash=parsed.document.document_hash).first()
+    existing, target_hash = _workspace_scoped_hash(parsed.document.document_hash, workspace)
     if existing is None:
         document = KnowledgeDocument.objects.create(
             name=parsed.document.name,
-            document_hash=parsed.document.document_hash,
+            document_hash=target_hash,
             path=_relative(path),
             version='1',
             page_count=len(parsed.document.pages),
@@ -276,6 +336,9 @@ def ingest_advanced(path, annotation: str = '', caption: str = '', rebuild: bool
     else:
         document = existing
     parsed_counts = parse_and_store_advanced(document, parsed)
+    if workspace is not None:
+        document.source_metadata = _json_safe({**(document.source_metadata or {}), 'workspace_id': workspace.pk})
+        document.save(update_fields=['source_metadata'])
     index_info = {}
     warning = ''
     if index:
@@ -283,13 +346,13 @@ def ingest_advanced(path, annotation: str = '', caption: str = '', rebuild: bool
             index_info = index_advanced_chunks(document, rebuild=rebuild)
         except Exception as exc:
             document.ingestion_status = 'partial'
-            document.source_metadata = {
+            document.source_metadata = _json_safe({
                 **(document.source_metadata or {}),
                 'advanced': {
                     **((document.source_metadata or {}).get('advanced') or {}),
                     'index_error': getattr(exc, 'code', type(exc).__name__),
                 },
-            }
+            })
             document.save(update_fields=['ingestion_status', 'source_metadata'])
             warning = getattr(exc, 'message', str(exc))
     return {'document': document, 'parsed': parsed_counts, 'index': index_info, 'warning': warning}

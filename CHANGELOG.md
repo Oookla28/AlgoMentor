@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased · 2026-11-08 · Evidence 工作台续建
+
+### Added
+
+- 私有 `Workspace` / `WorkspaceMember` / `WorkspaceDocument` / `TaskArtifact` / `SkillActivation` / `TaskFeedback` / `WorkerHeartbeat`。
+- `/workbench/` 工作台：空间切换、上传解析状态、重试/移除/恢复、有据问答、引导学习、文献比较、代码分析、引用定位、产物下载、刷新恢复。
+- `AgentRun` 扩展 QUEUED/RUNNING/SUCCEEDED/PARTIAL/CANCELLED、workspace、task type、stage、attempts、lease、cancel flag。
+- `workbench_worker` 管理命令：租约领取、过期重排、取消、真实 usage/预算。
+- 6 个原生 Skill 与渐进式 Skill Runtime；开发 Skill `skills.lock.json` / `THIRD_PARTY_NOTICES.md`。
+- 三领域 Demo 资料与 `seed_workbench_demo`；11 条工作台开发集与 `evaluate_workbench`。
+- `scripts/local_setup.sh`、`local_start.sh`、`local_stop.sh`、`local_status.sh`、`local_doctor.py`。
+
+### Changed
+
+- 全局字体按用户要求统一为宋体优先栈；主题、布局未换肤。
+- `base.html` 增加“Evidence 工作台”入口。
+- 文献比较使用 Small2Big 读取父块，并从 Markdown 标题提取方法/实验/结论/局限字段。
+- 代码调查在识别到代码意图时对本空间做有界只读扫描；无代码意图的越界问题会拒答。
+- `TfidfEmbeddings` 首次拟合后复用，避免多文档维度漂移；高级索引只校验本文档 ID，不再要求整个共享 collection 数量相等。
+- 切片 ID 使用目标文档哈希，修复同一文件跨空间上传时的片段归属冲突。
+
+### Fixed
+
+- 私有原文页越权、任务/产物跨用户访问、跨空间同名文件共享 chunk ID。
+- 任务列表阶段不刷新、inline `[来源N]` 不可点击、任务类型选项重复。
+
+### Verified
+
+- 422 passed / 2 skipped；真实 worker；真实浏览器 1440/390/768/1920；工作台 11 例开发集 answerability 1.0、Recall 1.0、MRR 0.9375。
+- 仍未验证：BGE、Cross-Encoder、在线 LLM、OCR/ASR、Piston、生产多租户安全。
+
 ## Unreleased · 2026-11-08 · EvidenceRAG Studio + 平台化增量
 
 ### Added

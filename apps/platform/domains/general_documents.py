@@ -11,7 +11,7 @@ def build_domain_pack() -> DomainPack:
         version='1.0.0',
         name='通用文档证据包',
         description='面向一般 PDF/文本/图片的通用证据检索；无课程专属权威假设。',
-        capabilities=('text_retrieval', 'hierarchical_context', 'multimodal_optional'),
+        capabilities=('text_retrieval', 'hierarchical_context', 'semantic_retrieval', 'multimodal_optional'),
         document_profile={
             'primary_format': 'markdown',
             'accepted_formats': ['pdf', 'docx', 'markdown', 'text', 'image'],
