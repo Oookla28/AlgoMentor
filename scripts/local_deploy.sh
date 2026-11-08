@@ -132,7 +132,7 @@ cat > "$DEPLOY_DIR/DEPLOYMENT_REPORT.md" <<EOF
 
 - 源目录：\`$SOURCE_DIR\`
 - 部署目录：\`$DEPLOY_DIR\`
-- 源提交：\`$SOURCE_COMMIT\`（分支 \`$SOURCE_BRANCH\`，未提交文件数 $SOURCE_DIRTY）
+- 源提交：\`$SOURCE_COMMIT\`（分支 \`$SOURCE_BRANCH\`，未提交文件数 ${SOURCE_DIRTY}）
 - 创建时间：$(date '+%Y-%m-%d %H:%M:%S %Z')
 - 端口：\`$DEPLOY_PORT\`
 - Chroma：\`$CHROMA_PATH\`

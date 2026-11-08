@@ -35,8 +35,26 @@ export CHROMA_PATH
 export RAG_MIN_SCORE="${RAG_MIN_SCORE:-0.2}"
 
 cd "$DEPLOY_DIR"
-nohup "$VENV_PYTHON" manage.py runserver "127.0.0.1:${DEPLOY_PORT}" --noreload >"$LOG_FILE" 2>&1 &
-PID=$!
+PID="$("$VENV_PYTHON" - "$VENV_PYTHON" "$DEPLOY_DIR" "$DEPLOY_PORT" "$LOG_FILE" <<'PY'
+import os
+import subprocess
+import sys
+
+python, cwd, port, log = sys.argv[1:5]
+environment = os.environ.copy()
+with open(log, 'ab') as handle:
+    process = subprocess.Popen(
+        [python, 'manage.py', 'runserver', f'127.0.0.1:{port}', '--noreload'],
+        cwd=cwd,
+        stdin=subprocess.DEVNULL,
+        stdout=handle,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+        env=environment,
+    )
+print(process.pid)
+PY
+)"
 echo "$PID" > "$PID_FILE"
 
 sleep 3

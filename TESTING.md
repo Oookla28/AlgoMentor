@@ -113,7 +113,7 @@ legacy 与 advanced，写入 `tests/evaluation/evidence_rag_results.json`。
 
 ### 2. 完整回归
 
-- **398 passed, 2 skipped**（2026-11-08，13.45s）；
+- **398 passed, 2 skipped**（2026-11-08，15.24s）；
 - 2 skip 仍为真实 Piston 与 Wikimedia 在线集成；
 - `manage.py check`、`makemigrations --check` 通过。
 
