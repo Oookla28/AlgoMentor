@@ -15,15 +15,31 @@ def index(request):
 
 @login_required
 def source(request,chunk_id):
-    chunk=get_object_or_404(KnowledgeChunk.objects.select_related('document'),chunk_id=chunk_id)
+    chunk=get_object_or_404(KnowledgeChunk.objects.select_related('document','parent_chunk','media_asset'),chunk_id=chunk_id)
     page=KnowledgeChunk.objects.filter(document=chunk.document,page_number=chunk.page_number)
-    return render(request,'knowledge/source.html',{'chunk':chunk,'page_chunks':page,'corrections':chunk.corrections.all(),'page_title':'原文来源'})
+    parent=chunk.parent_chunk
+    children=chunk.children.filter(is_active=True)[:12]
+    siblings=parent.children.filter(is_active=True).exclude(pk=chunk.pk)[:6] if parent else []
+    return render(request,'knowledge/source.html',{
+        'chunk':chunk,'page_chunks':page,'corrections':chunk.corrections.all(),
+        'parent':parent,'children':children,'siblings':siblings,
+        'claims':chunk.claims.all()[:6],
+        'media_assets':chunk.document.media_assets.all()[:6],
+        'page_title':'原文来源',
+    })
 
 @api_endpoint()
 def search(request):
     q=request.GET.get('q','')
+    requested_mode=request.GET.get('mode',getattr(settings,'EVIDENCE_RAG_DEFAULT_MODE','legacy')).strip().lower()
+    if requested_mode=='advanced':
+        from .services.hybrid_retrieval import advanced_retrieve
+        result=advanced_retrieve(q,user=request.user)
+        payload=result.to_dict()
+        payload.update({'query':q,'results':payload['citations'],'citation_check':payload.get('citation_check',{})})
+        return payload
     citations=retrieve_knowledge(q)
-    return {'query':q,'citations':citations_json(citations),'results':citations_json(citations),'evidence_sufficient':bool(citations),'embedding_provider':__import__('django.conf',fromlist=['settings']).settings.EMBEDDING_PROVIDER}
+    return {'query':q,'citations':citations_json(citations),'results':citations_json(citations),'evidence_sufficient':bool(citations),'embedding_provider':settings.EMBEDDING_PROVIDER}
 
 @api_endpoint()
 def points_api(request):

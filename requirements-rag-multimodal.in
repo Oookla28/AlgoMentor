@@ -1,0 +1,16 @@
+# EvidenceRAG Studio 可选多模态依赖。
+# 核心 requirements.in / requirements.txt 刻意不包含这些包：
+# 缺少它们时 Django 仍可启动，PDF 旧版 RAG 与纯文本离线模式继续工作。
+# 安装命令：
+#   pip install -r requirements-rag-multimodal.in
+# 仍需要的系统工具（不通过 pip 安装）：
+#   - tesseract-ocr（图片 OCR）
+#   - ffmpeg / ffprobe（视频元数据与关键帧）
+#   - PaddleOCR / Qwen-VL（可选的重型视觉后端，默认不安装）
+
+python-docx>=1.1
+Pillow>=10.0
+PyMuPDF>=1.24
+pytesseract>=0.3.10
+opencv-python-headless>=4.9
+faster-whisper>=1.0

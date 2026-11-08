@@ -1,0 +1,452 @@
+{
+  "status": "PASSED",
+  "advanced_available": true,
+  "cases": 11,
+  "covered_cases": 9,
+  "outside_cases": 2,
+  "legacy_hit": 6,
+  "advanced_hit": 9,
+  "legacy_refusals": 2,
+  "advanced_refusals": 2,
+  "notes": "Small local evaluation only; not a production accuracy claim. Advanced mode uses the configured embedding/index.",
+  "rows": [
+    {
+      "id": "queue-complexity",
+      "query": "队列的入队和出队时间复杂度是多少",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p8-1",
+          "97b065357e4afda4c3d8d0a1-p10-0",
+          "97b065357e4afda4c3d8d0a1-p9-0"
+        ],
+        "hit": true,
+        "latency_ms": 416,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P006-C02",
+          "adv-97b065357e4a-P005-C03",
+          "adv-97b065357e4a-P006-C03",
+          "adv-97b065357e4a-P004-C02",
+          "adv-97b065357e4a-P006-C01",
+          "adv-97b065357e4a-P002-C04"
+        ],
+        "hit": true,
+        "latency_ms": 242,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "91e1856941ad4d6199ed0b905b24eb8a",
+        "trace_rows": 68,
+        "conflicts": 0,
+        "query_variants": [
+          "队列的入队和出队时间复杂度是多少",
+          "队列的入队和出队时间复杂度是多少 定义 原理 示例",
+          "队列的入队和出队时间复杂度是多少 队头 队尾 判空 判满 循环队列 顺序队列 时间复杂度 空间复杂度 最坏情况 平均情况"
+        ]
+      }
+    },
+    {
+      "id": "queue-full",
+      "query": "循环队列判满条件",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p8-2",
+          "97b065357e4afda4c3d8d0a1-p8-1",
+          "97b065357e4afda4c3d8d0a1-p10-0"
+        ],
+        "hit": false,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P005-C04",
+          "adv-97b065357e4a-P005-C03",
+          "adv-97b065357e4a-P006-C03",
+          "adv-97b065357e4a-P006-C01",
+          "adv-97b065357e4a-P006-C02",
+          "adv-97b065357e4a-P006-C04"
+        ],
+        "hit": true,
+        "latency_ms": 127,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "07bd1fdabd4d49e1a9709c0bcb9bf0ae",
+        "trace_rows": 70,
+        "conflicts": 0,
+        "query_variants": [
+          "循环队列判满条件",
+          "循环队列判满条件 定义 原理 示例",
+          "循环队列判满条件 队头 队尾 判空 判满 循环队列 顺序队列"
+        ]
+      }
+    },
+    {
+      "id": "random-access",
+      "query": "顺序表为什么可以随机存取",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p4-1",
+          "97b065357e4afda4c3d8d0a1-p4-0"
+        ],
+        "hit": true,
+        "latency_ms": 5,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P003-C02",
+          "adv-97b065357e4a-P003-C01",
+          "adv-97b065357e4a-P004-C02",
+          "adv-97b065357e4a-P007-C01",
+          "adv-97b065357e4a-P006-C03",
+          "adv-97b065357e4a-P008-C02"
+        ],
+        "hit": true,
+        "latency_ms": 144,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "60c0e148ce03433599e204d109ffa3e9",
+        "trace_rows": 42,
+        "conflicts": 0,
+        "query_variants": [
+          "顺序表为什么可以随机存取",
+          "顺序表 可以随机存取 定义 原理 示例"
+        ]
+      }
+    },
+    {
+      "id": "list-insert",
+      "query": "顺序表插入的时间复杂度",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p6-0",
+          "97b065357e4afda4c3d8d0a1-p4-1",
+          "97b065357e4afda4c3d8d0a1-p4-2"
+        ],
+        "hit": true,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P004-C02",
+          "adv-97b065357e4a-P003-C02",
+          "adv-97b065357e4a-P002-C04",
+          "adv-97b065357e4a-P003-C03",
+          "adv-97b065357e4a-P004-C01",
+          "adv-97b065357e4a-P007-C03"
+        ],
+        "hit": true,
+        "latency_ms": 172,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "748e8a522eb74ff0b487e6261fe0416b",
+        "trace_rows": 70,
+        "conflicts": 0,
+        "query_variants": [
+          "顺序表插入的时间复杂度",
+          "顺序表插入的时间复杂度 定义 原理 示例",
+          "顺序表插入的时间复杂度 时间复杂度 空间复杂度 最坏情况 平均情况"
+        ]
+      }
+    },
+    {
+      "id": "linked-list",
+      "query": "单链表节点包含哪两个域",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p15-0"
+        ],
+        "hit": false,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P004-C01",
+          "adv-97b065357e4a-P008-C03",
+          "adv-97b065357e4a-P004-C03",
+          "adv-97b065357e4a-P004-C02",
+          "adv-97b065357e4a-P006-C01",
+          "adv-97b065357e4a-P003-C03"
+        ],
+        "hit": true,
+        "latency_ms": 139,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "cc549e0b061b42f3bafe08be144d56e6",
+        "trace_rows": 65,
+        "conflicts": 0,
+        "query_variants": [
+          "单链表节点包含哪两个域",
+          "单链表节点包含哪两个域 定义 原理 示例",
+          "单链表节点包含哪两个域 单链表 双链表 头结点 指针"
+        ]
+      }
+    },
+    {
+      "id": "stack-lifo",
+      "query": "栈为什么是后进先出",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p10-0"
+        ],
+        "hit": false,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P006-C03",
+          "adv-97b065357e4a-P005-C01",
+          "adv-97b065357e4a-P006-C04",
+          "adv-97b065357e4a-P005-C03"
+        ],
+        "hit": true,
+        "latency_ms": 110,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "8811ecddb7b54befb5f12bc823ca873c",
+        "trace_rows": 65,
+        "conflicts": 4,
+        "query_variants": [
+          "栈为什么是后进先出",
+          "栈 是后进先出 定义 原理 示例",
+          "栈为什么是后进先出 顺序栈 链栈 入栈 出栈 栈顶 栈底"
+        ]
+      }
+    },
+    {
+      "id": "kmp-next",
+      "query": "KMP next数组",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p12-2"
+        ],
+        "hit": true,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P007-C03",
+          "adv-97b065357e4a-P007-C02",
+          "adv-97b065357e4a-P007-C01",
+          "adv-97b065357e4a-P006-C04",
+          "adv-97b065357e4a-P008-C02",
+          "adv-97b065357e4a-P005-C02"
+        ],
+        "hit": true,
+        "latency_ms": 192,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "cc7b0f7e05bb4d74965b6b25e2fd0e0f",
+        "trace_rows": 66,
+        "conflicts": 0,
+        "query_variants": [
+          "KMP next数组",
+          "KMP next数组 定义 原理 示例",
+          "KMP next数组 next 数组 前缀函数 模式匹配 失配"
+        ]
+      }
+    },
+    {
+      "id": "matrix-storage",
+      "query": "三对角矩阵压缩存储公式",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p13-2",
+          "97b065357e4afda4c3d8d0a1-p14-1",
+          "97b065357e4afda4c3d8d0a1-p14-0"
+        ],
+        "hit": true,
+        "latency_ms": 5,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P007-C05",
+          "adv-97b065357e4a-P008-C02",
+          "adv-97b065357e4a-P008-C01",
+          "adv-97b065357e4a-P007-C04",
+          "adv-97b065357e4a-P006-C03",
+          "adv-97b065357e4a-P005-C01"
+        ],
+        "hit": true,
+        "latency_ms": 181,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "32951f05be9b4550a092fcc126dd7664",
+        "trace_rows": 46,
+        "conflicts": 2,
+        "query_variants": [
+          "三对角矩阵压缩存储公式",
+          "三对角矩阵压缩存储公式 定义 原理 示例"
+        ]
+      }
+    },
+    {
+      "id": "generalized-list",
+      "query": "广义表的表头和表尾",
+      "covered": true,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [
+          "97b065357e4afda4c3d8d0a1-p14-3",
+          "97b065357e4afda4c3d8d0a1-p14-2",
+          "97b065357e4afda4c3d8d0a1-p15-0"
+        ],
+        "hit": true,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [
+          "adv-97b065357e4a-P008-C03",
+          "adv-97b065357e4a-P008-C02",
+          "adv-97b065357e4a-P006-C04",
+          "adv-97b065357e4a-P004-C02",
+          "adv-97b065357e4a-P007-C03",
+          "adv-97b065357e4a-P005-C03"
+        ],
+        "hit": true,
+        "latency_ms": 136,
+        "evidence_sufficient": true,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "c82f5d343e4a49e699ca5c67fe22827f",
+        "trace_rows": 42,
+        "conflicts": 0,
+        "query_variants": [
+          "广义表的表头和表尾",
+          "广义表的表头和表尾 定义 原理 示例"
+        ]
+      }
+    },
+    {
+      "id": "outside-redblack",
+      "query": "红黑树旋转",
+      "covered": false,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [],
+        "hit": false,
+        "latency_ms": 3,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [],
+        "hit": false,
+        "latency_ms": 23,
+        "evidence_sufficient": false,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "56ae61d29ca4445d89ba08ca12b247e7",
+        "trace_rows": 41,
+        "conflicts": 0,
+        "query_variants": [
+          "红黑树旋转",
+          "红黑树旋转 定义 原理 示例",
+          "红黑树旋转 二叉树 遍历 前序 中序 后序 层序"
+        ]
+      }
+    },
+    {
+      "id": "outside-physics",
+      "query": "量子引力黑洞霍金辐射",
+      "covered": false,
+      "legacy": {
+        "mode": "legacy",
+        "ids": [],
+        "hit": false,
+        "latency_ms": 2,
+        "error": ""
+      },
+      "advanced": {
+        "mode": "advanced",
+        "ids": [],
+        "hit": false,
+        "latency_ms": 23,
+        "evidence_sufficient": false,
+        "fallback": {
+          "used": false,
+          "reason": "",
+          "warnings": []
+        },
+        "trace_id": "54d5fdff417244df87a3b73acab85395",
+        "trace_rows": 40,
+        "conflicts": 0,
+        "query_variants": [
+          "量子引力黑洞霍金辐射",
+          "量子引力黑洞霍金辐射 定义 原理 示例"
+        ]
+      }
+    }
+  ]
+}

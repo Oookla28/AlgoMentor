@@ -1,5 +1,6 @@
 from dataclasses import dataclass,field
 import re
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from core.exceptions import ValidationError,BusinessError
@@ -17,6 +18,9 @@ class ChatResponse:
     trace_id: str
     tool_invocations: list
     external_sources: list = field(default_factory=list)
+    retrieval_mode: str = 'legacy'
+    retrieval_trace_id: str = ''
+    citation_check: dict = field(default_factory=dict)
 
 
 def answer(user,message,session_id=None,tier=None,mode='explain',point=None,problem_id=None):
@@ -45,7 +49,17 @@ def answer(user,message,session_id=None,tier=None,mode='explain',point=None,prob
     prior=list(session.messages.filter(status='SUCCESS').values('role','content'))[-12:]
     incoming=ChatMessage.objects.create(session=session,role='user',content=message)
     try:
-        try: evidence=retrieve_knowledge(message)
+        retrieval_mode=getattr(settings,'EVIDENCE_RAG_CHAT_MODE','legacy')
+        retrieval_trace_id=''
+        try:
+            if retrieval_mode=='advanced':
+                from apps.knowledge.services.retrieval_service import retrieve_knowledge_with_trace
+                retrieval=retrieve_knowledge_with_trace(message,user=user,mode='advanced')
+                evidence=retrieval.citations
+                retrieval_mode=retrieval.mode
+                retrieval_trace_id=retrieval.trace_id
+            else:
+                evidence=retrieve_knowledge(message)
         except BusinessError as exc:
             if exc.code=='INDEX_MISSING': evidence=[]
             else: raise
@@ -59,6 +73,8 @@ def answer(user,message,session_id=None,tier=None,mode='explain',point=None,prob
             except ValidationError:pass  # Never send an unsafe/private full question to Wikipedia.
         result=run_agent(user,message,session_id=session.pk,tier=tier,history=prior,system_prompt=teaching_prompt(teaching,evidence),wikipedia_query=wikipedia_query)
         cited=verified_citation_ids(result.text,evidence)
+        from apps.knowledge.services.citation_verifier import verify_answer
+        citation_check=verify_answer(result.text,evidence)
         sources=citations_json(cited)
         # Keep independent evidence visible even if model failed to attach an inline reference.
         if evidence and not cited:
@@ -71,7 +87,7 @@ def answer(user,message,session_id=None,tier=None,mode='explain',point=None,prob
             if teaching.current_level > 1:
                 teaching.provided_hints=[*teaching.provided_hints,{'level':teaching.current_level,'at':timezone.now().isoformat(),'message_id':outgoing.pk}]
                 teaching.save(update_fields=['provided_hints'])
-        return ChatResponse(session.pk,outgoing.pk,result.text,sources,str(result.trace_id),result.tool_invocations,external_sources)
+        return ChatResponse(session.pk,outgoing.pk,result.text,sources,str(result.trace_id),result.tool_invocations,external_sources,retrieval_mode,retrieval_trace_id,citation_check)
     except Exception:
         incoming.status='FAILED';incoming.save(update_fields=['status'])
         raise

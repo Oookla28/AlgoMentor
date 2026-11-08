@@ -17,3 +17,78 @@ Piston 运行列表读取成功不等于执行成功。本机现已部署独立 
 ## Wikipedia 与离线增量验收
 
 本轮基线218通过、1跳过；最终320通过、2默认跳过。两个真实集成分别单独执行通过：真实LangChain+官方Wikipedia（规划LLM明确为测试替身）与真实Piston提交闭环。用户要求的四个概念实际API全部通过，额外合计6项；18项预热词表实际核对通过。离线冷启动在新WSGI进程、一次性数据库副本、外部DNS/socket与主机代理阻断下通过，DEBUG=False静态、BGE/Chroma、课程/图谱/算法、真实百科缓存和本机执行均可用。既有学生行指纹未变。完整证据与命令见 WIKIPEDIA_OFFLINE_REPORT.md 和 tests/evaluation/wikipedia_incremental_tests.json。未调用用户付费DeepSeek。
+
+---
+
+## EvidenceRAG Studio 增量测试（2026-11-08）
+
+### 1. 数量与命令
+
+| 阶段 | 命令 | 结果 |
+| --- | --- | --- |
+| 增量前基线 | `pytest -q` | 320 passed，2 skipped，52.84s |
+| 增量后 | `pytest -q` | **371 passed，2 skipped** |
+| 系统检查 | `python manage.py check` | 无问题 |
+| 迁移检查 | `python manage.py makemigrations --check` | No changes detected |
+| 环境检查 | `python scripts/verify_environment.py` | 通过 |
+| 离线探针 | `python scripts/verify_offline.py` | 环境受限：初始化后页面/静态/RAG/百科缓存通过，停在未部署的本机 Piston；默认 BGE 权重亦未安装 |
+| 检索评测 | `python scripts/evaluate_evidence_rag.py` | PASSED：TF-IDF 高级索引 advanced 9/9、库外拒答 2/2；legacy 6/9、拒答 2/2 |
+
+新增 51 项测试位于：
+
+- `apps/knowledge/tests/test_hierarchical_chunker.py`：标题、递归边界、弱结构、
+  overlap、代码/表格保护、content_hash、page/char span、旧分片兼容；
+- `test_small2big.py`：父块/命中子块/兄弟、token budget、旧 Citation 字段；
+- `test_retrieval_advanced.py`：RRF、BM25、改写、确定性重排、TF-IDF + 真实
+  Chroma 高级检索、无索引回退、legacy wrapper；
+- `test_citation_verifier.py`：合法/越界/缺失/无支撑/矛盾 claim；
+- `test_conflict_service.py`：否定/数字/版本/年份、UNRESOLVED、A_WINS、
+  存储与序列化；
+- `test_multimodal_loader.py`：TXT/Markdown/图片/视频、缺失 OCR/ASR/ffmpeg、
+  不支持 MIME、空文件、EvidenceUnit；
+- `test_evidence_api.py`：树/详情、学生只读、staff CRUD、CSRF、上传限制、
+  轨迹权限、媒体文件路径穿越、管理员入口可见性；
+- `test_advanced_ingestion.py`：`ingest_knowledge --advanced` 同时建旧版与
+  高级索引、旧版 rebuild 不删除高级父/子块、Markdown advanced-only。
+
+评测脚本 `scripts/evaluate_evidence_rag.py` 读取
+`tests/evaluation/rag_cases.json`，对 9 个库内问题和 2 个库外问题分别运行
+legacy 与 advanced，写入 `tests/evaluation/evidence_rag_results.json`。
+脚本不调用 LLM 或外网；没有高级索引时返回
+`SKIPPED_NO_ADVANCED_INDEX`，不伪造指标。
+
+### 2. 离线与替身原则
+
+新增测试默认：
+
+- 不调用真实 DeepSeek；
+- 不调用真实 Wikipedia；
+- 不自动下载模型；
+- 不访问外网；
+- 不依赖 Docker/GPU；
+- 使用 TF-IDF fake/deterministic embedding、临时 SQLite、临时 Chroma、
+  `tmp_path` 文件与显式 warning 断言。
+
+### 3. 实测数据
+
+| 项目 | 结果 |
+| --- | --- |
+| 课程 PDF 结构感知切片 | 15 页 → 8 个父块 / 29 个子块 |
+| 父块 token 分布 | 971 / 1900 / 平均 1297（目标 1200–2000，尾部受章节边界限制） |
+| 子块 token 分布 | 100–511，平均 388（目标 300–500，短尾块与原子块例外） |
+| 子块重叠 | 约 60 tokens / 块（约 12%，受保护块边界时不重叠） |
+| 高级索引（本机） | TF-IDF 2048 维，`ev-adv-3276aef3b4b6faa840345085` |
+| 高级检索示例 | “循环队列判满条件” → 6 条证据，70 行逐路轨迹，dense+sparse 双路 |
+| 浏览器 QA | 高级检索、切片树、管理员维护、学生不可见管理入口 |
+| BGE 高级索引 | UNVERIFIED（未安装本地权重） |
+| OCR/ASR/关键帧/交叉编码器/LLM 改写 | OPTIONAL / UNVERIFIED（默认关闭，回退路径已测） |
+
+### 4. 结果解释
+
+- 371 passed 是本次环境实际运行结果；2 skipped 仍是原有的真实 Piston 与
+  Wikimedia 在线集成，未删除、未改写。
+- 高级检索的 TF-IDF 实测只证明链路可运行与可解释，不证明 BGE 语义质量；
+  BGE 高级索引需要在有本地权重环境重新执行并比较。
+- 冲突检测是轻量规则后端，不是完整 NLI；测试只覆盖规则可识别的模式。
+- 浏览器 QA 在真实 Chrome 中完成，但窗口曾处于最小化状态；对首屏下方控件
+  使用 DOM 存在性、尺寸、启用状态与文案取证，未做像素级截图。
