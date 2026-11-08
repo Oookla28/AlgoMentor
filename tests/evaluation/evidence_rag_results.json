@@ -22,7 +22,7 @@
           "97b065357e4afda4c3d8d0a1-p9-0"
         ],
         "hit": true,
-        "latency_ms": 416,
+        "latency_ms": 482,
         "error": ""
       },
       "advanced": {
@@ -36,14 +36,14 @@
           "adv-97b065357e4a-P002-C04"
         ],
         "hit": true,
-        "latency_ms": 242,
+        "latency_ms": 270,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "91e1856941ad4d6199ed0b905b24eb8a",
+        "trace_id": "742295d3a4f640f8886209c2e3a0c7e8",
         "trace_rows": 68,
         "conflicts": 0,
         "query_variants": [
@@ -79,14 +79,14 @@
           "adv-97b065357e4a-P006-C04"
         ],
         "hit": true,
-        "latency_ms": 127,
+        "latency_ms": 118,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "07bd1fdabd4d49e1a9709c0bcb9bf0ae",
+        "trace_id": "3ee71cb337a74b39a0bc896ed41b99e6",
         "trace_rows": 70,
         "conflicts": 0,
         "query_variants": [
@@ -107,7 +107,7 @@
           "97b065357e4afda4c3d8d0a1-p4-0"
         ],
         "hit": true,
-        "latency_ms": 5,
+        "latency_ms": 4,
         "error": ""
       },
       "advanced": {
@@ -121,14 +121,14 @@
           "adv-97b065357e4a-P008-C02"
         ],
         "hit": true,
-        "latency_ms": 144,
+        "latency_ms": 193,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "60c0e148ce03433599e204d109ffa3e9",
+        "trace_id": "7f680d0c6d624e3ab23795b6257a226f",
         "trace_rows": 42,
         "conflicts": 0,
         "query_variants": [
@@ -163,14 +163,14 @@
           "adv-97b065357e4a-P007-C03"
         ],
         "hit": true,
-        "latency_ms": 172,
+        "latency_ms": 198,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "748e8a522eb74ff0b487e6261fe0416b",
+        "trace_id": "2d44ec2999b44806ad1e5fee6e38df9e",
         "trace_rows": 70,
         "conflicts": 0,
         "query_variants": [
@@ -190,7 +190,7 @@
           "97b065357e4afda4c3d8d0a1-p15-0"
         ],
         "hit": false,
-        "latency_ms": 3,
+        "latency_ms": 4,
         "error": ""
       },
       "advanced": {
@@ -204,14 +204,14 @@
           "adv-97b065357e4a-P003-C03"
         ],
         "hit": true,
-        "latency_ms": 139,
+        "latency_ms": 189,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "cc549e0b061b42f3bafe08be144d56e6",
+        "trace_id": "88025ebebb2b44d7aeba75e52cf1f677",
         "trace_rows": 65,
         "conflicts": 0,
         "query_variants": [
@@ -243,14 +243,14 @@
           "adv-97b065357e4a-P005-C03"
         ],
         "hit": true,
-        "latency_ms": 110,
+        "latency_ms": 128,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "8811ecddb7b54befb5f12bc823ca873c",
+        "trace_id": "939497f143134a79aa1bf2949d1bda65",
         "trace_rows": 65,
         "conflicts": 4,
         "query_variants": [
@@ -284,14 +284,14 @@
           "adv-97b065357e4a-P005-C02"
         ],
         "hit": true,
-        "latency_ms": 192,
+        "latency_ms": 183,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "cc7b0f7e05bb4d74965b6b25e2fd0e0f",
+        "trace_id": "f8a6549379764f79bc7c74eb21d928c4",
         "trace_rows": 66,
         "conflicts": 0,
         "query_variants": [
@@ -327,14 +327,14 @@
           "adv-97b065357e4a-P005-C01"
         ],
         "hit": true,
-        "latency_ms": 181,
+        "latency_ms": 238,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "32951f05be9b4550a092fcc126dd7664",
+        "trace_id": "c06c6191447c4ab69888e295735b7107",
         "trace_rows": 46,
         "conflicts": 2,
         "query_variants": [
@@ -369,14 +369,14 @@
           "adv-97b065357e4a-P005-C03"
         ],
         "hit": true,
-        "latency_ms": 136,
+        "latency_ms": 183,
         "evidence_sufficient": true,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "c82f5d343e4a49e699ca5c67fe22827f",
+        "trace_id": "454becc9be174c29a11bc51f14e8a5b0",
         "trace_rows": 42,
         "conflicts": 0,
         "query_variants": [
@@ -400,14 +400,14 @@
         "mode": "advanced",
         "ids": [],
         "hit": false,
-        "latency_ms": 23,
+        "latency_ms": 29,
         "evidence_sufficient": false,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "56ae61d29ca4445d89ba08ca12b247e7",
+        "trace_id": "f1b70806211f4ef1a22c5050d3dd2ec8",
         "trace_rows": 41,
         "conflicts": 0,
         "query_variants": [
@@ -425,21 +425,21 @@
         "mode": "legacy",
         "ids": [],
         "hit": false,
-        "latency_ms": 2,
+        "latency_ms": 3,
         "error": ""
       },
       "advanced": {
         "mode": "advanced",
         "ids": [],
         "hit": false,
-        "latency_ms": 23,
+        "latency_ms": 27,
         "evidence_sufficient": false,
         "fallback": {
           "used": false,
           "reason": "",
           "warnings": []
         },
-        "trace_id": "54d5fdff417244df87a3b73acab85395",
+        "trace_id": "ae19201e14444041a81100f41d7b485e",
         "trace_rows": 40,
         "conflicts": 0,
         "query_variants": [

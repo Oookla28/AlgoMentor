@@ -28,11 +28,11 @@
     <div class="evidence-rag-search-options">
       <label class="evidence-rag-toggle">
         <input type="checkbox" id="knowledge-advanced-mode">
-        高级检索（层次切片 · 混合召回 · RRF · 检索轨迹）
+        高级检索（层次切片 · 混合召回 · 可核验证据）
       </label>
       <span class="evidence-rag-muted">默认关闭；高级索引不可用时自动回退旧版检索。</span>
     </div>
-    <div id="knowledge-search-results" style="margin-top:18px" aria-live="polite" hidden></div>
+    <div id="knowledge-search-results" data-staff="{{ request.user.is_staff|yesno:'1,0' }}" style="margin-top:18px" aria-live="polite" hidden></div>
   </div>
 </section>
 
@@ -165,7 +165,7 @@
   <section class="card">
     <div class="card-header">
       <div><h2>管理员维护</h2><div class="sub">上传、重建索引、编辑或软删除片段；所有写操作校验 CSRF 与管理员权限</div></div>
-      <span class="pill amber">仅管理员</span>
+      <div class="evidence-rag-actions"><a class="button secondary small" href="{% url 'platform:console' %}">平台控制台</a><span class="pill amber">仅管理员</span></div>
     </div>
     <div class="card-body">
       <form id="evidence-rag-upload" class="evidence-rag-upload" enctype="multipart/form-data">

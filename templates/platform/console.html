@@ -1,0 +1,203 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}平台控制台 · 数构智学{% endblock %}
+{% block page_name %}platform{% endblock %}
+{% block breadcrumb %}平台能力{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'css/evidence-rag.css' %}">{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="eyebrow">EVIDENCE-GROUNDED PLATFORM</p>
+    <h1>平台能力与 Agent 控制台</h1>
+    <p class="page-subtitle">领域知识包、工具契约、能力状态、显式 Agent 运行与证据链。仅管理员可见。</p>
+  </div>
+  <div class="page-head-actions">
+    <a class="button secondary" href="{% url 'knowledge:index' %}">返回知识库</a>
+  </div>
+</div>
+
+{% if error %}<div class="notice warning">{{ error }}</div>{% endif %}
+
+<section class="card" style="margin-bottom:20px">
+  <div class="card-header"><div><h2>运行显式 Evidence Agent</h2><div class="sub">确定性状态机：ROUTE → PLAN → RETRIEVE → GATE → VERIFY → ANSWER/ABSTAIN</div></div><span class="pill teal">只读证据</span></div>
+  <div class="card-body">
+    <form method="post" class="evidence-rag-console-form" id="platform-agent-form">
+      {% csrf_token %}
+      <label class="evidence-rag-field">
+        <span>问题</span>
+        <textarea name="query" rows="3" maxlength="2000" required placeholder="例如：循环队列判满条件是什么？">{{ request.POST.query|default:'' }}</textarea>
+      </label>
+      <label class="evidence-rag-field">
+        <span>领域知识包</span>
+        <select name="domain">
+          {% for pack in domain_packs %}
+          <option value="{{ pack.pack_id }}" {% if request.POST.domain == pack.pack_id or not request.POST.domain and pack.pack_id == 'data_structures' %}selected{% endif %}>{{ pack.name }} · {{ pack.pack_id }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="button primary" type="submit" id="platform-agent-submit">运行 Agent</button>
+    </form>
+    <p class="evidence-rag-muted">过程只保存步骤摘要、决策、证据 ID 和指标，不保存完整思维链。所有工具为只读，受步骤、Token、工具和延迟预算限制。</p>
+  </div>
+</section>
+
+{% if result %}
+<section class="card" style="margin-bottom:20px">
+  <div class="card-header">
+    <div><h2>运行结果</h2><div class="sub">run_id={{ result.run_id }} · {{ result.status }} · {{ result.step_count }} steps · {{ result.evidence_count }} evidence</div></div>
+    <span class="pill {% if result.status == 'COMPLETED' %}teal{% else %}amber{% endif %}">{{ result.status }}</span>
+  </div>
+  <div class="card-body">
+    <p class="prose" style="white-space:pre-wrap">{{ result.answer|default:'无回答' }}</p>
+    <div class="evidence-rag-subgrid">
+      {% for citation in result.citations %}
+      <div class="evidence-rag-chip grey">{{ citation.document_name }} · 第 {{ citation.page_number }} 页 · {{ citation.chunk_id }}</div>
+      {% endfor %}
+    </div>
+    {% if result.conflicts %}
+    <div class="notice warning" style="margin-top:14px">检测到 {{ result.conflicts|length }} 组冲突证据；回答中并列展示，未静默选择。</div>
+    {% endif %}
+
+    <details class="evidence-rag-panel" open>
+      <summary>步骤轨迹</summary>
+      <div class="table-scroll" style="margin-top:10px">
+        <table class="evidence-rag-route-table">
+          <thead><tr><th>步骤</th><th>类型</th><th>决策</th><th>原因</th><th>证据</th><th>延迟</th><th>Tokens</th><th>失败</th></tr></thead>
+          <tbody>
+            {% for step in result.steps %}
+            <tr>
+              <td>{{ step.step_id }}</td><td>{{ step.step_type }}</td><td>{{ step.decision }}</td>
+              <td>{{ step.reason_code }}</td><td>{{ step.evidence_ids|length }}</td>
+              <td>{{ step.latency_ms }} ms</td><td>{{ step.tokens }}</td><td>{{ step.failure_code }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="evidence-rag-panel">
+      <summary>证据（{{ result.evidence|length }}）</summary>
+      {% for item in result.evidence %}
+      <div class="evidence-rag-claim">
+        <strong>E{{ forloop.counter }}</strong>
+        <div><div class="evidence-rag-muted">{{ item.chunk_id }} · 第 {{ item.page }} 页 · 权威 {{ item.authority_score }} · 检索 {{ item.retrieval_score }}</div>
+        <div>{{ item.content|truncatechars:360 }}</div></div>
+      </div>
+      {% endfor %}
+    </details>
+
+    <details class="evidence-rag-panel">
+      <summary>Claim / Evidence 映射（{{ result.claims|length }}）</summary>
+      <div class="table-scroll" style="margin-top:10px">
+        <table class="evidence-rag-route-table">
+          <thead><tr><th>Claim</th><th>文本</th><th>极性</th><th>证据</th><th>状态</th></tr></thead>
+          <tbody>
+            {% for claim in result.claims %}
+            <tr><td>{{ claim.claim_id }}</td><td>{{ claim.text|truncatechars:160 }}</td><td>{{ claim.polarity }}</td><td>{{ claim.evidence_ids|join:', ' }}</td><td>{{ claim.status }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    {% if result.conflicts %}
+    <details class="evidence-rag-panel" open>
+      <summary>冲突集合（{{ result.conflicts|length }}）</summary>
+      {% for conflict in result.conflicts %}
+      <div class="evidence-rag-conflict {% if conflict.verdict == 'UNRESOLVED' %}unresolved{% else %}settled{% endif %}">
+        <div class="evidence-rag-actions"><span class="evidence-rag-chip amber">{{ conflict.conflict_type }}</span><span class="evidence-rag-chip">{{ conflict.verdict }}</span></div>
+        <p>{{ conflict.explanation }}</p>
+      </div>
+      {% endfor %}
+    </details>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<section class="card" style="margin-bottom:20px">
+  <div class="card-header"><div><h2>Capability Health</h2><div class="sub">available / fallback / disabled / environment-limited / unverified / not-configured</div></div><span class="pill gray">无外部付费调用</span></div>
+  <div class="card-body">
+    <div class="evidence-rag-cap-grid">
+      {% for item in capabilities %}
+      <div class="evidence-rag-cap-card state-{{ item.state }}">
+        <div class="evidence-rag-actions"><strong>{{ item.name }}</strong><span class="evidence-rag-state">{{ item.state }}</span></div>
+        <div class="evidence-rag-muted">{{ item.reason|default:'—' }}</div>
+        {% if item.details %}
+        <dl class="evidence-rag-source-meta" style="margin-top:8px">
+          {% for key, value in item.details.items %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}
+        </dl>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<div class="layout-two">
+  <section class="card">
+    <div class="card-header"><h2>领域与任务包</h2><span class="pill teal">{{ domain_packs|length }} domains</span></div>
+    <div class="card-body">
+      {% for pack in domain_packs %}
+      <div class="evidence-rag-admin-card">
+        <div class="evidence-rag-admin-head"><div><h3>{{ pack.name }}</h3><div class="evidence-rag-muted">{{ pack.pack_id }} · v{{ pack.version }}</div></div><span class="pill gray">{{ pack.capabilities|join:', ' }}</span></div>
+        <p class="evidence-rag-muted" style="margin-top:8px">{{ pack.description }}</p>
+      </div>
+      {% endfor %}
+      {% for task in task_packs %}
+      <div class="evidence-rag-tree-child"><strong>{{ task.task_id }}</strong><span>{{ task.name }} · {{ task.domain_pack_id }}</span></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <div class="card-header"><h2>工具契约</h2><span class="pill gray">{{ tools|length }} tools</span></div>
+      <div class="card-body">
+        {% for tool in tools %}
+        <div class="evidence-rag-tree-child"><strong>{{ tool.tool_id }}</strong><span>{{ tool.permission }} · timeout {{ tool.timeout_seconds }}s · cost {{ tool.budget_cost }}</span></div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-header"><h2>最近 Agent 运行</h2></div>
+      <div class="card-body">
+        {% for run in runs %}
+        <p class="evidence-rag-tree-child"><a href="?run={{ run.run_id }}">{{ run.run_id|truncatechars:18 }}</a><span>{{ run.status }} · {{ run.query|truncatechars:34 }}</span></p>
+        {% empty %}<p class="evidence-rag-muted">暂无运行记录。</p>{% endfor %}
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-header"><h2>评测运行</h2></div>
+      <div class="card-body">
+        {% for run in evaluation_runs %}
+        <p class="evidence-rag-tree-child"><strong>{{ run.dataset }}</strong><span>{{ run.status }} · {{ run.created_at|date:'m-d H:i' }}</span></p>
+        {% empty %}<p class="evidence-rag-muted">暂无评测运行记录。</p>{% endfor %}
+      </div>
+    </section>
+  </aside>
+</div>
+
+{% if selected_run %}
+<section class="card" style="margin-top:20px">
+  <div class="card-header"><div><h2>历史运行详情</h2><div class="sub">run_id={{ selected_run.run_id }}</div></div><span class="pill {% if selected_run.status == 'COMPLETED' %}teal{% else %}amber{% endif %}">{{ selected_run.status }}</span></div>
+  <div class="card-body">
+    <p class="prose">{{ selected_run.answer|default:'无回答' }}</p>
+    <div class="table-scroll"><table class="evidence-rag-route-table"><thead><tr><th>步骤</th><th>类型</th><th>决策</th><th>原因</th><th>延迟</th></tr></thead><tbody>
+      {% for step in selected_run.steps %}<tr><td>{{ step.step_id }}</td><td>{{ step.step_type }}</td><td>{{ step.decision }}</td><td>{{ step.reason_code }}</td><td>{{ step.latency_ms }} ms</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+</section>
+{% endif %}
+
+<script>
+  (() => {
+    'use strict';
+    const form = document.getElementById('platform-agent-form');
+    form?.addEventListener('submit', () => {
+      const button = document.getElementById('platform-agent-submit');
+      if (button) { button.disabled = true; button.textContent = '运行中…'; }
+    });
+  })();
+</script>
+{% endblock %}

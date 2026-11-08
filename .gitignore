@@ -6,6 +6,9 @@ __pycache__/
 data/db.sqlite3*
 data/chroma/
 data/static/
+data/run/
+data/evidence_uploads/
+._*
 knowledge/processed/*.joblib
 output/screenshots/
 .DS_Store

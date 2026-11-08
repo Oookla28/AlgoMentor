@@ -69,12 +69,12 @@ def classify_pair(text_a: str, text_b: str, threshold: float | None = None) -> C
     versions_a, versions_b = set(_VERSION_RE.findall(text_a)), set(_VERSION_RE.findall(text_b))
     if (versions_a or versions_b) and versions_a != versions_b:
         return ConflictSignal('VERSION', round(similarity, 4))
+    units_a, units_b = set(_UNIT_RE.findall(text_a)), set(_UNIT_RE.findall(text_b))
+    if units_a and units_b and units_a != units_b:
+        return ConflictSignal('UNIT', round(similarity, 4))
     numbers_a, numbers_b = set(_NUMBER_RE.findall(text_a)), set(_NUMBER_RE.findall(text_b))
     if (numbers_a or numbers_b) and numbers_a != numbers_b:
         return ConflictSignal('NUMERIC', round(similarity, 4))
-    units_a, units_b = set(_UNIT_RE.findall(text_a)), set(_UNIT_RE.findall(text_b))
-    if (units_a or units_b) and units_a != units_b:
-        return ConflictSignal('UNIT', round(similarity, 4))
     return ConflictSignal('STANCE', round(similarity, 4))
 
 
@@ -117,6 +117,15 @@ def detect_conflicts(claims, similarity_threshold=None, score_gap=None, retrieva
             pair_key = tuple(sorted((claim_a.claim_id, claim_b.claim_id)))
             if pair_key in seen:
                 continue
+            subject_a = (getattr(claim_a, 'subject', '') or '').strip()
+            subject_b = (getattr(claim_b, 'subject', '') or '').strip()
+            if subject_a and subject_b:
+                subject_terms_a, subject_terms_b = _tokens(subject_a), _tokens(subject_b)
+                if not subject_terms_a or not subject_terms_b:
+                    continue
+                subject_similarity = len(subject_terms_a & subject_terms_b) / len(subject_terms_a | subject_terms_b)
+                if subject_similarity < 0.60:
+                    continue
             signal = classify_pair(claim_a.normalized_text, claim_b.normalized_text, threshold)
             if signal is None and backend is not None:
                 try:

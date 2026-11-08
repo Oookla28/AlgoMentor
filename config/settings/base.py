@@ -6,7 +6,7 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'development-only-change-before-production')
 DEBUG = False
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
-INSTALLED_APPS = ['django.contrib.admin','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.messages','django.contrib.staticfiles'] + [f'apps.{x}' for x in ['accounts','knowledge','tutor','agents','problems','learning','graph','reports','analytics']]
+INSTALLED_APPS = ['django.contrib.admin','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.messages','django.contrib.staticfiles'] + [f'apps.{x}' for x in ['accounts','knowledge','tutor','agents','problems','learning','graph','reports','analytics','platform']]
 MIDDLEWARE = ['django.middleware.security.SecurityMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.middleware.common.CommonMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.contrib.messages.middleware.MessageMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF = 'config.urls'
 TEMPLATES = [{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages','core.context_processors.platform_context']}}]
@@ -156,3 +156,14 @@ EVIDENCE_RAG_OCR_ENABLED = _optional_bool('EVIDENCE_RAG_OCR_ENABLED', False)
 EVIDENCE_RAG_ASR_ENABLED = _optional_bool('EVIDENCE_RAG_ASR_ENABLED', False)
 EVIDENCE_RAG_MAX_CLAIMS_PER_CHUNK = _optional_int('EVIDENCE_RAG_MAX_CLAIMS_PER_CHUNK', 6, 1, 30)
 EVIDENCE_RAG_TREE_PAGE_SIZE = _optional_int('EVIDENCE_RAG_TREE_PAGE_SIZE', 50, 1, 500)
+
+# Evidence-grounded platform (additive; legacy endpoints remain unchanged).
+PLATFORM_AGENT_ENABLED = _optional_bool('PLATFORM_AGENT_ENABLED', True)
+PLATFORM_GATE_MIN_COVERAGE = _optional_float('PLATFORM_GATE_MIN_COVERAGE', 0.15, 0.0, 1.0)
+PLATFORM_GATE_MIN_SUPPORT = _optional_float('PLATFORM_GATE_MIN_SUPPORT', 0.30, 0.0, 1.0)
+PLATFORM_AGENT_MAX_STEPS = _optional_int('PLATFORM_AGENT_MAX_STEPS', 20, 5, 60)
+PLATFORM_AGENT_MAX_TOKENS = _optional_int('PLATFORM_AGENT_MAX_TOKENS', 6000, 500, 50000)
+PLATFORM_AGENT_MAX_TOOL_CALLS = _optional_int('PLATFORM_AGENT_MAX_TOOL_CALLS', 8, 1, 30)
+PLATFORM_AGENT_MAX_LATENCY_MS = _optional_int('PLATFORM_AGENT_MAX_LATENCY_MS', 30000, 1000, 120000)
+PLATFORM_AGENT_MAX_RETRIEVE_MORE = _optional_int('PLATFORM_AGENT_MAX_RETRIEVE_MORE', 2, 0, 3)
+PLATFORM_EVAL_MAX_CASES = _optional_int('PLATFORM_EVAL_MAX_CASES', 50, 1, 200)

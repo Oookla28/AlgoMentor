@@ -5,6 +5,7 @@
   const { $, $$, request, node, sources, toast } = AM;
   const form = $('#knowledge-search-form');
   const target = $('#knowledge-search-results');
+  const isStaff = target?.dataset.staff === '1';
   const treeHost = $('#evidence-rag-tree');
   const adminHost = $('#evidence-rag-admin');
   const adminEditor = $('#evidence-rag-admin-editor');
@@ -172,7 +173,8 @@
     target.append(node('p', { class: 'small-text muted' },
       '高级检索模式 · ' + (payload.evidence_sufficient ? '找到可核验证据' : '证据不足') + ' · ' + query));
     if (payload.fallback && payload.fallback.used) {
-      target.append(notice('高级索引不可用，已自动回退到旧版稠密检索（' + (payload.fallback.reason || '未知原因') + '）。原有搜索结果仍可使用。', 'warning'));
+      const reason = isStaff ? '（' + (payload.fallback.reason || '未知原因') + '）' : '';
+      target.append(notice('高级索引暂不可用，已自动回退到基础检索' + reason + '。原有搜索结果仍可使用。', 'warning'));
     }
     if (!payload.evidence_sufficient) {
       target.append(notice('当前课程资料没有提供充分证据。可以调整关键词，或使用独立百科查询入口；系统不会用无关片段强行回答。', 'warning'));
@@ -181,7 +183,7 @@
     const sourceBox = node('div');
     sources(sourceBox, citations);
     target.append(sourceBox);
-    renderTrace(target, payload);
+    if (isStaff) renderTrace(target, payload);
     renderConflicts(target, payload.conflicts);
     const mediaBox = node('div');
     renderMedia(mediaBox, payload.media_evidence);

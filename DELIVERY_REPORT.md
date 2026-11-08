@@ -128,7 +128,7 @@ ALGOMENTOR_LIVE_EXECUTION=1 .venv/bin/pytest -q tests/integration/test_live_exec
 | 基线 HEAD | `e710827` |
 | 功能分支 | `feat/evidence-rag-studio` |
 | 基线测试 | 320 passed / 2 skipped |
-| 增量后测试 | **371 passed / 2 skipped** |
+| 增量后测试 | **398 passed / 2 skipped** |
 | 系统检查 | `manage.py check` 无问题 |
 | 迁移检查 | `makemigrations --check` 无变化 |
 | 基线记录 | `docs/evidence_rag/baseline.md` |
@@ -160,7 +160,7 @@ ALGOMENTOR_LIVE_EXECUTION=1 .venv/bin/pytest -q tests/integration/test_live_exec
 
 ### 3. 真实验证证据
 
-1. **自动测试**：增量后 371 passed / 2 skipped；新增 51 项覆盖切片、
+1. **自动测试**：增量后 398 passed / 2 skipped；新增 78 项覆盖切片、
    Small2Big、稀疏/稠密/RRF/重排、改写、冲突、引用核验、多模态、
    CRUD/权限/CSRF 与高级入库命令。旧测试未删除、未修改断言。
 2. **课程 PDF 入库**：15 页 → 旧版 35 片段；高级 8 父块 / 29 子块；
@@ -224,3 +224,67 @@ curl -s 'http://127.0.0.1:8000/api/v1/knowledge/tree/'
 - 未在页面显示 traceback、服务器路径或 API Key；
 - 未删除任何原测试；
 - 可选依赖缺失不会阻止 Django 启动或旧 PDF RAG。
+
+---
+
+## 第十部分：Evidence-Grounded Platform 增量交付（2026-11-08）
+
+### 1. 新增契约与模型
+
+- `apps/platform/contracts`：DomainPack、TaskPack、ToolSpec、EvidenceUnit、ClaimUnit；
+- `apps/platform/domains`：`data_structures`、`general_documents` 两个领域包；
+- `apps/platform/models.py`：AgentRun/Step、Evidence、Claim、ConflictSet、
+  EvaluationCase/Run、Domain/Task/Tool 记录；
+- 迁移 `apps/platform/migrations/0001_initial.py`。
+
+### 2. 显式 Agent 与自适应路由
+
+- 状态机：ROUTE → PLAN → RETRIEVE → EVIDENCE_GATE → RETRIEVE_MORE /
+  CALL_TOOL → CONFLICT_CHECK → VERIFY → ANSWER/ABSTAIN → END；
+- 预算：步骤、Token 估算、工具调用、延迟、retrieve-more 次数；
+- 工具契约：权限、超时、成本、幂等、证据策略；
+- 自适应动作：keyword/semantic/read child/parent/siblings/source page/
+  conflicting versions；
+- 只保存步骤摘要，不保存完整 chain-of-thought。
+
+### 3. 实际验证
+
+| 项目 | 结果 |
+| --- | --- |
+| 完整回归 | **398 passed / 2 skipped** |
+| 平台案例 | 19 |
+| legacy hit / advanced hit | 0.75 / **1.00** |
+| parent recovery | **1.00** |
+| 库外拒答 | legacy / advanced 均 **1.00** |
+| claim coverage | 0.976 |
+| unsupported claim rate | **0.00** |
+| abstention precision / recall | **1.00 / 1.00** |
+| 冲突识别 | **5 / 5** |
+| 工具权限 / 超时 / 无效调用 | 均按预期 |
+| avg steps / tool calls | 11.14 / 2.0 |
+| p50 / p95 latency | 226 / 246 ms |
+
+原始结果：`tests/evaluation/platform_results.json`。
+
+### 4. 用户体验
+
+- 学生端：原搜索/来源/聊天/评测不变；高级检索只显示来源卡片、拒答说明、
+  冲突证据与可折叠上下文，不显示逐路轨迹/Token/模型调用；
+- 管理员端：`/knowledge/` 的切片树、管理员维护、`/platform/` 控制台
+  （Capability Health、领域包、工具契约、Agent 运行、步骤、证据、Claim、
+  冲突、评测运行）；
+- 学生访问 `/platform/` 为 403；写接口 staff + CSRF；API 限流。
+
+### 5. 部署
+
+- 目标：`/Volumes/半岛铁盒/实验室考核部署`；
+- 脚本：`scripts/local_deploy.sh`、`run_local.sh`、`healthcheck.sh`、
+  `evaluate_local.sh`；
+- Chroma 默认 `/tmp/algomentor-deploy-chroma`（外接卷锁限制）；
+- 详见 `docs/deployment/LOCAL_DEPLOYMENT.md` 与 `DEPLOYMENT_REPORT.md`。
+
+### 6. 仍未验证
+
+BGE/Cross-Encoder、LLM 在线生成、OCR/ASR/关键帧、本机 Piston、手机实机、
+生产安全审计。不得把 TF-IDF 100% 写成 BGE 结论，不得把一次在线调用写成
+泛化实验或学习效果。

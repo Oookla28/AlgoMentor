@@ -217,9 +217,11 @@ def test_knowledge_page_hides_admin_maintenance_from_students(client):
     page = client.get('/knowledge/').content.decode()
     assert '高级检索' in page
     assert '管理员维护' not in page
+    assert 'data-staff="0"' in page
     client.force_login(_staff())
     staff_page = client.get('/knowledge/').content.decode()
     assert '管理员维护' in staff_page
+    assert 'data-staff="1"' in staff_page
     assert 'evidence-rag.css' in staff_page
 
 

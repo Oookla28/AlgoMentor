@@ -176,3 +176,62 @@ CSS 变量；`knowledge.js` 只扩展 `/knowledge/` 页面，使用 `AM.node`
 
 真实 BGE 高级索引、交叉编码器、LLM 改写、OCR/ASR 在本环境标记为
 OPTIONAL/UNVERIFIED；对应回退路径有自动化测试。
+
+## Evidence-Grounded Platform（增量）
+
+### 1. 契约与领域包
+
+`apps/platform` 是独立 Django app，不修改旧模型：
+
+- `contracts/domain_pack.py`：DomainPack、TaskPack 数据契约；
+- `contracts/tool_spec.py`：ToolSpec（权限、副作用、超时、预算成本、幂等、
+  证据策略）与 ToolResult；
+- `contracts/evidence.py`：EvidenceUnit、ClaimUnit；
+- `domains/registry.py`：按 ID 查找 pack/task；核心 Agent 不写领域分支；
+- `domains/data_structures.py`、`general_documents.py`：两个领域 manifest。
+
+### 2. 持久化模型
+
+`AgentRun`、`AgentStep`、`Evidence`、`Claim`、`ConflictSet`、
+`EvaluationCase`、`EvaluationRun`，以及 DomainPack/TaskPack/ToolSpecRecord。
+步骤只保存输入/输出摘要、决策、reason code、证据 ID、延迟、Token 估算与
+失败码，不保存完整 chain-of-thought。
+
+### 3. 显式状态机与预算
+
+`apps/platform/agent/state_machine.py`：
+
+```text
+START → ROUTE → PLAN → RETRIEVE → EVIDENCE_GATE
+→ RETRIEVE_MORE / CALL_TOOL / CONFLICT_CHECK → VERIFY
+→ ANSWER / ABSTAIN → END
+```
+
+预算：步骤、Token（估算）、工具调用、总延迟、retrieve-more 次数。
+超出预算强制 abstain；最多 2 次 retrieve-more，无无限循环。
+
+### 4. 自适应证据路由
+
+`adaptive_router.py` 的只读动作：keyword_search、semantic_search、
+read_child、read_parent、read_siblings、read_source_page、
+retrieve_conflicting_versions。确定性 utility：
+
+```text
+U(action) = expected_support - λ·token_cost - μ·latency - ν·tool_calls - η·risk
+```
+
+权重是工程默认值，`calibrated=False`；没有验证集校准，不得写成研究结论。
+动作受工具权限、超时、预算与 gate 停止规则约束。
+
+### 5. 能力探针与隔离
+
+`capabilities.py` 区分 available / fallback / disabled / environment-limited /
+unverified / not-configured；不下载模型、不调用付费 API、不实时请求 Wikipedia。
+`/platform/` 控制台与 `/api/v1/platform/*` 仅管理员可见敏感状态；
+学生端只保留搜索/来源/拒答体验，不显示内部轨迹、Token 或模型调用。
+
+### 6. 部署边界
+
+本地脚本使用显式路径变量、时间戳备份、不删除目标数据；Chroma 默认放在
+`/tmp` 以避开外接卷 SQLite 文件锁；部署前执行 check、迁移、测试、
+ingest 与能力探针；启动脚本输出 URL/PID/日志/停止/回滚命令。

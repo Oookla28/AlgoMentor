@@ -27,14 +27,14 @@ Piston 运行列表读取成功不等于执行成功。本机现已部署独立 
 | 阶段 | 命令 | 结果 |
 | --- | --- | --- |
 | 增量前基线 | `pytest -q` | 320 passed，2 skipped，52.84s |
-| 增量后 | `pytest -q` | **371 passed，2 skipped** |
+| 增量后 | `pytest -q` | **398 passed，2 skipped** |
 | 系统检查 | `python manage.py check` | 无问题 |
 | 迁移检查 | `python manage.py makemigrations --check` | No changes detected |
 | 环境检查 | `python scripts/verify_environment.py` | 通过 |
 | 离线探针 | `python scripts/verify_offline.py` | 环境受限：初始化后页面/静态/RAG/百科缓存通过，停在未部署的本机 Piston；默认 BGE 权重亦未安装 |
 | 检索评测 | `python scripts/evaluate_evidence_rag.py` | PASSED：TF-IDF 高级索引 advanced 9/9、库外拒答 2/2；legacy 6/9、拒答 2/2 |
 
-新增 51 项测试位于：
+新增 78 项测试位于：
 
 - `apps/knowledge/tests/test_hierarchical_chunker.py`：标题、递归边界、弱结构、
   overlap、代码/表格保护、content_hash、page/char span、旧分片兼容；
@@ -85,10 +85,53 @@ legacy 与 advanced，写入 `tests/evaluation/evidence_rag_results.json`。
 
 ### 4. 结果解释
 
-- 371 passed 是本次环境实际运行结果；2 skipped 仍是原有的真实 Piston 与
+- 398 passed 是本次环境实际运行结果；2 skipped 仍是原有的真实 Piston 与
   Wikimedia 在线集成，未删除、未改写。
 - 高级检索的 TF-IDF 实测只证明链路可运行与可解释，不证明 BGE 语义质量；
   BGE 高级索引需要在有本地权重环境重新执行并比较。
 - 冲突检测是轻量规则后端，不是完整 NLI；测试只覆盖规则可识别的模式。
 - 浏览器 QA 在真实 Chrome 中完成，但窗口曾处于最小化状态；对首屏下方控件
   使用 DOM 存在性、尺寸、启用状态与文案取证，未做像素级截图。
+
+## Evidence-Grounded Platform 增量（2026-11-08）
+
+### 1. 新增测试
+
+`apps/platform/tests/` 共 27 项：
+
+- `test_contracts_and_capabilities.py`：两个领域包、任务包、工具契约、
+  capability 状态词汇、manifest 同步；
+- `test_adaptive_router.py`：无证据停止、门控满足停止、动作选择、成本惩罚；
+- `test_metrics.py`：Recall@k、MRR、nDCG、citation precision/recall、
+  abstention、Brier/ECE、percentile；
+- `test_tool_registry.py`：写权限拒绝、超时、无效工具、真实关键词/
+  父块/兄弟/原文页读取；
+- `test_agent_state_machine.py`：完整状态序列、无证据拒答、预算拒答、
+  冲突集合持久化、步骤摘要不存完整思维链；
+- `test_platform_api.py`：capability API staff-only、控制台隔离、
+  Agent run API、领域校验、限流、CSRF、run 详情 owner/staff。
+
+### 2. 完整回归
+
+- **398 passed, 2 skipped**（2026-11-08，13.45s）；
+- 2 skip 仍为真实 Piston 与 Wikimedia 在线集成；
+- `manage.py check`、`makemigrations --check` 通过。
+
+### 3. 平台评测（TF-IDF）
+
+`python scripts/evaluate_platform.py`：
+
+- 19 例；advanced hit 100%，legacy hit 75%；
+- parent recovery 100%；
+- 库外拒答 legacy/advanced 均 100%；
+- claim coverage 0.976，unsupported claim rate 0；
+- abstention precision/recall 1.0/1.0；
+- 冲突 5/5；
+- 工具权限拒绝、超时、无效调用探针全部按预期；
+- avg steps 11.14、avg tool calls 2.0、p50/p95 226/246 ms。
+
+### 4. 未验证
+
+BGE、Cross-Encoder、LLM 在线生成、OCR、ASR、关键帧、本机 Piston、
+手机实机、生产安全审计。相关矩阵项见
+`docs/evidence_rag/evaluation_protocol.md`。

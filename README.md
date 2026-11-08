@@ -15,6 +15,145 @@
 
 <p align="center">课程证据与百科补充 · 在线智能教学 · 离线本地学习 · 真实评测与掌握度追踪</p>
 
+<p align="center"><strong>EvidenceRAG Studio：可插拔领域知识包的 Evidence-Grounded Agent</strong></p>
+
+> 不是“让大模型自由回答”的聊天壳，而是把课程资料变成可切片、可检索、可核验、可拒答、可维护的证据链。学生默认仍使用原搜索/聊天/代码评测；管理员获得切片树、轨迹、冲突、Claim/Evidence 映射与能力健康。
+
+### 三分钟 Demo
+
+```bash
+# 1. 本地部署（目标目录不存在时创建；存在时先备份）
+bash scripts/local_deploy.sh
+# 2. 启动（默认 127.0.0.1:8010）
+bash scripts/run_local.sh
+# 3. 健康检查
+bash scripts/healthcheck.sh
+```
+
+浏览器打开 `http://127.0.0.1:8010/`：
+
+1. 使用本地演示账号登录（部署脚本会打印；仅本机演示）；
+2. 进入“课程知识库”，搜索“循环队列判满条件”，打开“高级检索”；
+3. 查看来源卡片、证据上下文与友好拒答；管理员额外看到“切片树 / 管理员维护 / 平台控制台”；
+4. 管理员打开 `/platform/`，查看 Capability Health 并运行显式 Evidence Agent。
+
+### 研究问题
+
+| 层级 | 问题 |
+| --- | --- |
+| **H1（检索）** | 结构感知递归切片 + 父/子层次 + BM25/BGE 混合与 RRF，是否比单路稠密检索更稳定地恢复可引用证据？ |
+| **H2（证据治理）** | 在来源、时间、版本与权威性不一致时，显式冲突检测与 claim 级引用核验能否降低“看似流畅但无支撑”的回答？ |
+| **H3（平台化）** | 将领域知识、工具、证据路由与评测抽象为可插拔契约后，能否在不改核心 Agent 的前提下支持第二领域？ |
+
+当前证据只支持“工程链路可运行 + 小样本检索/证据指标”，不支持“学习效果因果提升”或“BGE 泛化结论”。
+
+### 架构（当前实现）
+
+```mermaid
+flowchart LR
+  U[学生/管理员] --> W[Django Templates + 原生 JS]
+  W --> K[课程知识库 / 管理员控制台]
+  K --> P[EvidenceRAG Studio]
+  P --> C[结构感知递归切片 Parent/Child]
+  P --> R[BM25 + Dense Fan-out]
+  R --> F[RRF + 确定性重排]
+  F --> S[Small2Big]
+  S --> G[Evidence Gate + 冲突检测]
+  G --> V[Claim 级引用核验]
+  V --> A[Grounded Answer / Abstain]
+  P --> T[Retrieval Trace / Claim / ConflictSet]
+  K --> X[Agent 状态机 ROUTE→PLAN→RETRIEVE→GATE→VERIFY]
+  X --> T
+```
+
+### 代码入口索引
+
+| 关注点 | 入口 |
+| --- | --- |
+| 层次化切片 | `apps/knowledge/services/hierarchical_chunker.py` |
+| Small2Big | `apps/knowledge/services/small2big_service.py` |
+| 混合检索 / RRF / 门控 | `apps/knowledge/services/hybrid_retrieval.py`、`rrf_service.py` |
+| 查询改写 | `apps/knowledge/services/query_router.py`、`query_rewriter.py` |
+| 冲突与仲裁 | `apps/knowledge/services/claim_service.py`、`conflict_service.py` |
+| 引用核验 | `apps/knowledge/services/citation_verifier.py` |
+| 管理/维护 API | `apps/knowledge/views_evidence.py` |
+| 领域/工具/Agent 契约 | `apps/platform/contracts/`、`domains/`、`tools/`、`agent/` |
+| 能力探针 | `apps/platform/capabilities.py` |
+| 评测指标/脚本 | `apps/platform/evaluation/metrics.py`、`scripts/evaluate_platform.py` |
+| 本地部署 | `scripts/local_deploy.sh`、`scripts/run_local.sh`、`scripts/healthcheck.sh` |
+| 研究文档 | `docs/research/RESEARCH_CARD.md`、`docs/evidence_rag/evaluation_protocol.md` |
+
+### 功能状态（严格区分“已实现”和“已验证”）
+
+| 能力 | 状态 | 证据 / 限制 |
+| --- | --- | --- |
+| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 原回归 320；增量后 398 passed / 2 skipped |
+| 结构感知递归切片、Parent/Child、Small2Big | **Implemented + Validated** | 15 页课程 PDF → 8 父块 / 29 子块；单元/集成测试 |
+| BM25 + Dense + 多查询 Fan-out + RRF + 确定性重排 | **Implemented + Validated（TF-IDF）** | advanced 小样本 9/9 命中、库外 2/2 拒答 |
+| Evidence Gate、无证据拒答、冲突检测/仲裁 | **Implemented + Validated** | 平台评测 19 例：拒答 precision/recall 1.0，冲突 5/5 |
+| Claim/Evidence/Conflict/Trace 平台模型 | **Implemented + Validated** | 状态机与 API 测试；不保存完整思维链 |
+| 可插拔领域包（data_structures / general_documents） | **Implemented + Validated** | 两个 manifest、任务包、工具契约、评测案例 |
+| 显式 Agent 状态机 + 预算 + 工具权限/超时 | **Implemented + Validated** | 单元测试覆盖权限拒绝、超时、无效调用、预算拒答 |
+| BGE 高级索引 | **Unverified** | 本机无本地权重；未用 TF-IDF 冒充 BGE |
+| Cross-Encoder 重排 | **Optional / Unverified** | 默认确定性重排；缺模型自动回退 |
+| LLM 查询改写 / 在线 DeepSeek 生成 | **Optional / Unverified** | 默认关闭；无 Key 时确定性路径 |
+| OCR / ASR / 关键帧 | **Optional / Disabled** | 缺 pytesseract/faster-whisper/ffmpeg；缺失路径有明确状态 |
+| 本机 Piston 真实评测 | **Environment-limited** | 端口 2000 未开放；代码路径保留 |
+| 手机实机 / 生产安全审计 | **Unverified** | 未执行，不宣称完成 |
+
+### 实际评测（本机，TF-IDF 高级索引）
+
+| 实验 | 状态 | 结果 |
+| --- | --- | --- |
+| B0 legacy dense | **RUNNABLE** | 9 个库内问题命中 6/9，库外拒答 2/2 |
+| B1 advanced + TF-IDF | **RUNNABLE** | 库内命中 **9/9**，库外拒答 **2/2**，parent recovery **100%** |
+| 平台 19 例（含冲突/拒答/多跳） | **RUNNABLE** | advanced 100%，legacy 75%，冲突 **5/5**，拒答 precision/recall **1.0/1.0**，unsupported claim **0** |
+| B2 advanced + BGE | **UNVERIFIED** | 缺本地 BGE 权重 |
+| B3 BGE + reranker | **UNVERIFIED** | 依赖 B2 |
+| B4 B3 + adaptive routing | **UNVERIFIED** | 依赖 B2；TF-IDF adaptive 仅工程探针 |
+| B5 B4 + conflict verifier | **UNVERIFIED** | 依赖 B2 |
+
+完整原始结果：`tests/evaluation/evidence_rag_results.json`、`tests/evaluation/platform_results.json`。小样本结果不构成生产准确率或学习效果结论。
+
+### 快速复现
+
+```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py migrate
+python manage.py ingest_knowledge
+python manage.py ingest_knowledge --advanced
+pytest -q
+python scripts/evaluate_evidence_rag.py
+python scripts/evaluate_platform.py
+```
+
+### 兼容性承诺
+
+- `advanced=false` 时旧搜索 API 的 JSON 字段、排序、错误码与空结果语义保持不变；新增字段不进入 legacy 序列化。
+- `retrieve_knowledge`、`Citation` 旧字段、`[来源N]`、`verified_citation_ids()` 保留。
+- 不修改 `templates/base.html` 与 `static/css/app.css`；新增样式仅 `.evidence-rag-*` / `platform` 范围。
+- 旧 Chroma collection 不被覆盖；高级索引使用独立 `latest_index_version` 与 `ev-adv-*` collection。
+- 旧 650/80 切片继续可用；旧数据无需回填。
+
+### 已知限制
+
+- 父/子 token 是确定性估算，不是特定 tokenizer 精确计数；短尾块与原子块可能偏离 300–500 / 1200–2000 目标。
+- 冲突检测是规则后端，覆盖否定/数字/单位/版本/年份/高相似相反表述，不等同于完整 NLI。
+- 适配器/评测置信度是工程 proxy，未做验证集校准；`U(action)` 权重尚未校准。
+- 外部卷上的 Chroma 可能因 SQLite 文件锁失败；部署脚本默认使用 `/tmp` 下的 Chroma 路径，需在稳定磁盘上重建。
+- 未完成 BGE、Cross-Encoder、OCR/ASR、本机 Piston、手机实机与生产安全验证。
+
+### 前沿研究路线
+
+1. **B2–B5 真实实验**：在具备 BGE/Cross-Encoder 的环境跑完整矩阵，报告 Recall@k、MRR、nDCG、parent recovery、claim citation precision/recall、ECE/Brier。
+2. **校准与路由**：用验证集校准 `U(action)` 与证据门控阈值；比较规则路由与学习型路由器。
+3. **多模态证据**：真实 OCR/ASR/关键帧与跨模态对齐，验证图片/视频时间戳证据的引用质量。
+4. **领域扩展**：增加第三领域（如操作系统/数据库），验证核心 Agent 无领域硬编码。
+5. **学习效果**：在合规前提下做前后测/对照实验，区分检索质量与学习增益。
+
+---
+
 <p align="center">
   <a href="#introduction">项目介绍</a> ·
   <a href="#features">功能实现</a> ·
@@ -750,7 +889,7 @@ ALGOMENTOR_LIVE_WIKIPEDIA=1 .venv/bin/pytest -q tests/integration/test_live_wiki
 | 无证据拒答 | `hybrid_retrieval.py` / `prompt_service.py` | `apps/knowledge`、`apps/tutor` | advanced retrieval / chat | 证据不足测试 + 生成契约 |
 | 离线与降级 | `advanced_index_service.py` / `query_rewriter.py` | `apps/knowledge/services` | 自动 fallback | fallback 测试 |
 | 文档同步 | 本 README、ARCHITECTURE、IMPLEMENTATION_PLAN、TESTING、DELIVERY_REPORT | 仓库根目录 | — | 文档审阅 |
-| 测试与评测 | `apps/knowledge/tests/*` | `apps/knowledge/tests` | `pytest -q` | 371 passed / 2 skipped |
+| 测试与评测 | `apps/knowledge/tests/*` | `apps/knowledge/tests` | `pytest -q` | 398 passed / 2 skipped |
 | 检索评测脚本 | `scripts/evaluate_evidence_rag.py` | `tests/evaluation/rag_cases.json` | `python scripts/evaluate_evidence_rag.py` | advanced 9/9、拒答 2/2；legacy 6/9（TF-IDF） |
 
 <a id="rag-pipeline"></a>
@@ -895,7 +1034,7 @@ curl -s 'http://127.0.0.1:8000/api/v1/knowledge/traces/<trace_id>/'
 ### 1. 自动测试
 
 - 基线：320 passed，2 skipped；
-- 增量后：**371 passed，2 skipped**（新增 51 项：切片、Small2Big、
+- 增量后：**398 passed，2 skipped**（新增 78 项：切片、Small2Big、
   稀疏/稠密/RRF/重排、改写、冲突、引用核验、多模态、CRUD/权限/CSRF、
   高级入库命令）；
 - 默认测试不调用真实 DeepSeek、Wikipedia 或外部网络，不下载模型，

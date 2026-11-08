@@ -44,16 +44,17 @@ def verify_answer(answer: str, citations) -> dict:
         if not claim_tokens:
             continue
         best_overlap = 0.0
-        best_content = ''
+        best_sentence = ''
         for value in valid_refs:
             content = citations[value - 1].content
-            content_tokens = set(tokenize(content))
-            overlap = len(claim_tokens & content_tokens) / len(claim_tokens) if claim_tokens else 0.0
-            if overlap > best_overlap:
-                best_overlap, best_content = overlap, content
+            for sentence in split_claims(content):
+                content_tokens = set(tokenize(sentence))
+                overlap = len(claim_tokens & content_tokens) / len(claim_tokens) if claim_tokens else 0.0
+                if overlap > best_overlap:
+                    best_overlap, best_sentence = overlap, sentence
         if best_overlap < 0.12:
             unsupported.append({'claim': body[:200], 'citations': valid_refs, 'overlap': round(best_overlap, 4)})
-        elif _NEGATION_RE.search(body) != _NEGATION_RE.search(best_content) and best_overlap >= 0.3:
+        elif _NEGATION_RE.search(body) != _NEGATION_RE.search(best_sentence) and best_overlap >= 0.3:
             contradictions.append({'claim': body[:200], 'citations': valid_refs, 'overlap': round(best_overlap, 4)})
     coverage = round(cited_factual_claims / factual_claims, 4) if factual_claims else 1.0
     return {

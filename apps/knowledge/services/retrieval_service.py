@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Protocol
 from django.conf import settings
 from langchain_chroma import Chroma
@@ -67,7 +67,19 @@ def retrieve_knowledge(query: str, top_k: int | None = None) -> list[Citation]:
     return selected + correction_hits
 
 
-def citations_json(citations): return [asdict(c) for c in citations]
+LEGACY_CITATION_FIELDS = (
+    'chunk_id', 'document_name', 'document_hash', 'chapter', 'section',
+    'page_number', 'content', 'source_type', 'version', 'score', 'url',
+)
+
+
+def citations_json(citations):
+    """Serialize exactly the legacy Citation contract for advanced=false callers.
+
+    EvidenceRAG fields stay available on the dataclass and advanced payloads,
+    but the legacy search/chat/local APIs keep their original JSON schema.
+    """
+    return [{field: getattr(c, field) for field in LEGACY_CITATION_FIELDS} for c in citations]
 
 
 def retrieve_knowledge_with_trace(query, top_k=None, mode=None, user=None):

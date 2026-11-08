@@ -10,12 +10,14 @@ from apps.problems.urls import api_patterns as problem_api
 from apps.learning.urls import api_patterns as learning_api
 from apps.graph.urls import api_patterns as graph_api
 from apps.graph.views import visualization
+from apps.platform.urls import api_patterns as platform_api
 
 urlpatterns=[
  path('admin/',admin.site.urls),
  path('',core_views.dashboard,name='dashboard'),
  path('accounts/',include('apps.accounts.urls')),
  path('knowledge/',include('apps.knowledge.urls')),
+ path('platform/',include('apps.platform.urls')),
  path('tutor/',include('apps.tutor.urls')),
  path('',include('apps.problems.urls')),
  path('',include('apps.learning.urls')),
@@ -47,5 +49,5 @@ urlpatterns=[
  path('api/v1/knowledge/conflicts/<str:conflict_id>/',evidence.conflict_detail),
  path('api/v1/knowledge/media/<str:asset_id>/file/',evidence.media_file),
  path('api/v1/analytics/agent-traces/',analytics.traces),
- path('api/v1/',include(problem_api+learning_api+graph_api)),
+ path('api/v1/',include(problem_api+learning_api+graph_api+platform_api)),
 ]

@@ -21,7 +21,7 @@ class ExtractedClaim:
 
 _SENTENCE_SPLIT_RE = re.compile(r'(?<=[。！？；!?;])\s*|\n+')
 _CLAIM_PATTERN = re.compile(r'(.{1,40}?)(是|为|表示|指的是|定义为|包括|包含|由|有|等于)(.{1,120})')
-_CODE_HINT_RE = re.compile(r'(\{|\}|```|def\s|class\s|printf|return\s|；\s*\n)')
+_CODE_HINT_RE = re.compile(r'(\{|\}|```|def\s|class\s|printf|return\s|//|#define|#include|typedef|struct\s|；\s*\n)')
 _NORMALIZE_RE = re.compile(r'[\s，。！？；：、,.!?;:\-—_()（）\[\]【】"\']+')
 
 
@@ -35,12 +35,12 @@ def extract_claims(text: str, chunk_id: str = '', max_claims: int | None = None)
     seen = set()
     for sentence in _SENTENCE_SPLIT_RE.split(text or ''):
         sentence = sentence.strip()
-        if len(sentence) < 8 or len(sentence) > 300:
+        if len(sentence) < 10 or len(sentence) > 300:
             continue
         if _CODE_HINT_RE.search(sentence):
             continue
         normalized = _normalize(sentence)
-        if len(normalized) < 6 or normalized in seen:
+        if len(normalized) < 8 or normalized in seen:
             continue
         seen.add(normalized)
         match = _CLAIM_PATTERN.search(sentence)

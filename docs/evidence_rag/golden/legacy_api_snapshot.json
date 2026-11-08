@@ -1,0 +1,198 @@
+{
+  "note": "Schema/contract snapshot for the legacy knowledge search API. Generated on the local TF-IDF index; scores can vary by index.",
+  "environment": {
+    "embedding_provider": "tfidf",
+    "chroma_path": "/tmp/algomentor-chroma",
+    "rag_min_score": "0.2"
+  },
+  "citation_dataclass_fields": [
+    "chunk_id",
+    "document_name",
+    "document_hash",
+    "chapter",
+    "section",
+    "page_number",
+    "content",
+    "source_type",
+    "version",
+    "score",
+    "url",
+    "parent_chunk_id",
+    "heading_path",
+    "chunk_type",
+    "char_start",
+    "char_end",
+    "evidence_id",
+    "matched_content",
+    "context",
+    "media_asset_id",
+    "start_time",
+    "end_time",
+    "authority_level",
+    "freshness",
+    "source_uri"
+  ],
+  "search_response_top_level_keys": [
+    "citations",
+    "embedding_provider",
+    "evidence_sufficient",
+    "query",
+    "results"
+  ],
+  "citation_keys": [
+    "chapter",
+    "chunk_id",
+    "content",
+    "document_hash",
+    "document_name",
+    "page_number",
+    "score",
+    "section",
+    "source_type",
+    "url",
+    "version"
+  ],
+  "hit": {
+    "status": 200,
+    "payload": {
+      "success": true,
+      "data": {
+        "query": "循环队列判满条件",
+        "citations": [
+          {
+            "chunk_id": "97b065357e4afda4c3d8d0a1-p8-2",
+            "document_name": "数据结构与算法知识库文档.pdf",
+            "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+            "chapter": "第三章 栈和队列",
+            "section": "队空条件",
+            "page_number": 8,
+            "content": "#define MaxSize 10\ntypedef struct {\nint data[MaxSize]; // 存储队列元素的数组\nint front; // 队头指针，指向队头元素的前一个位置\nint rear; // 队尾指针，指向队尾元素\n} CirQueue;\n\n循环队列的相关操作及判断条件如下：\n 队空条件：front == rear。\n 队满条件：",
+            "source_type": "original",
+            "version": "1",
+            "score": 0.2903,
+            "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-2/"
+          },
+          {
+            "chunk_id": "97b065357e4afda4c3d8d0a1-p8-1",
+            "document_name": "数据结构与算法知识库文档.pdf",
+            "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+            "chapter": "第三章 栈和队列",
+            "section": "队列的定义和特点",
+            "page_number": 8,
+            "content": " 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈的存储空间是动态分配的，相比于顺序栈，更能灵活地适应元素数量的变化。\n\n 队列的定义和特点：\n队列是另一种特殊的线性表，其特殊性在于仅允许在表的一端进行插入操作，在另一端进行\n删除操作。允许插入的一端称为队尾，允许删除的一端称为队头。\n队列的核心特点是遵循 “先进先出”（First In First Out，FIFO）原则，即最先插入队列的元\n素会最先被删除。\n例如，日常生活中的排队买票就是队列的典型实例：先排队的人会先买到票离开，后排队的\n人则需要等待前面的人完成操作。\n队列的基本操作包括：入队（在队尾插入元素）、出队（在队头删除元素）、取队头元素（获\n取队头元素的值但不删除）、判断队空（检查队列是否没有元素）等。\n 队列的存储结构：\n 循环队列：\n循环队列是为了解决顺序队列的 “假溢出” 问题而设计的。顺序队列在元素出队后，队头前\n的空间无法被再次利用，当队尾指针达到数组末尾时，即使队列中还有空闲空间，也会被认\n为是栈满，这种现象称为假溢出。\n循环队列将存储队列元素的数组视为一个环形结构，当队尾指针达到数组末尾时，若数组头\n部还有空闲空间，则队尾指针会绕回数组头部。\n循环队列通常使用两个指针来标识：队头指针（front）指向队头元素的前一个位置，队尾指\n针（rear）指向队尾元素。\n例如，使用 C 语言定义一个容量为 10 的整型循环队列：",
+            "source_type": "original",
+            "version": "1",
+            "score": 0.2291,
+            "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-1/"
+          },
+          {
+            "chunk_id": "97b065357e4afda4c3d8d0a1-p10-0",
+            "document_name": "数据结构与算法知识库文档.pdf",
+            "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+            "chapter": "第三章 栈和队列",
+            "section": "操作特点",
+            "page_number": 10,
+            "content": " 操作特点：栈遵循 “后进先出” 原则；队列遵循 “先进先出” 原则。\n 存储结构：\n 栈可采用顺序存储（顺序栈）和链式存储（链栈），顺序栈需注意栈溢出问题，链栈\n则无此问题。\n 队列可采用顺序存储（循环队列）和链式存储（链队列），循环队列需解决队满和队\n空的判断问题，链队列则无需担心队列溢出。\n 应用场景：\n 栈的典型应用包括表达式求值、函数调用过程中的参数和返回地址保存、括号匹配\n检查等。例如，在编译原理中，利用栈来实现表达式的语法分析；在递归函数调用\n中，系统通过栈来保存每一层递归的局部变量和返回地址。\n 队列的典型应用包括操作系统中的进程调度、打印机的任务队列、网络数据的缓冲\n传输等。例如，多个进程竞争使用打印机时，操作系统会将这些打印任务放入队列，\n按照 “先进先出” 的原则依次处理；在网络通信中，数据到达的速度可能快于处理\n速度，此时会将数据放入队列进行缓冲。",
+            "source_type": "original",
+            "version": "1",
+            "score": 0.2262,
+            "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p10-0/"
+          }
+        ],
+        "results": [
+          {
+            "chunk_id": "97b065357e4afda4c3d8d0a1-p8-2",
+            "document_name": "数据结构与算法知识库文档.pdf",
+            "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+            "chapter": "第三章 栈和队列",
+            "section": "队空条件",
+            "page_number": 8,
+            "content": "#define MaxSize 10\ntypedef struct {\nint data[MaxSize]; // 存储队列元素的数组\nint front; // 队头指针，指向队头元素的前一个位置\nint rear; // 队尾指针，指向队尾元素\n} CirQueue;\n\n循环队列的相关操作及判断条件如下：\n 队空条件：front == rear。\n 队满条件：",
+            "source_type": "original",
+            "version": "1",
+            "score": 0.2903,
+            "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-2/"
+          },
+          {
+            "chunk_id": "97b065357e4afda4c3d8d0a1-p8-1",
+            "document_name": "数据结构与算法知识库文档.pdf",
+            "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+            "chapter": "第三章 栈和队列",
+            "section": "队列的定义和特点",
+            "page_number": 8,
+            "content": " 所有操作的时间复杂度均为 O (1)，因为只需对栈顶指针进行操作。\n 链栈的存储空间是动态分配的，相比于顺序栈，更能灵活地适应元素数量的变化。\n\n 队列的定义和特点：\n队列是另一种特殊的线性表，其特殊性在于仅允许在表的一端进行插入操作，在另一端进行\n删除操作。允许插入的一端称为队尾，允许删除的一端称为队头。\n队列的核心特点是遵循 “先进先出”（First In First Out，FIFO）原则，即最先插入队列的元\n素会最先被删除。\n例如，日常生活中的排队买票就是队列的典型实例：先排队的人会先买到票离开，后排队的\n人则需要等待前面的人完成操作。\n队列的基本操作包括：入队（在队尾插入元素）、出队（在队头删除元素）、取队头元素（获\n取队头元素的值但不删除）、判断队空（检查队列是否没有元素）等。\n 队列的存储结构：\n 循环队列：\n循环队列是为了解决顺序队列的 “假溢出” 问题而设计的。顺序队列在元素出队后，队头前\n的空间无法被再次利用，当队尾指针达到数组末尾时，即使队列中还有空闲空间，也会被认\n为是栈满，这种现象称为假溢出。\n循环队列将存储队列元素的数组视为一个环形结构，当队尾指针达到数组末尾时，若数组头\n部还有空闲空间，则队尾指针会绕回数组头部。\n循环队列通常使用两个指针来标识：队头指针（front）指向队头元素的前一个位置，队尾指\n针（rear）指向队尾元素。\n例如，使用 C 语言定义一个容量为 10 的整型循环队列：",
+            "source_type": "original",
+            "version": "1",
+            "score": 0.2291,
+            "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p8-1/"
+          },
+          {
+            "chunk_id": "97b065357e4afda4c3d8d0a1-p10-0",
+            "document_name": "数据结构与算法知识库文档.pdf",
+            "document_hash": "97b065357e4afda4c3d8d0a1d2bfa3f2c80defdef6716ae7878a10968d909d22",
+            "chapter": "第三章 栈和队列",
+            "section": "操作特点",
+            "page_number": 10,
+            "content": " 操作特点：栈遵循 “后进先出” 原则；队列遵循 “先进先出” 原则。\n 存储结构：\n 栈可采用顺序存储（顺序栈）和链式存储（链栈），顺序栈需注意栈溢出问题，链栈\n则无此问题。\n 队列可采用顺序存储（循环队列）和链式存储（链队列），循环队列需解决队满和队\n空的判断问题，链队列则无需担心队列溢出。\n 应用场景：\n 栈的典型应用包括表达式求值、函数调用过程中的参数和返回地址保存、括号匹配\n检查等。例如，在编译原理中，利用栈来实现表达式的语法分析；在递归函数调用\n中，系统通过栈来保存每一层递归的局部变量和返回地址。\n 队列的典型应用包括操作系统中的进程调度、打印机的任务队列、网络数据的缓冲\n传输等。例如，多个进程竞争使用打印机时，操作系统会将这些打印任务放入队列，\n按照 “先进先出” 的原则依次处理；在网络通信中，数据到达的速度可能快于处理\n速度，此时会将数据放入队列进行缓冲。",
+            "source_type": "original",
+            "version": "1",
+            "score": 0.2262,
+            "url": "/knowledge/source/97b065357e4afda4c3d8d0a1-p10-0/"
+          }
+        ],
+        "evidence_sufficient": true,
+        "embedding_provider": "tfidf"
+      },
+      "request_id": "e71cbef272d447a1baf4f3b61427ff64"
+    }
+  },
+  "miss": {
+    "status": 200,
+    "payload": {
+      "success": true,
+      "data": {
+        "query": "量子引力黑洞霍金辐射",
+        "citations": [],
+        "results": [],
+        "evidence_sufficient": false,
+        "embedding_provider": "tfidf"
+      },
+      "request_id": "6da8bf67d99b427aabcdc5cdbf0f458a"
+    }
+  },
+  "empty_query": {
+    "status": 400,
+    "payload": {
+      "success": false,
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "检索问题须为 1 至 2000 字。"
+      },
+      "request_id": "b333d4ff5f3748998fabf21ce369a190"
+    }
+  },
+  "anonymous": {
+    "status": 401,
+    "payload": {
+      "success": false,
+      "error": {
+        "code": "AUTHENTICATION_REQUIRED",
+        "message": "请先登录。"
+      },
+      "request_id": "863b54e14cd743e08de097b2ea2912fa"
+    }
+  },
+  "page_smoke": {
+    "/": 200,
+    "/knowledge/": 200,
+    "/knowledge/local/": 200,
+    "/knowledge/wikipedia/": 200,
+    "/tutor/": 200,
+    "/graph/": 200,
+    "/visualizations/": 200,
+    "/problems/": 200,
+    "/learning/": 200,
+    "/mistakes/": 200,
+    "/reports/": 200
+  }
+}

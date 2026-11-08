@@ -6,10 +6,11 @@ import pytest
 from apps.knowledge.services.conflict_service import classify_pair, detect_conflicts, detect_and_store_conflicts, serialize_conflict
 
 
-def _claim(claim_id, text, authority=3, chunk_id=None, score=0.6):
+def _claim(claim_id, text, authority=3, chunk_id=None, score=0.6, predicate='是'):
     chunk_id = chunk_id or f'chunk-{claim_id}'
     return SimpleNamespace(
         claim_id=claim_id, normalized_text=text, authority_level=authority, detector_score=score,
+        predicate=predicate,
         source_chunk_id=chunk_id, source_chunk=SimpleNamespace(chunk_id=chunk_id),
         valid_from=None, valid_to=None, created_at=None,
     )

@@ -42,7 +42,7 @@
 | 片段 CRUD | `views_evidence.py` | 完成 | staff-only、CSRF、事务、软删除/恢复、索引补偿测试通过 |
 | 前端增量 | `templates/knowledge/*`、`static/css/evidence-rag.css`、`static/js/knowledge.js` | 完成 | 浏览器 QA：高级搜索 6 条证据 + 轨迹；切片树 8/29；管理员维护控件；学生不可见管理入口 |
 | 离线/降级 | `hybrid_retrieval.py`、`query_rewriter.py`、`advanced_index_service.py` | 完成 | 无高级索引回退 legacy、LLM 改写失败回退、重排失败回退均有测试 |
-| 测试 | `apps/knowledge/tests/test_*` | 完成 | 增量后 371 passed / 2 skipped（新增 51 项） |
+| 测试 | `apps/knowledge/tests/test_*` | 完成 | 增量后 398 passed / 2 skipped（新增 78 项） |
 | 评测脚本 | `scripts/evaluate_evidence_rag.py` | 完成 | TF-IDF 高级索引 advanced 9/9、库外拒答 2/2；legacy 6/9；结果 `tests/evaluation/evidence_rag_results.json` |
 | 文档 | README / ARCHITECTURE / TESTING / DELIVERY_REPORT / baseline | 完成 | 与真实代码和验证结果同步 |
 
@@ -53,3 +53,24 @@
 3. 显式设置 `EVIDENCE_RAG_RERANK_BACKEND=cross_encoder` 后验证真实交叉编码器；
 4. 在具备 `data/db.sqlite3`、BGE 与本机 Piston 的环境重新运行 `verify_offline.py`；
 5. 使用个人 DeepSeek Key 进行生成契约与 claim 级引用的人工对照；这些项目前标记为 UNVERIFIED/OPTIONAL，不能冒充已完成。
+
+---
+
+## Evidence-Grounded Platform 增量状态（2026-11-08）
+
+| 模块 | 实现 | 状态 | 验证 |
+| --- | --- | --- | --- |
+| 平台契约 | `apps/platform/contracts`：DomainPack、TaskPack、ToolSpec、Evidence、Claim | 完成 | 单元测试 |
+| 领域包 | `data_structures`、`general_documents` + registry | 完成 | 两领域 manifest/任务包测试 |
+| 平台模型 | AgentRun/Step、Evidence、Claim、ConflictSet、EvaluationCase/Run、Domain/Task/Tool 记录 | 完成 | 迁移 `platform.0001` |
+| 能力探针 | `capabilities.py`：available/fallback/disabled/environment-limited/unverified/not-configured | 完成 | 探针测试 + 控制台 |
+| 显式状态机 | ROUTE→PLAN→RETRIEVE→GATE→RETRIEVE_MORE→CONFLICT_CHECK→VERIFY→ANSWER/ABSTAIN | 完成 | 状态序列、无证据、预算、冲突测试 |
+| 自适应路由 | 7 类只读动作、utility、1–2 次 retrieve-more 上限 | 完成（权重未校准） | 路由测试 |
+| 工具契约 | 权限、超时、预算成本、幂等、证据策略 | 完成 | 权限拒绝/超时/无效调用测试 |
+| 平台 API/控制台 | `/api/v1/platform/*`、`/platform/`（staff-only） | 完成 | 权限、CSRF、限流、run 详情测试 |
+| 评测协议 | 19 例、B0–B5 矩阵、三组指标 | 完成 | `scripts/evaluate_platform.py` |
+| 本地部署 | `local_deploy.sh`、`run_local.sh`、`healthcheck.sh`、`evaluate_local.sh` | 完成 | 实际部署记录见 `DEPLOYMENT_REPORT.md` |
+| 完整回归 | 398 passed / 2 skipped | 完成 | `TESTING.md` |
+
+平台增量不改变旧搜索 API 的 legacy JSON 字段、排序、错误码与空结果语义；
+新增字段只进入 advanced/platform payload。

@@ -12,6 +12,16 @@ from apps.knowledge.services.query_rewriter import rewrite_query
 from apps.knowledge.services.sparse_retrieval import BM25Index, sparse_search
 
 
+def test_legacy_citation_serialization_keeps_exact_original_schema():
+    from apps.knowledge.services.retrieval_service import Citation, LEGACY_CITATION_FIELDS, citations_json
+    citation = Citation('legacy-1', 'demo.pdf', 'hash', '第一章', '小节', 1, '内容', 'original', '1', 0.5, '/knowledge/source/legacy-1/')
+    payload = citations_json([citation])
+    assert set(payload[0]) == set(LEGACY_CITATION_FIELDS)
+    assert len(payload[0]) == 11
+    assert 'context' not in payload[0]
+    assert 'heading_path' not in payload[0]
+
+
 def test_rrf_deduplicates_and_rewards_multiple_routes():
     entries = reciprocal_rank_fusion({'dense::q1': ['a', 'b'], 'sparse::q1': ['b', 'c']}, k=60)
     assert [entry.chunk_id for entry in entries] == ['b', 'a', 'c']
