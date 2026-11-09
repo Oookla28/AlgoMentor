@@ -30,6 +30,16 @@
 
 每个账号的私有空间相互独立；文献推荐不会读取其他用户的私有文献。内置目录是离线示例，未联网抓取，引用前需核对原文。
 
+### 界面预览
+
+| 文献库与推荐 | 有据问答 |
+| --- | --- |
+| ![文献库与相关推荐](docs/assets/workbench-literature.png) | ![有据问答与来源](docs/assets/workbench-qa.png) |
+
+<p align="center"><img src="docs/assets/workbench-mobile.png" alt="移动端导航" width="320"></p>
+
+界面沿用现有的灰白/青绿设计令牌与紧凑卡片语言；新增功能只增加 `.algomentor-workbench-*` 命名空间，不引入 React/Vue、外部字体或 CDN。
+
 ### 三分钟 Demo
 
 ```bash
@@ -113,10 +123,13 @@ flowchart LR
 
 | 能力 | 状态 | 证据 / 限制 |
 | --- | --- | --- |
-| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 本轮完整回归 **422 passed / 2 skipped** |
+| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 本轮完整回归 **426 passed / 2 skipped** |
 | 私有工作空间、成员/共享只读、上传解析状态 | **Implemented + Locally validated** | 新建/上传/检索/移除/恢复与跨用户 403 浏览器+API 验收 |
 | 任务队列、worker、租约、取消、重试、刷新恢复 | **Implemented + Locally validated** | 真实 `workbench_worker` 处理排队任务；浏览器刷新从 URL 恢复、重试生成新 run |
-| 三领域任务：有据问答/引导学习、文献比较、代码分析 | **Implemented + Locally validated** | 11 条开发集：answerability 1.0、Recall mean 1.0、MRR 0.94；回答 422 回归 |
+| 三领域任务：有据问答/引导学习、文献比较、代码分析 | **Implemented + Locally validated** | 11 条开发集：answerability 1.0、Recall mean 1.0、MRR 0.94；回答 426 回归 |
+| 左侧导航：工作台 / 我的空间 / 文献库 / 代码分析 | **Implemented + Locally validated** | 子项缩进、当前项高亮；1440 与 390 浏览器验收通过 |
+| 账号独立云空间与文献库 | **Implemented + Locally validated** | 私有/共享分离；跨用户推荐与 API 访问测试 403 |
+| 基于上传文献的相关文献推荐 | **Implemented + Locally validated** | 关键词重叠；仅本人私有文献 + 内置离线目录；显示相关词与来源 |
 | Skill Runtime + 6 个原生 Skill | **Implemented + Locally validated** | 懒加载、版本/hash、工具权限交集、路径/符号链接/大小测试；结果中记录激活 |
 | 全局字体统一宋体 | **Implemented + Validated** | `app.css`、`evidence-rag.css` 与两处模板内联样式；主题与布局未换肤 |
 | 结构感知递归切片、Parent/Child、Small2Big | **Implemented + Validated** | 15 页课程 PDF → 8 父块 / 29 子块；单元/集成测试 |
@@ -180,6 +193,7 @@ python manage.py evaluate_workbench --username demo_student
 - 未完成 BGE、Cross-Encoder、OCR/ASR、本机 Piston、手机实机与生产安全验证。
 - 工作台资料解析在请求内同步完成；大文件会延长单次上传请求时间，尚未拆成独立解析队列。
 - 文献比较只覆盖本空间已获取正文，缺失字段标为“未获得/未报告”，不构成系统综述。
+- 文献库推荐是本地关键词匹配 + 内置离线目录，未接 arXiv/OpenAlex/Semantic Scholar；不把离线目录称为实时文献推送。
 - 代码分析只做只读静态证据与建议 diff，不在主机执行用户代码；执行状态固定为 `UNVERIFIED`。
 - 工作台评测是 11 条手写开发集，未做多人独立标注、置信区间与跨语料泛化。
 
