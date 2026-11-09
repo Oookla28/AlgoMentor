@@ -10,6 +10,18 @@ AlgoMentor 是一个面向真实知识任务的 Evidence-Grounded Agent 系统�
 - **文献比较**：对多篇论文生成方法、实验条件、结论与局限的带引用对照报告。
 - **代码分析**：在只读边界内定位代码证据，输出风险、建议 diff 与执行状态。
 
+<p align="center"><img src="docs/assets/workbench-literature.png" alt="Evidence 工作台：文献库与相关推荐" width="100%"></p>
+
+## 界面预览
+
+| 资料问答与来源定位 | 文献比较与可下载报告 |
+| --- | --- |
+| ![资料问答](docs/assets/workbench-qa.png) | ![文献比较](docs/assets/workbench-paper.png) |
+
+| 代码分析与建议 diff | 移动端导航 |
+| --- | --- |
+| ![代码分析](docs/assets/workbench-code.png) | ![移动端](docs/assets/workbench-mobile.png) |
+
 ## 项目亮点
 
 - **在普通 RAG 之上增加显式证据链**：检索、证据门控、主张抽取、引用核验、冲突检测和拒答都是可检查的链路。
@@ -136,6 +148,19 @@ Skill 运行层采用渐进加载：按任务选择最多两个 Skill，工具�
 每次实验保存 git_sha、config_hash、dataset_hash、model/provider/revision、embedding dimension、index/chunk policy version、seed、metrics、raw trace 与 failure cases。
 
 ## 系统架构
+
+```mermaid
+flowchart TB
+    UI["Django Templates + 原生 JS/CSS/SVG"] --> WS["apps/workspace<br/>私有空间 · 任务 · 产物 · 文献库"]
+    UI --> PL["apps/platform<br/>DomainPack · TaskPack · ToolSpec · SkillSpec"]
+    WS --> PL
+    PL --> KN["apps/knowledge<br/>层次切片 · BM25 · 稠密检索 · RRF · 门控 · 引用核验"]
+    WS --> DB[("SQLite")]
+    PL --> DB
+    KN --> CH[("Chroma")]
+    WS --> WK["workbench_worker<br/>租约 · 心跳 · 取消 · 重试"]
+    WK --> PL
+```
 
 ```text
 Browser (Django Templates + 原生 JS/CSS/SVG)
