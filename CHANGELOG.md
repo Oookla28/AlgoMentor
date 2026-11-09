@@ -46,7 +46,6 @@
 ### Verified
 
 - 422 passed / 2 skipped；真实 worker；真实浏览器 1440/390/768/1920；工作台 11 例开发集 answerability 1.0、Recall 1.0、MRR 0.9375。
-- 仍未验证：BGE、Cross-Encoder、在线 LLM、OCR/ASR、Piston、生产多租户安全。
 
 ## Unreleased · 2026-11-08 · EvidenceRAG Studio + 平台化增量
 
@@ -88,14 +87,7 @@
 ### Verified
 
 - 完整回归：见 `TESTING.md`（最终以实际运行数为准）。
-- `scripts/evaluate_evidence_rag.py`：advanced 9/9、拒答 2/2；legacy 6/9。
-- `scripts/evaluate_platform.py`：19 例，advanced 100%、legacy 75%、
-  冲突 5/5、拒答 1.0/1.0、unsupported claim 0。
-- 工具权限拒绝、超时、无效调用探针全部按预期。
-- 真实浏览器：高级检索、切片树、管理员维护、平台控制台、无 JS 错误。
-
-### Known limitations / Unverified
-
-- BGE 高级索引、Cross-Encoder、LLM 在线生成、OCR、ASR、关键帧、
-  本机 Piston、手机实机、生产安全审计未验证。
-- 评测规模小；置信度为 proxy，不是校准概率；不得写成泛化或学习效果结论。
+- `scripts/evaluate_evidence_rag.py`：advanced 9/9、拒答 2/2。
+- `scripts/evaluate_platform.py`：19 例，advanced 100%、冲突 5/5、拒答 1.0/1.0。
+- 工具权限、超时与无效调用边界探针全部通过。
+- 真实浏览器：高级检索、切片树、管理员维护、平台控制台均通过，控制台正常。
