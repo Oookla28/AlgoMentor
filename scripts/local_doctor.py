@@ -36,6 +36,7 @@ def main():
     from apps.platform.capabilities import probe_capabilities
     from apps.platform.models import AgentRun
     from apps.platform.skills import skills_health
+    from apps.platform.skills.development import audit as audit_development
     from apps.workspace.models import Workspace, WorkspaceDocument
     from apps.workspace.services.tasks import worker_status
 
@@ -103,6 +104,11 @@ def main():
     skills = skills_health()
     add('PASS' if skills['state'] == 'available' else 'WARN', 'skills', {
         'state': skills['state'], 'available': skills.get('available', 0), 'failed': skills.get('failed', 0),
+    })
+    development = audit_development()
+    add('PASS' if development['state'] == 'available' else 'WARN', 'development_skills', {
+        'state': development['state'], 'count': development.get('count', 0),
+        'failed': development.get('failed', 0),
     })
 
     port = int(os.getenv('DEPLOY_PORT', '8010'))

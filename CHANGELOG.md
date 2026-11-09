@@ -13,7 +13,8 @@
 
 ### Verified
 
-- 426 passed / 2 skipped；新增文献推荐、跨用户隔离、四个视图与侧栏入口测试。
+- 8 个上游开发参考 Skill 已固定版本内置到 `agent_skills/vendor/`，包含真实 commit、正文/许可证 SHA-256 与 `skills_audit` 审计；不参与产品运行时。
+- 430 passed / 2 skipped；新增文献推荐、跨用户隔离、四个视图、侧栏入口与 Skill 内置校验测试。
 - 推荐为本地关键词匹配；内置目录未联网抓取，不伪造外部检索结果。
 
 ## Unreleased · 2026-11-08 · Evidence 工作台续建

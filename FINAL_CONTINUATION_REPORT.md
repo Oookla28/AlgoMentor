@@ -8,7 +8,8 @@
 - “我的空间”按私有/共享分组，明确每个账号的云空间独立。
 - 文献库基于当前用户私有文献与内置离线目录做关键词推荐，显示推荐依据；不读取其他用户私有文献。
 - 代码分析视图展示代码空间、执行边界与 `UNVERIFIED` 状态。
-- 新增测试后完整回归 **426 passed / 2 skipped**。
+- 8 个上游开发参考 Skill 已固定版本内置到 `agent_skills/vendor/`，真实 commit 与正文/许可证 SHA-256 记录在 `skills.lock.json`；`manage.py skills_audit` 校验，不参与运行时。
+- 新增测试后完整回归 **430 passed / 2 skipped**。
 
 ## 1. 基线与最终提交
 

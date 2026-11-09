@@ -15,6 +15,7 @@ from apps.platform.capabilities import probe_capabilities
 from apps.platform.domains import list_domain_packs, list_task_packs
 from apps.platform.models import AgentRun
 from apps.platform.skills import skills_health
+from apps.platform.skills.development import audit as audit_development
 
 from .models import TaskArtifact, Workspace
 from .permissions import can_manage, can_read, ensure_readable
@@ -119,6 +120,7 @@ def workbench(request):
         'worker': worker_status(),
         'capabilities': capabilities,
         'skills': skills_health(),
+        'development_skills': audit_development(),
         'active_statuses': ACTIVE_STATUSES,
     })
 

@@ -1,0 +1,18 @@
+{
+  "source_id": "openai-skills",
+  "repo": "openai/skills",
+  "commit": "49f948faa9258a0c61caceaf225e179651397431",
+  "commit_url": "https://github.com/openai/skills/commit/49f948faa9258a0c61caceaf225e179651397431",
+  "files": {
+    "skill-creator/SKILL.md": {
+      "upstream_path": "skills/.system/skill-creator/SKILL.md",
+      "sha256": "a17383bfb1448637ac1f757ad891ddb9676fa30b0eff620200f0e1cbc0cc0d50",
+      "bytes": 18664
+    },
+    "skill-creator/LICENSE.txt": {
+      "upstream_path": "skills/.system/skill-creator/LICENSE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    }
+  }
+}

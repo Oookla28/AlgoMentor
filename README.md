@@ -40,6 +40,29 @@
 
 界面沿用现有的灰白/青绿设计令牌与紧凑卡片语言；新增功能只增加 `.algomentor-workbench-*` 命名空间，不引入 React/Vue、外部字体或 CDN。
 
+### 已内置的开发辅助 Skills
+
+`agent_skills/vendor/` 已固定并内置 8 个上游开发参考 Skill，完整 `SKILL.md` 与许可证文件均在仓库中；每个文件的真实 commit 与 SHA-256 记录在 `skills.lock.json` 和 `agent_skills/development/index.json`：
+
+| Skill | 上游 | 固定 commit | 许可 |
+| --- | --- | --- | --- |
+| frontend-design | anthropics/skills | `2c5958ecac7cee2b583967a2c4981d0f4a75c579` | Apache-2.0 |
+| webapp-testing | anthropics/skills | `2c5958ecac7cee2b583967a2c4981d0f4a75c579` | Apache-2.0 |
+| systematic-debugging | obra/superpowers | `22f0b463e7a5e579904dd6211a520321035526f7` | MIT |
+| test-driven-development | obra/superpowers | `22f0b463e7a5e579904dd6211a520321035526f7` | MIT |
+| verification-before-completion | obra/superpowers | `22f0b463e7a5e579904dd6211a520321035526f7` | MIT |
+| skill-creator | openai/skills | `49f948faa9258a0c61caceaf225e179651397431` | Apache-2.0 |
+| literature-review | K-Dense-AI/scientific-agent-skills | `a25cf9ec00e2745d03f8704acf6f6919694ccd9a` | MIT |
+| scientific-critical-thinking | K-Dense-AI/scientific-agent-skills | `a25cf9ec00e2745d03f8704acf6f6919694ccd9a` | MIT |
+
+这些是**开发辅助参考**，不是产品运行时 Skill：不参与用户任务选择、不授予工具或数据权限、不安装上游脚本或依赖。产品运行时仍使用 `agent_skills/runtime/` 下的 6 个原生 Skill。
+
+```bash
+python manage.py skills_audit
+```
+
+审计会逐个校验正文与许可证 SHA-256，拒绝路径穿越和符号链接，并同时报告运行时 Skill 健康状态。详见 `THIRD_PARTY_NOTICES.md`。
+
 ### 三分钟 Demo
 
 ```bash
@@ -113,6 +136,7 @@ flowchart LR
 | 工作台上传/任务/产物 | `apps/workspace/views.py`、`services/documents.py`、`services/tasks.py`、`services/executor.py` |
 | 任务 worker | `apps/workspace/management/commands/workbench_worker.py` |
 | Skill Runtime / 原生 Skill | `apps/platform/skills/runtime.py`、`agent_skills/registry.json`、`agent_skills/runtime/` |
+| 开发辅助 Skill（内置参考） | `agent_skills/vendor/`、`agent_skills/development/index.json`、`apps/platform/skills/development.py`、`manage.py skills_audit` |
 | 工作台前端/左侧导航 | `templates/base.html`、`templates/workbench/index.html`、`static/js/workbench.js`、`static/css/workbench.css` |
 | 文献库与相关推荐 | `apps/workspace/services/literature.py`、`knowledge/literature_catalog.json` |
 | 工作台评测 | `apps/workspace/evaluation/cases.py`、`manage.py evaluate_workbench` |
@@ -123,14 +147,15 @@ flowchart LR
 
 | 能力 | 状态 | 证据 / 限制 |
 | --- | --- | --- |
-| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 本轮完整回归 **426 passed / 2 skipped** |
+| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 本轮完整回归 **430 passed / 2 skipped** |
 | 私有工作空间、成员/共享只读、上传解析状态 | **Implemented + Locally validated** | 新建/上传/检索/移除/恢复与跨用户 403 浏览器+API 验收 |
 | 任务队列、worker、租约、取消、重试、刷新恢复 | **Implemented + Locally validated** | 真实 `workbench_worker` 处理排队任务；浏览器刷新从 URL 恢复、重试生成新 run |
-| 三领域任务：有据问答/引导学习、文献比较、代码分析 | **Implemented + Locally validated** | 11 条开发集：answerability 1.0、Recall mean 1.0、MRR 0.94；回答 426 回归 |
+| 三领域任务：有据问答/引导学习、文献比较、代码分析 | **Implemented + Locally validated** | 11 条开发集：answerability 1.0、Recall mean 1.0、MRR 0.94；回答 430 回归 |
 | 左侧导航：工作台 / 我的空间 / 文献库 / 代码分析 | **Implemented + Locally validated** | 子项缩进、当前项高亮；1440 与 390 浏览器验收通过 |
 | 账号独立云空间与文献库 | **Implemented + Locally validated** | 私有/共享分离；跨用户推荐与 API 访问测试 403 |
 | 基于上传文献的相关文献推荐 | **Implemented + Locally validated** | 关键词重叠；仅本人私有文献 + 内置离线目录；显示相关词与来源 |
 | Skill Runtime + 6 个原生 Skill | **Implemented + Locally validated** | 懒加载、版本/hash、工具权限交集、路径/符号链接/大小测试；结果中记录激活 |
+| 8 个上游开发参考 Skill 内置 | **Implemented + Audited** | 固定 commit、正文/许可证 SHA-256、`skills_audit` 校验；不参与运行时 |
 | 全局字体统一宋体 | **Implemented + Validated** | `app.css`、`evidence-rag.css` 与两处模板内联样式；主题与布局未换肤 |
 | 结构感知递归切片、Parent/Child、Small2Big | **Implemented + Validated** | 15 页课程 PDF → 8 父块 / 29 子块；单元/集成测试 |
 | BM25 + Dense + 多查询 Fan-out + RRF + 确定性重排 | **Implemented + Validated（TF-IDF）** | advanced 小样本 9/9 命中、库外 2/2 拒答 |
@@ -170,6 +195,7 @@ python manage.py ingest_knowledge
 python manage.py ingest_knowledge --advanced
 pytest -q
 python manage.py seed_workbench_demo --username demo_student
+python manage.py skills_audit
 python manage.py workbench_worker --once
 python scripts/evaluate_evidence_rag.py
 python scripts/evaluate_platform.py

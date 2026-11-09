@@ -426,6 +426,7 @@
           <p class="algomentor-workbench-muted">Skill 注册表不可用，基础任务路径仍可运行。</p>
           {% endfor %}
         </div>
+        <p class="algomentor-workbench-muted">开发参考 Skill：{{ development_skills.count|default:0 }} 个已固定版本 · 仅维护者使用，不参与用户任务，也不授予权限。审计：<code>manage.py skills_audit</code>。</p>
       </div>
     </section>
   </aside>

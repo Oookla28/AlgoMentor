@@ -1,0 +1,23 @@
+{
+  "source_id": "k-dense-scientific-agent-skills",
+  "repo": "K-Dense-AI/scientific-agent-skills",
+  "commit": "a25cf9ec00e2745d03f8704acf6f6919694ccd9a",
+  "commit_url": "https://github.com/K-Dense-AI/scientific-agent-skills/commit/a25cf9ec00e2745d03f8704acf6f6919694ccd9a",
+  "files": {
+    "LICENSE.md": {
+      "upstream_path": "LICENSE.md",
+      "sha256": "09b02a3c9df3053c55531d503357a9c7cde275970e6c3ceaa1ddf5f0e90b40c1",
+      "bytes": 1068
+    },
+    "literature-review/SKILL.md": {
+      "upstream_path": "skills/literature-review/SKILL.md",
+      "sha256": "16a9e85bcdcb9bb859e1646bf836e51b22900445ba2e367d8d75be05b5a5cba8",
+      "bytes": 12869
+    },
+    "scientific-critical-thinking/SKILL.md": {
+      "upstream_path": "skills/scientific-critical-thinking/SKILL.md",
+      "sha256": "563af70571b7dcd6a96bf2e303bedfdcba623b4e9f082d58f04aacbc961fdae4",
+      "bytes": 13146
+    }
+  }
+}
