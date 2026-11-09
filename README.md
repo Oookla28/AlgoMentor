@@ -1,297 +1,1162 @@
-# 数构智学 · AlgoMentor
+<p align="center">
+  <img src="static/svg/brand.svg" alt="数构智学标志" width="72" />
+</p>
 
-<p align="center"><strong>可插拔领域知识包的 Evidence-Grounded Agent 学习工作台</strong></p>
+<h1 align="center">数构智学 · AlgoMentor</h1>
 
-AlgoMentor 是一个面向真实知识任务的 Evidence-Grounded Agent 系统：它把课程学习、私有资料空间、结构感知检索、证据门控、可核验引用、任务运行与可下载产物整合在一个 Django 应用中。
+<p align="center"><strong>基于多工具智能体、可信知识检索与知识追踪的数据结构与算法智能助教平台</strong></p>
 
-系统既保留成熟的课程学习场景，也提供三个可直接体验的跨领域工作流：
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.12" />
+  <img src="https://img.shields.io/badge/Django-5.2-092E20?style=flat-square&amp;logo=django&amp;logoColor=white" alt="Django 5.2" />
+  <img src="https://img.shields.io/badge/RAG-Chroma-1C6665?style=flat-square" alt="RAG / Chroma" />
+  <img src="https://img.shields.io/badge/Agent-LangChain_%2B_CrewAI-466787?style=flat-square" alt="LangChain 与 CrewAI" />
+</p>
 
-- **资料问答 / 引导学习**：上传自己的笔记或课程资料，获得带原文出处的回答与学习提纲。
-- **文献比较**：对多篇论文生成方法、实验条件、结论与局限的带引用对照报告。
-- **代码分析**：在只读边界内定位代码证据，输出风险、建议 diff 与执行状态。
+<p align="center">课程证据与百科补充 · 在线智能教学 · 离线本地学习 · 真实评测与掌握度追踪</p>
 
-<p align="center"><img src="docs/assets/workbench-literature.png" alt="Evidence 工作台：文献库与相关推荐" width="100%"></p>
+<p align="center"><strong>EvidenceRAG Studio：可插拔领域知识包的 Evidence-Grounded Agent</strong></p>
 
-## 界面预览
+> 不是“让大模型自由回答”的聊天壳，而是把课程资料变成可切片、可检索、可核验、可拒答、可维护的证据链。学生默认仍使用原搜索/聊天/代码评测；管理员获得切片树、轨迹、冲突、Claim/Evidence 映射与能力健康。
 
-| 资料问答与来源定位 | 文献比较与可下载报告 |
+**Evidence 工作台（本轮新增）**：普通用户可以建立私有工作空间、上传自己的资料、提交有据问答 / 引导式学习 / 文献比较 / 代码问题分析任务，查看真实阶段、引用与可下载产物。私有资料不会进入其他用户或共享课程空间的检索范围。
+
+**左侧导航（2026-11-09）**：工作台功能拆到左侧导航的四个入口：
+
+- **Evidence 工作台**：默认问答/学习/比较/代码任务。
+- **我的空间**：只列出当前账号的私有空间，并单独展示教师维护的共享课程空间。
+- **文献库**：管理当前空间的论文，基于关键词从“我的其他私有文献 + 内置离线目录”推荐相关论文，并说明推荐依据。
+- **代码分析**：只读代码空间入口、执行边界与建议 diff 说明。
+
+每个账号的私有空间相互独立；文献推荐不会读取其他用户的私有文献。内置目录是离线示例，未联网抓取，引用前需核对原文。
+
+### 界面预览
+
+| 文献库与推荐 | 有据问答 |
 | --- | --- |
-| ![资料问答](docs/assets/workbench-qa.png) | ![文献比较](docs/assets/workbench-paper.png) |
+| ![文献库与相关推荐](docs/assets/workbench-literature.png) | ![有据问答与来源](docs/assets/workbench-qa.png) |
 
-| 代码分析与建议 diff | 移动端导航 |
-| --- | --- |
-| ![代码分析](docs/assets/workbench-code.png) | ![移动端](docs/assets/workbench-mobile.png) |
+<p align="center"><img src="docs/assets/workbench-mobile.png" alt="移动端导航" width="320"></p>
 
-## 项目亮点
+界面沿用现有的灰白/青绿设计令牌与紧凑卡片语言；新增功能只增加 `.algomentor-workbench-*` 命名空间，不引入 React/Vue、外部字体或 CDN。
 
-- **在普通 RAG 之上增加显式证据链**：检索、证据门控、主张抽取、引用核验、冲突检测和拒答都是可检查的链路。
-- **结构感知的 EvidenceRAG**：标题、段落、表格、代码块进入层次化切片；父块负责上下文，子块负责精确检索。
-- **多路检索与确定性融合**：BM25、稠密检索、多查询 fan-out、RRF、确定性重排和查询路由组合成可复现管线。
-- **证据门控与可核验引用**：每个可核查主张绑定证据片段；系统按覆盖度自动补检索、部分回答或拒答。
-- **显式 Agent 状态机**：START → ROUTE → PLAN → RETRIEVE → EVIDENCE_GATE → VERIFY → ANSWER / ABSTAIN → END，全过程有步骤、预算、状态码和恢复点。
-- **私有工作空间**：每个账号的资料、索引、任务和产物按空间隔离；共享课程空间由教师/管理员维护。
-- **三领域可插拔**：data_structures、general_documents、generic、research_literature、software_engineering 五个领域包复用同一套 Agent 主流程。
-- **Skills 双轨制**：6 个产品运行时原生 Skill + 8 个固定版本内置开发参考 Skill，全部有版本、SHA-256、许可证与审计。
-- **可下载产物**：回答、学习提纲、文献比较 Markdown/HTML、代码报告与建议 diff 均落盘为 TaskArtifact。
-- **可复现实验基础设施**：检索命中、答案支持、Agent 质量三层指标，原始逐例结果保存在 `tests/evaluation/`。
+### 已内置的开发辅助 Skills
 
-## 科研贡献
+`agent_skills/vendor/` 已固定并内置 8 个上游开发参考 Skill，完整 `SKILL.md` 与许可证文件均在仓库中；每个文件的真实 commit 与 SHA-256 记录在 `skills.lock.json` 和 `agent_skills/development/index.json`：
 
-### 贡献一：结构感知的证据组织与 Small2Big
+| Skill | 上游 | 固定 commit | 许可 |
+| --- | --- | --- | --- |
+| frontend-design | anthropics/skills | `2c5958ecac7cee2b583967a2c4981d0f4a75c579` | Apache-2.0 |
+| webapp-testing | anthropics/skills | `2c5958ecac7cee2b583967a2c4981d0f4a75c579` | Apache-2.0 |
+| systematic-debugging | obra/superpowers | `22f0b463e7a5e579904dd6211a520321035526f7` | MIT |
+| test-driven-development | obra/superpowers | `22f0b463e7a5e579904dd6211a520321035526f7` | MIT |
+| verification-before-completion | obra/superpowers | `22f0b463e7a5e579904dd6211a520321035526f7` | MIT |
+| skill-creator | openai/skills | `49f948faa9258a0c61caceaf225e179651397431` | Apache-2.0 |
+| literature-review | K-Dense-AI/scientific-agent-skills | `a25cf9ec00e2745d03f8704acf6f6919694ccd9a` | MIT |
+| scientific-critical-thinking | K-Dense-AI/scientific-agent-skills | `a25cf9ec00e2745d03f8704acf6f6919694ccd9a` | MIT |
 
-传统 RAG 常把文档切成等长块，导致定义、条件与结论被切断。本项目把文档解析为：
+这些是**开发辅助参考**，不是产品运行时 Skill：不参与用户任务选择、不授予工具或数据权限、不安装上游脚本或依赖。产品运行时仍使用 `agent_skills/runtime/` 下的 6 个原生 Skill。
 
-- **父块**：保留章节级上下文；
-- **子块**：保留最小可检索证据范围；
-- **Small2Big**：检索命中子块后，按需读取父块、相邻块或整页来源。
-
-每个 Evidence 记录文档、页码、字符范围、内容哈希、来源版本、权威度、检索分与核验分。这样既能保持召回粒度，又能在生成阶段恢复完整上下文。
-
-**交付证据**：15 页课程 PDF 生成 8 个父块、29 个子块；父子块、来源页与相邻块读取均有自动化测试。
-
-### 贡献二：多路证据获取与确定性融合
-
-系统把检索暴露为有预算的显式动作：
-
-```text
-keyword_search
-semantic_search
-read_child / read_parent / read_siblings / read_source_page
-retrieve_conflicting_versions
+```bash
+python manage.py skills_audit
 ```
 
-- 查询路由先判断问题类型、代码特征、冲突可能性和上下文长度；
-- 首轮执行词法 + 语义候选，使用 RRF 融合；
-- 需要更多上下文时补充检索或读取父块 / 相邻块 / 来源页；
-- 融合与重排采用确定性策略，便于复现实验；
-- 每次尝试记录 provider、model、dimension、index_version、threshold 与 action reason。
+审计会逐个校验正文与许可证 SHA-256，拒绝路径穿越和符号链接，并同时报告运行时 Skill 健康状态。详见 `THIRD_PARTY_NOTICES.md`。
 
-**交付证据**：高级检索小样本 9/9 命中、库外 2/2 拒答；平台 19 例 advanced 100%。
+### 三分钟 Demo
 
-### 贡献三：证据门控、主张核验与冲突检测
-
-回答在显式门控之后生成：
-
-- 计算证据覆盖、主张支持、权威度、时效性与冲突数；
-- 门控输出 PASS / RETRIEVE_MORE / ABSTAIN；
-- 对可核查主张抽取数字、单位、版本、年份与极性；
-- 引用核验区分 supported / partially_supported / contradicted / insufficient；
-- 冲突检测识别数字、单位、版本、否定与适用范围差异；
-- 同一主张的多条证据以轻量关系表达，不引入额外图数据库。
-
-**交付证据**：平台评测冲突检测 5/5，拒答 precision/recall 1.0/1.0，unsupported claim 0。
-
-### 贡献四：显式、可恢复、受预算约束的 Agent 运行层
-
-系统使用可解释的薄 Django 状态机：
-
-```text
-START -> ROUTE -> PLAN -> RETRIEVE -> EVIDENCE_GATE
-      -> RETRIEVE_MORE / CALL_TOOL / CONFLICT_CHECK
-      -> VERIFY -> ANSWER / ABSTAIN -> END
+```bash
+# 1. 本地准备/安全升级（保留 data、.env 与既有索引；先做 SQLite 快照）
+bash scripts/local_setup.sh
+# 2. 启动 Web + 任务 worker（默认 127.0.0.1:8010，占用时自动换端口）
+bash scripts/local_start.sh
+# 3. 健康检查与诊断
+bash scripts/healthcheck.sh
+python scripts/local_doctor.py
 ```
 
-- 每个步骤记录 run_id、step_id、parent_id、hop_id、输入输出摘要、evidence_ids、decision、reason_code、延迟、Token、预算与状态码；
-- 任务状态覆盖 QUEUED / RUNNING / WAITING_USER / SUCCEEDED / PARTIAL / FAILED / CANCELLED；
-- SQLite worker 通过短事务领取任务，lease/heartbeat 防止双执行；
-- 取消在步骤间检查，过期租约重新排队，重试创建新 run；
-- 预算覆盖步骤、Token、工具调用、延迟与 retrieve-more 循环；
-- 仅保存可核查操作记录，不保存完整思维链。
+浏览器打开 `http://127.0.0.1:8010/`：
 
-**交付证据**：真实 `workbench_worker` 处理排队任务；取消、重试、刷新恢复、过期租约均有自动化测试。
+1. 使用本地演示账号登录（既有账户密码不重置；新建账户的随机凭据只写入本机私有文件）；
+2. 进入“Evidence 工作台”，选择“资料问答示例”，上传一份自己的资料或直接提问“循环队列判满条件是什么？”；
+3. 点击 `[来源1]` / “查看完整原文”定位原文；在“文献比较示例”提交“比较这些论文的方法与局限”并下载 Markdown/HTML；
+4. 在“代码分析示例”提交“库存扣减的异常处理有什么问题？”，查看只读发现、`UNVERIFIED` 执行状态与建议 diff；
+5. 管理员额外看到“切片树 / 管理员维护 / 平台控制台”（`/platform/`）。
 
-### 贡献五：可插拔领域包、任务包、工具契约与 Skill 运行层
+### 研究问题
 
-系统把“领域知识”和“执行方法”拆成四层契约：
-
-| 契约 | 作用 |
+| 层级 | 问题 |
 | --- | --- |
-| **DomainPack** | 领域术语、文档类型、切片策略、元数据、权威/时效策略、提示策略、可用工具、评测案例 |
-| **TaskPack** | 任务输入、步骤模板、工具范围、完成条件、结果 schema、检查规则 |
-| **ToolSpec** | 版本、输入输出 schema、权限、副作用、超时、预算、幂等性、证据返回规则 |
-| **SkillSpec** | 可复用的任务操作方法；只提供方法，不授予权限 |
+| **H1（检索）** | 结构感知递归切片 + 父/子层次 + BM25/BGE 混合与 RRF，是否比单路稠密检索更稳定地恢复可引用证据？ |
+| **H2（证据治理）** | 在来源、时间、版本与权威性不一致时，显式冲突检测与 claim 级引用核验能否降低“看似流畅但无支撑”的回答？ |
+| **H3（平台化）** | 将领域知识、工具、证据路由与评测抽象为可插拔契约后，能否在不改核心 Agent 的前提下支持第二领域？ |
 
-同一套 Agent 主流程已经在五个领域包上运行：
+当前证据只支持“工程链路可运行 + 小样本检索/证据指标”，不支持“学习效果因果提升”或“BGE 泛化结论”。
 
-- `data_structures`：课程知识、练习与共享课程空间；
-- `general_documents` / `generic`：个人笔记与自由文档；
-- `research_literature`：论文比较与相关文献推荐；
-- `software_engineering`：只读代码证据与建议 diff。
+### 架构（当前实现）
 
-Skill 运行层采用渐进加载：按任务选择最多两个 Skill，工具范围取 **TaskPack ∩ DomainPack ∩ Skill 声明 ∩ 已批准 ToolSpec ∩ 当前能力 ∩ 空间权限**。Skill 的工具范围由服务端交集决定，权限边界清晰可审计。
+```mermaid
+flowchart LR
+  U[学生/管理员] --> W[Django Templates + 原生 JS]
+  W --> K[课程知识库 / 管理员控制台]
+  K --> P[EvidenceRAG Studio]
+  P --> C[结构感知递归切片 Parent/Child]
+  P --> R[BM25 + Dense Fan-out]
+  R --> F[RRF + 确定性重排]
+  F --> S[Small2Big]
+  S --> G[Evidence Gate + 冲突检测]
+  G --> V[Claim 级引用核验]
+  V --> A[Grounded Answer / Abstain]
+  P --> T[Retrieval Trace / Claim / ConflictSet]
+  K --> X[Agent 状态机 ROUTE→PLAN→RETRIEVE→GATE→VERIFY]
+  X --> T
+  W --> B[Evidence 工作台 / 私有 Workspace]
+  B --> Q[任务队列 + SQLite worker + 租约/取消/重试]
+  Q --> X
+  Q --> S2[Skill Runtime：按任务懒加载，权限交集]
+  Q --> A2[TaskArtifact：回答 / 文献对照 / 代码报告 / 建议 diff]
+  S2 --> T
+```
 
-**交付证据**：6 个原生运行时 Skill、8 个固定版本开发参考 Skill、`manage.py skills_audit` 全部校验通过。
+### 代码入口索引
 
-### 贡献六：跨领域工作台与可下载产物
-
-工作台把“检索能力”转化为用户可完成的任务闭环：
-
-- **有据问答**：答案、引用、证据抽屉与原文定位；
-- **引导式学习**：提纲、分层提示、自测题，与正式判题成绩分离；
-- **文献比较**：方法、实验条件、结论、局限四类字段的带引用对照表，输出 Markdown/HTML；
-- **代码分析**：文件/行号证据、风险模式、建议 unified diff、执行状态；
-- **文献库**：基于本人私有文献与内置离线目录生成相关文献推荐，展示相关词与来源；
-- **任务记录**：取消、重试、刷新恢复、反馈和产物下载。
-
-每个产物都经过空间权限校验；文献比较明确声明“范围比较”，代码分析明确声明执行状态。
-
-### 贡献七：分层评测协议
-
-评测拆成三层指标：
-
-| 层级 | 指标 |
+| 关注点 | 入口 |
 | --- | --- |
-| **retrieval_hit** | document/page/parent/child/exact span、Recall@k、MRR、nDCG、parent recovery rate |
-| **answer_support** | claim-level citation precision/recall、citation coverage、supported claim ratio、unsupported claim rate、contradiction rate、abstention precision/recall |
-| **agent_quality** | tool selection、invalid-call rate、permission rejection、recovery rate、trajectory length、unnecessary retrieval、p50/p95 latency、Tokens、cost、tool calls |
+| 层次化切片 | `apps/knowledge/services/hierarchical_chunker.py` |
+| Small2Big | `apps/knowledge/services/small2big_service.py` |
+| 混合检索 / RRF / 门控 | `apps/knowledge/services/hybrid_retrieval.py`、`rrf_service.py` |
+| 查询改写 | `apps/knowledge/services/query_router.py`、`query_rewriter.py` |
+| 冲突与仲裁 | `apps/knowledge/services/claim_service.py`、`conflict_service.py` |
+| 引用核验 | `apps/knowledge/services/citation_verifier.py` |
+| 管理/维护 API | `apps/knowledge/views_evidence.py` |
+| 领域/工具/Agent 契约 | `apps/platform/contracts/`、`domains/`、`tools/`、`agent/` |
+| 能力探针 | `apps/platform/capabilities.py` |
+| 评测指标/脚本 | `apps/platform/evaluation/metrics.py`、`scripts/evaluate_platform.py` |
+| 私有工作空间/权限 | `apps/workspace/models.py`、`permissions.py`、`services/workspaces.py` |
+| 工作台上传/任务/产物 | `apps/workspace/views.py`、`services/documents.py`、`services/tasks.py`、`services/executor.py` |
+| 任务 worker | `apps/workspace/management/commands/workbench_worker.py` |
+| Skill Runtime / 原生 Skill | `apps/platform/skills/runtime.py`、`agent_skills/registry.json`、`agent_skills/runtime/` |
+| 开发辅助 Skill（内置参考） | `agent_skills/vendor/`、`agent_skills/development/index.json`、`apps/platform/skills/development.py`、`manage.py skills_audit` |
+| 工作台前端/左侧导航 | `templates/base.html`、`templates/workbench/index.html`、`static/js/workbench.js`、`static/css/workbench.css` |
+| 文献库与相关推荐 | `apps/workspace/services/literature.py`、`knowledge/literature_catalog.json` |
+| 工作台评测 | `apps/workspace/evaluation/cases.py`、`manage.py evaluate_workbench` |
+| 本地部署/诊断 | `scripts/local_setup.sh`、`local_start.sh`、`local_stop.sh`、`local_status.sh`、`local_doctor.py` |
+| 研究文档 | `docs/research/RESEARCH_CARD.md`、`docs/evidence_rag/evaluation_protocol.md`、`docs/continuation/implementation_inventory.md` |
 
-每次实验保存 git_sha、config_hash、dataset_hash、model/provider/revision、embedding dimension、index/chunk policy version、seed、metrics、raw trace 与 failure cases。
+### 功能状态（严格区分“已实现”和“已验证”）
 
-## 系统架构
+| 能力 | 状态 | 证据 / 限制 |
+| --- | --- | --- |
+| 旧版 PDF RAG、Citation、`[来源N]`、聊天/评测 | **Implemented + Validated** | 本轮完整回归 **430 passed / 2 skipped** |
+| 私有工作空间、成员/共享只读、上传解析状态 | **Implemented + Locally validated** | 新建/上传/检索/移除/恢复与跨用户 403 浏览器+API 验收 |
+| 任务队列、worker、租约、取消、重试、刷新恢复 | **Implemented + Locally validated** | 真实 `workbench_worker` 处理排队任务；浏览器刷新从 URL 恢复、重试生成新 run |
+| 三领域任务：有据问答/引导学习、文献比较、代码分析 | **Implemented + Locally validated** | 11 条开发集：answerability 1.0、Recall mean 1.0、MRR 0.94；回答 430 回归 |
+| 左侧导航：工作台 / 我的空间 / 文献库 / 代码分析 | **Implemented + Locally validated** | 子项缩进、当前项高亮；1440 与 390 浏览器验收通过 |
+| 账号独立云空间与文献库 | **Implemented + Locally validated** | 私有/共享分离；跨用户推荐与 API 访问测试 403 |
+| 基于上传文献的相关文献推荐 | **Implemented + Locally validated** | 关键词重叠；仅本人私有文献 + 内置离线目录；显示相关词与来源 |
+| Skill Runtime + 6 个原生 Skill | **Implemented + Locally validated** | 懒加载、版本/hash、工具权限交集、路径/符号链接/大小测试；结果中记录激活 |
+| 8 个上游开发参考 Skill 内置 | **Implemented + Audited** | 固定 commit、正文/许可证 SHA-256、`skills_audit` 校验；不参与运行时 |
+| 全局字体统一宋体 | **Implemented + Validated** | `app.css`、`evidence-rag.css` 与两处模板内联样式；主题与布局未换肤 |
+| 结构感知递归切片、Parent/Child、Small2Big | **Implemented + Validated** | 15 页课程 PDF → 8 父块 / 29 子块；单元/集成测试 |
+| BM25 + Dense + 多查询 Fan-out + RRF + 确定性重排 | **Implemented + Validated（TF-IDF）** | advanced 小样本 9/9 命中、库外 2/2 拒答 |
+| Evidence Gate、无证据拒答、冲突检测/仲裁 | **Implemented + Validated** | 平台评测 19 例：拒答 precision/recall 1.0，冲突 5/5 |
+| Claim/Evidence/Conflict/Trace 平台模型 | **Implemented + Validated** | 状态机与 API 测试；不保存完整思维链 |
+| 可插拔领域包（data_structures / general_documents / generic / research_literature / software_engineering） | **Implemented + Validated** | 五个 manifest；任务包不再有重复定义 |
+| 显式 Agent 状态机 + 预算 + 工具权限/超时 | **Implemented + Validated** | 单元测试覆盖权限拒绝、超时、无效调用、预算拒答 |
+| BGE 高级索引 | **Unverified** | 本机无本地权重；未用 TF-IDF 冒充 BGE |
+| Cross-Encoder 重排 | **Optional / Unverified** | 默认确定性重排；缺模型自动回退 |
+| LLM 查询改写 / 在线 DeepSeek 生成 | **Optional / Unverified** | 默认关闭；无 Key 时确定性路径 |
+| OCR / ASR / 关键帧 | **Optional / Disabled** | 缺 pytesseract/faster-whisper/ffmpeg；缺失路径有明确状态 |
+| 本机 Piston 真实评测 | **Environment-limited** | 端口 2000 未开放；代码路径保留 |
+| 手机实机 / 生产安全审计 | **Unverified** | 未执行，不宣称完成 |
+
+### 实际评测（本机，TF-IDF 高级索引）
+
+| 实验 | 状态 | 结果 |
+| --- | --- | --- |
+| B0 legacy dense | **RUNNABLE** | 9 个库内问题命中 6/9，库外拒答 2/2 |
+| B1 advanced + TF-IDF | **RUNNABLE** | 库内命中 **9/9**，库外拒答 **2/2**，parent recovery **100%** |
+| 平台 19 例（含冲突/拒答/多跳） | **RUNNABLE** | advanced 100%，legacy 75%，冲突 **5/5**，拒答 precision/recall **1.0/1.0**，unsupported claim **0** |
+| 工作台开发集 11 例（三领域，TF-IDF） | **RUNNABLE** | answerability **1.0**，Recall@k **1.0**，MRR **0.9375**，citation presence（可答案）**1.0**，unsupported claim **0.0455**，p50 **628 ms** / p95 **6094 ms** |
+| B2 advanced + BGE | **UNVERIFIED** | 缺本地 BGE 权重 |
+| B3 BGE + reranker | **UNVERIFIED** | 依赖 B2 |
+| B4 B3 + adaptive routing | **UNVERIFIED** | 依赖 B2；TF-IDF adaptive 仅工程探针 |
+| B5 B4 + conflict verifier | **UNVERIFIED** | 依赖 B2 |
+
+完整原始结果：`tests/evaluation/evidence_rag_results.json`、`tests/evaluation/platform_results.json`、`tests/evaluation/workbench_results.json`。小样本结果不构成生产准确率或学习效果结论；工作台案例为 11 条手写开发集，不是 120–180 条人工标注集。
+
+### 快速复现
+
+```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py migrate
+python manage.py ingest_knowledge
+python manage.py ingest_knowledge --advanced
+pytest -q
+python manage.py seed_workbench_demo --username demo_student
+python manage.py skills_audit
+python manage.py workbench_worker --once
+python scripts/evaluate_evidence_rag.py
+python scripts/evaluate_platform.py
+python manage.py evaluate_workbench --username demo_student
+```
+
+### 兼容性承诺
+
+- `advanced=false` 时旧搜索 API 的 JSON 字段、排序、错误码与空结果语义保持不变；新增字段不进入 legacy 序列化。
+- `retrieve_knowledge`、`Citation` 旧字段、`[来源N]`、`verified_citation_ids()` 保留。
+- `templates/base.html` 与 `static/css/app.css` 只做最小功能性变更：增加“Evidence 工作台”导航入口、按用户要求统一宋体字体栈；主题、侧栏、顶部栏、布局骨架与响应式规则未换肤。新增工作台样式在 `.algomentor-workbench-*` 命名空间。
+- 旧 Chroma collection 不被覆盖；高级索引使用独立 `latest_index_version` 与 `ev-adv-*` collection。
+- 旧 650/80 切片继续可用；旧数据无需回填。
+
+### 已知限制
+
+- 父/子 token 是确定性估算，不是特定 tokenizer 精确计数；短尾块与原子块可能偏离 300–500 / 1200–2000 目标。
+- 冲突检测是规则后端，覆盖否定/数字/单位/版本/年份/高相似相反表述，不等同于完整 NLI。
+- 适配器/评测置信度是工程 proxy，未做验证集校准；`U(action)` 权重尚未校准。
+- 外部卷上的 Chroma 可能因 SQLite 文件锁失败；部署脚本默认使用 `/tmp` 下的 Chroma 路径，需在稳定磁盘上重建。
+- 未完成 BGE、Cross-Encoder、OCR/ASR、本机 Piston、手机实机与生产安全验证。
+- 工作台资料解析在请求内同步完成；大文件会延长单次上传请求时间，尚未拆成独立解析队列。
+- 文献比较只覆盖本空间已获取正文，缺失字段标为“未获得/未报告”，不构成系统综述。
+- 文献库推荐是本地关键词匹配 + 内置离线目录，未接 arXiv/OpenAlex/Semantic Scholar；不把离线目录称为实时文献推送。
+- 代码分析只做只读静态证据与建议 diff，不在主机执行用户代码；执行状态固定为 `UNVERIFIED`。
+- 工作台评测是 11 条手写开发集，未做多人独立标注、置信区间与跨语料泛化。
+
+### 前沿研究路线
+
+1. **B2–B5 真实实验**：在具备 BGE/Cross-Encoder 的环境跑完整矩阵，报告 Recall@k、MRR、nDCG、parent recovery、claim citation precision/recall、ECE/Brier。
+2. **校准与路由**：用验证集校准 `U(action)` 与证据门控阈值；比较规则路由与学习型路由器。
+3. **多模态证据**：真实 OCR/ASR/关键帧与跨模态对齐，验证图片/视频时间戳证据的引用质量。
+4. **领域扩展**：当前已有 generic / research_literature / software_engineering 三个可运行领域；下一步增加操作系统/数据库等领域并保持核心 Agent 无硬编码。
+5. **Skills 假设**：在同一任务、同一预算下比较“无 Skill / 本项目 Skill”，检验 Skill 是否提高任务完成质量与跨领域迁移，而不增加越权和幻觉。
+6. **学习效果**：在合规前提下做前后测/对照实验，区分检索质量与学习增益；工作台的自测题不进入正式成绩。
+
+---
+
+<p align="center">
+  <a href="#introduction">项目介绍</a> ·
+  <a href="#features">功能实现</a> ·
+  <a href="#architecture">技术架构</a> ·
+  <a href="#installation">安装运行</a> ·
+  <a href="#usage">使用说明</a> ·
+  <a href="#notes">注意事项</a>
+</p>
+
+---
+
+<a id="introduction"></a>
+
+## 一、项目介绍
+
+### 1. 项目背景
+
+数据结构与算法学习同时涉及抽象概念、算法过程、代码实现和复杂度分析。学生即使记住定义，也可能难以判断自己的理解是否正确；单次代码通过也不足以说明已经掌握相关知识。课程资料、练习结果和学习建议之间需要形成连续的反馈。
+
+数构智学围绕这一过程设计：以教师提供的课程文档作为知识依据，通过智能助教解释与引导，通过隔离执行验证程序，再把真实练习结果转化为知识点掌握状态、错题记录和后续训练建议。
+
+### 2. 项目简介
+
+**AlgoMentor 是面向数据结构与算法课程的 Django Web 应用。** 它将 RAG、LangChain 工具调用、在线判题、知识追踪和 CrewAI 学习报告整合到一个学习工作台。
+
+主应用采用 **Python 3.12、Django 5.2 和 SQLite**，页面由 Django Templates 与原生 CSS、JavaScript、SVG 构成。课程向量检索使用本地中文 BGE 模型与 Chroma；学生程序交由独立 Piston / Isolate 服务执行。
+
+联网时，助教优先检索课程证据，必要时调用 Wikipedia 官方 API 补充公开概念，再由 DeepSeek 整合回答。外网不可用时，在本地 Django、模型与索引已准备的前提下，学生仍可检索课程原文、读取百科历史缓存、使用知识网络与算法演示，并保存本地学习数据。各外部服务独立降级，冷却后通过实际请求确认恢复。
+
+随项目提供的课程结构包含 **45 个知识点、54 条知识关系、21 道原创练习及 89 个评测用例**，覆盖算法基础、线性表、栈与队列、字符串匹配和数组存储等内容。原始课程 PDF 保存在仓库中，回答来源可以追溯到具体页码与原文片段。
+
+### 3. 系统整体功能
+
+| 学习环节 | 主要能力 | 对应页面 |
+| --- | --- | --- |
+| 理解课程 | 课程检索、原文追溯、RAG 问答、分层提示 | 课程知识库、AI 智能助教 |
+| 扩展概念 | Wikipedia 真实摘要、中英文来源、时间与修订、持久化缓存 | Wikipedia 百科查询 |
+| 离线学习 | 本地课程检索、百科历史缓存、已有学习记录与规则推荐 | 本地学习 |
+| 验证程序 | Python 运行、标准输入输出、完整测试集评测 | 在线练习 |
+| 观察算法 | 指针、匹配过程、队列与栈状态逐步演示 | 算法实验室 |
+| 追踪掌握 | 知识点进度、先修路径、历史快照 | 知识网络 |
+| 改进训练 | 错题重做、薄弱点分析、个性化题目推荐 | 智能错题本、学习分析 |
+| 回顾学习 | 真实统计、CrewAI 分析、下一阶段建议 | 学习报告 |
+
+新账户从空学习记录开始。只有有效评测结果才形成做题证据；聊天、提示和基础设施错误不会被当作通过成绩。
+
+<a id="features"></a>
+
+## 二、项目功能实现
+
+### 1. RAG 知识库问答
+
+知识库按 **PDF 提取 → 文本切分 → 向量化 → Chroma 入库 → 相似度检索 → 带证据回答** 的流程构建。
+
+- 使用 pypdf 按页提取教师原始 PDF，保留文件名、章节、节、页码和文档哈希。
+- 使用 LangChain 文本切分器生成重叠片段；默认块大小为 650 字符，重叠 80 字符。
+- 使用本地 `BAAI/bge-small-zh-v1.5` 生成 512 维中文语义向量，模型 revision 与索引版本一并记录。
+- 使用 Chroma 持久化检索，默认取相关性达标的前 4 个片段，作为助教回答的课程证据。
+- 回答中的来源编号经过服务端核对，页面展示实际原文；教师勘误与原始资料分开管理，审核通过后才进入检索证据。
+
+课程证据不足时，助教需要明确说明资料覆盖范围。外部补充资料单独标明来源；来源编号有效也不等于回答内容已经完成事实审核。
+
+### 2. LangChain 智能体与工具调用
+
+智能助教通过 LangChain 的真实 `create_agent` 运行多轮任务，并按需要调用五类工具（保留原注册名，同时增加明确的 `search_wikipedia` 入口）：
+
+| 工具 | 实现能力 |
+| --- | --- |
+| `retrieve_course_knowledge` | 检索课程知识库，返回原文与出处 |
+| `query_student_learning` | 查询当前登录学生的提交、掌握度和学习统计 |
+| `execute_python_code` | 将 Python 程序发送至隔离执行服务，返回实际结果 |
+| `get_current_time` | 获取系统当前时间与时区 |
+| `search_external_knowledge` / `search_wikipedia` | 通过 Wikipedia 官方 Action API 查询中英文百科，支持持久化缓存 |
+
+工具参数通过 Pydantic 校验，学生身份由服务端绑定。每次调用记录工具名称、状态、耗时、错误类型与脱敏摘要；页面只展示实际发生的调用。任务设置调用次数、重复调用和总时限约束。
+
+### 3. 在线代码运行与自动评测
+
+“运行代码”使用自定义输入，供学生调试；“提交评测”执行题目完整测试集，并形成正式提交记录。
+
+```text
+浏览器中的 Python 代码
+        ↓
+Django 校验请求与执行预算
+        ↓
+独立执行 VM 中的 Piston / Isolate
+        ↓
+逐用例结果 → 整体判题 → 学习证据更新
+```
+
+评测区分 `ACCEPTED`、`WRONG_ANSWER`、语法错误、运行错误、时间超限和可明确识别的内存超限。隐藏用例仅返回状态、序号及资源统计，其输入、预期输出与原始错误信息不返回浏览器。
+
+本机已接通隔离 Python 3.12.0。独立 Lima VM 不挂载应用目录、数据库或密钥；学生执行禁网并受资源限制。服务故障记为 `JUDGE_ERROR`，页面显示“评测未完成 / 无有效成绩”，不计入正确率或掌握度。其他部署可通过统一执行接口接入管理员配置的 Piston 或 Judge0。
+
+### 4. 学生数据管理与学习分析
+
+SQLite 保存账户配置、教学会话、提交、用例结果、学习活动、错题、掌握度与报告。个人记录按当前登录用户查询，课程结构由所有用户共享。
+
+提交使用请求幂等键；外部评测完成后，在同一事务内保存结果、生成去重学习证据、更新错题和掌握度快照。重复提交同一请求不会重复记分。
+
+学习分析提供提交正确率、题目通过率、知识点覆盖、练习趋势和薄弱点等指标。缺少有效数据时显示“暂无证据”，基础设施失败从成绩统计中排除。
+
+### 5. CrewAI 智能学习报告
+
+报告由两个 Agent 按顺序协作生成：
+
+| 角色 | 职责 |
+| --- | --- |
+| Researcher Agent · 学习研究员 | 根据数据库统计快照分析趋势、知识点表现、错题与薄弱点 |
+| Writer Agent · 学习报告写手 | 依据研究员结论组织中文报告与下一阶段训练建议 |
+
+系统实际使用 `Crew`、`Task`、`Process.sequential` 和 `crew.kickoff()`。任务先进入 SQLite 队列，再由独立 `report_worker` 处理，保存等待、运行、成功、失败或超时状态。
+
+报告中的客观数字由 Python 根据快照渲染；模型返回的结构化指标必须与快照一致。内容包括学习概览、每日趋势、各知识点表现、主要错题类型、图谱变化、进步、薄弱点和后续建议。
+
+### 6. DeepSeek 多模型切换
+
+平台提供三个运行档位，模型标识与思考参数统一由 `ModelRegistry` 管理：
+
+| 运行档位 | 请求模型 | 思考模式 | 使用场景 |
+| --- | --- | --- | --- |
+| DeepSeek 极速 | `deepseek-flash` | 关闭 | 概念解释、基础问答与轻量提示 |
+| DeepSeek 深度 | `deepseek-flash` | 开启，默认 `high` | 算法推导、代码诊断与多步骤任务 |
+| DeepSeek 专家 | `deepseek-v4-pro` | 开启，默认 `high` | 较复杂的算法问题与学习规划 |
+
+三个档位对应两个模型标识与不同运行配置。思考档位支持 `low`、`high`、`max`；多轮工具调用保留所需的 `reasoning_content`，不将推理字段保存为用户聊天或工具日志。
+
+用户通过网页配置自己的 API Key，密钥使用 Fernet 加密存储。系统统计真实接口 usage，并设置个人每日请求、Token 预算与每分钟限流；模型可用性取决于服务商和个人账户。
+
+### 7. 动态知识网络与掌握度追踪
+
+知识网络将课程、章节、知识点与先修关系组织为可交互 SVG 图谱。NetworkX 校验先修关系并生成学习路径；搜索、缩放、拖动、节点详情与历史快照帮助学生查看自己的学习位置。
+
+默认掌握度采用可解释的规则指数：
+
+```text
+掌握指数 = 100 ×（0.35 × 题目覆盖率
+               + 0.40 × 近期加权正确率
+               + 0.15 × 独立完成度
+               + 0.10 × 难度表现）
+```
+
+重复通过同一道题不会增加题目覆盖率；单题证据的指数上限为 55。达到较高掌握状态还需要足够的证据和不同题目，近期错误也可能使指数下降。
+
+系统同时保存 BKT（Bayesian Knowledge Tracing）概率，并支持配置估计器。**规则指数与 BKT 概率分别展示；当前图谱颜色与推荐依据规则指数。** BKT 参数为尚未拟合的工程先验，不代表经过验证的能力测量。没有证据的知识点显示为灰色“未学习”，章节进度按全部子知识点加权聚合。
+
+### 8. AI 自适应教学
+
+教学会话保存目标知识点、关联题目、当前提示层级和已经提供的提示，支持三种教学模式：
+
+| 模式 | 教学方式 |
+| --- | --- |
+| 直接讲解 | 解释定义、性质、例子、复杂度与常见误区 |
+| 引导教学 | 先了解学生思路，再通过针对性问题逐步提示 |
+| 算法思维训练 | 从题意、暴力解法和复杂度逐步推进到优化、正确性与边界验证 |
+
+提示分为“指出方向 → 指出逻辑 → 解释方法 → 完整解析”四层，由学生通过“更多提示”或“完整解析”推进。助教结合会话上下文、课程证据和真实学习查询调整讲解；重新学习与结束会话也会保存状态。
+
+### 9. 算法可视化
+
+算法实验室提供五类演示，算法步骤由 Python 计算，浏览器使用原生 JavaScript / SVG 渲染：
+
+| 演示 | 观察内容 |
+| --- | --- |
+| 单链表反转 | `prev`、`curr`、`next` 与指针方向变化 |
+| KMP 匹配 | 模式串、next 数组、失配跳转与比较步骤 |
+| BF 匹配 | 逐字符比较、失配回退，并可与 KMP 对照 |
+| 循环队列 | 入队、出队、判空、判满与下标绕回 |
+| 顺序栈 | 入栈、出栈及栈顶变化 |
+
+支持播放、暂停、重置、前后步进和调整输入，用于观察算法状态与理解执行过程。
+
+### 10. 智能错题本与个性化推荐
+
+有效的错误提交自动进入错题本，保留错误类型、失败原因和原始提交。学生可查看分层诊断，配置 Key 后还可请求 AI 分析；再次通过相同题目后标记为已解决，历史错误仍保留。
+
+推荐服务综合规则掌握指数、未解决错题、题目难度、目标先修关系、已经通过的题目和最近练习记录排序，提供“基础 / 巩固 / 挑战”三种训练模式。每个推荐附带理由与训练目标，方便学生判断下一步练习的目的。
+
+### 11. Wikipedia 在线知识检索
+
+助教可调用 Wikipedia 官方 MediaWiki Action API，先搜索并判断标题相关性，再获取真实摘要、页面 ID、修订编号和来源链接。用户明确指定维基百科，或本地课程证据不足且需要解释扩展概念时，会调用百科工具；课程资料已有充分证据时保持本地 RAG 优先。中文优先，必要时提供明确标记的英文来源。
+
+普通查询先查 SQLite 有效缓存，再按需要联网；成功结果保存公开词条及概念别名，默认有效期七天。强制刷新绕过有效缓存，但仍遵守服务冷却；失败时按配置回退到明确标记的历史缓存，保留原获取时间。超时、限流、无结果、歧义条目与空摘要均返回明确提示。
+
+课程引用与外部百科分别展示。百科卡片包含实际语言、获取时间、缓存状态、页面 ID、修订编号、原始链接及 CC BY-SA 4.0 署名。公共缓存只保存公开百科资料；查询会提取或校验公开概念，不把学生聊天全文、学习记录或个人 Key 发往 Wikipedia。
+
+独立百科查询无需 DeepSeek Key；在 AI 助教中整合百科回答需要 Key。具体操作见第五章，管理员缓存预热见[安装与运行](#wikipedia-warmup)。
+
+### 12. 离线学习支持
+
+**离线学习要求本地或局域网 Django 服务仍可访问。** 预先安装依赖、下载本地 Embedding 并建立 Chroma 索引后，即使外部互联网不可用，也可使用本地知识检索、知识网络、算法可视化、学习记录、错题、规则推荐与历史报告。在课程知识库点击“本地学习模式”，可查询原文和已经缓存的百科内容；页面明确区分原文检索与 AI 生成。
+
+| 能力 | 外网不可用时的行为 | 必要条件 |
+| --- | --- | --- |
+| 课程检索与原文阅读 | 本地检索，返回原文与页码 | BGE 模型和 Chroma 索引已准备 |
+| Wikipedia 查询 | 仅返回已有缓存，标明历史时间；无缓存时说明无资料 | 相应词条曾成功查询或预热 |
+| 知识网络、算法、错题、推荐与历史报告 | 使用本地数据继续浏览与学习 | Django 与 SQLite 可访问 |
+| 代码编辑与草稿 | 按账号手动保存和载入，不自动评测 | 本地 Django 可访问 |
+| 代码运行与正式评测 | 本机隔离 Piston 运行时可继续使用 | 独立执行 VM 和 Python 包已安装并启动 |
+| 新 AI 回答、AI 诊断与 CrewAI 报告 | 提示服务不可用，保留历史记录 | 恢复 DeepSeek 网络、Key 与额度后可生成 |
+
+DeepSeek、Wikipedia、代码执行分别记录真实调用状态，单个服务失败不会禁用其他本地功能。失败后进入限时冷却；到期后的实际业务请求可以尝试恢复，成功后更新为可用。状态读取不发起外网或付费模型探测，`UNKNOWN` 表示尚无调用记录。个人 Key、额度与具体模型错误按用户或模型隔离，不影响其他学生。
+
+浏览器无法连接云端 Django 的情况不在本次离线支持范围内；平台未改造成完整 PWA。配置开关、真实联网与冷启动验证见 [Wikipedia 与离线增量报告](WIKIPEDIA_OFFLINE_REPORT.md)。
+
+<a id="architecture"></a>
+
+## 三、项目技术架构
+
+### 1. 技术栈
+
+| 层次 | 技术 | 作用 |
+| --- | --- | --- |
+| 运行环境 | Python 3.12 | 主应用、业务服务与算法计算；本机验证版本 3.12.14 |
+| Web 框架 | Django 5.2.14 | 模板渲染、JSON API、认证、ORM、事务与后台管理 |
+| 页面交互 | Django Templates、原生 CSS / JavaScript / SVG | 学习工作台、图谱和算法演示 |
+| 业务数据 | SQLite | 用户、会话、提交、掌握度、错题与报告队列 |
+| RAG | LangChain Text Splitters、Chroma 1.5.9 | 课程切分、向量持久化与检索 |
+| 中文向量 | sentence-transformers 6.1.0、BGE | 本地语义 Embedding |
+| 工具智能体 | LangChain 1.4.5、Pydantic | 工具规划、参数约束与调用追踪 |
+| 多智能体报告 | CrewAI 1.15.27 | 学习研究员与写手顺序协作 |
+| 模型接入 | DeepSeek HTTP API、自定义 LangChain / CrewAI 适配器 | 统一档位、思考参数、usage 与异常处理 |
+| 外部知识 | requests、Wikipedia 官方 Action API、SQLite 缓存 | 公开概念检索、来源追溯与历史资料回退 |
+| 服务恢复 | 持久化 ServiceAvailability、冷却与半开重试 | 独立服务状态、个人与模型故障隔离 |
+| 本地静态资源 | WhiteNoise 6.12.0 | DEBUG=False 时提供 collectstatic 后的 CSS / JS / SVG |
+| 代码执行 | Piston / Isolate；Judge0 适配 | 独立沙箱、资源限制与真实执行结果 |
+| 图谱与文件 | NetworkX、pypdf | 先修 DAG、学习路径与 PDF 提取 |
+| 安全与验证 | cryptography、Django 会话 / CSRF、pytest-django | 密钥加密、访问控制和隔离数据库测试 |
+
+完整依赖版本锁定在 [requirements.txt](requirements.txt)，直接依赖见 [requirements.in](requirements.in)。前端没有构建步骤，无需安装 Node.js 或 npm。
+
+### 2. 简要架构图
 
 ```mermaid
 flowchart TB
-    UI["Django Templates + 原生 JS/CSS/SVG"] --> WS["apps/workspace<br/>私有空间 · 任务 · 产物 · 文献库"]
-    UI --> PL["apps/platform<br/>DomainPack · TaskPack · ToolSpec · SkillSpec"]
-    WS --> PL
-    PL --> KN["apps/knowledge<br/>层次切片 · BM25 · 稠密检索 · RRF · 门控 · 引用核验"]
-    WS --> DB[("SQLite")]
-    PL --> DB
-    KN --> CH[("Chroma")]
-    WS --> WK["workbench_worker<br/>租约 · 心跳 · 取消 · 重试"]
-    WK --> PL
+    UI["浏览器 · Django Templates / CSS / JS / SVG"]
+    WEB["Django · 认证 / Views / JSON API"]
+    UI --> WEB
+
+    subgraph APP["业务服务层"]
+        TUTOR["教学会话 + RAG + LangChain Agent"]
+        TOOLS["课程检索 / 学习查询 / 时钟 / 百科 / 执行"]
+        JUDGE["练习与逐用例判题"]
+        LEARN["学习证据 / 掌握度 / 错题 / 推荐"]
+        QUEUE["报告任务队列"]
+        CREW["独立 Worker · CrewAI 研究员 → 写手"]
+        LOCAL["本地学习 · 课程 / 图谱 / 算法入口"]
+        EXTERNAL["WikipediaService · 搜索 / 摘要 / 缓存"]
+        STATUS["ServiceAvailabilityManager · 状态 / 冷却 / 恢复"]
+    end
+
+    WEB --> TUTOR
+    WEB --> JUDGE
+    WEB --> LEARN
+    WEB --> QUEUE
+    WEB --> LOCAL
+    WEB --> STATUS
+    TUTOR --> TOOLS
+    JUDGE --> LEARN
+    QUEUE --> CREW
+
+    subgraph INFRA["模型、数据与执行基础设施"]
+        RAG["本地 BGE + Chroma 课程向量索引"]
+        SQL["SQLite · 个人学习记录 / 私有草稿 / 任务状态"]
+        CACHE["SQLite · 公共百科缓存 / 时间 / 修订 / 别名"]
+        LLM["DeepSeek · 个人加密 BYOK"]
+        EXEC["独立 Linux VM · Piston / Isolate / Python"]
+        WIKI["Wikipedia API · 外部补充资料"]
+    end
+
+    TUTOR --> RAG
+    TUTOR --> LLM
+    TOOLS --> RAG
+    TOOLS --> SQL
+    TOOLS --> EXEC
+    TOOLS --> EXTERNAL
+    WEB --> EXTERNAL
+    EXTERNAL --> WIKI
+    EXTERNAL --> CACHE
+    LOCAL --> RAG
+    LOCAL --> CACHE
+    LOCAL --> SQL
+    JUDGE --> EXEC
+    LEARN --> SQL
+    CREW --> SQL
+    CREW --> LLM
+    TUTOR -.-> STATUS
+    EXTERNAL -.-> STATUS
+    JUDGE -.-> STATUS
+    CREW -.-> STATUS
+    STATUS --> SQL
+
+    classDef local fill:#edf6f2,stroke:#427a69,color:#203e36
+    classDef external fill:#eef3fa,stroke:#6886ad,color:#263c58
+    class LOCAL,RAG,SQL,CACHE local
+    class LLM,WIKI,EXEC external
 ```
+
+主应用采用模块化单体：页面与 API 处理输入输出，业务服务组织规则与事务，`core` 提供模型、加密、异常和执行接口。报告 Worker 独立运行；学生代码位于另一执行环境。页面展示的总览、知识网络和报告统计读取同一套学习数据。
+
+本地学习入口直接读取 BGE / Chroma、SQLite 与百科缓存，不调用云端模型或 Wikipedia HTTP。百科服务供独立页面与 Agent 复用；普通缓存命中不会将外网状态标记为恢复。可用性管理器由真实业务调用更新，页面定时读取的是本地状态记录。
+
+**核心数据流：** 有效评测 → 保存提交与用例结果 → 去重学习活动 → 掌握度与历史快照 → 错题状态、知识网络和训练推荐 → 报告统计快照。
 
 ```text
-Browser (Django Templates + 原生 JS/CSS/SVG)
-  -> apps/workspace
-       私有空间、成员、资料、上传解析、任务、产物、文献推荐、工作台 API
-  -> apps/platform
-       DomainPack / TaskPack / ToolSpec / SkillSpec
-       Agent 状态机、自适应路由、证据门控、Skill Runtime
-  -> apps/knowledge
-       层次切片、Small2Big、BM25、稠密检索、RRF、重排、冲突、引用核验
-  -> SQLite + Chroma + workbench_worker
+AlgoMentor/
+├── apps/
+│   ├── accounts/           # 注册登录、个人 Key、配置与预算
+│   ├── knowledge/          # 课程 RAG、Wikipedia 服务/缓存与本地学习
+│   ├── tutor/              # 聊天会话、教学模式与提示状态
+│   ├── agents/             # LangChain Agent、工具与调用记录
+│   ├── problems/           # 题库、运行评测与私有代码草稿
+│   ├── learning/           # 学习证据、掌握度、错题与推荐
+│   ├── graph/              # 知识网络、先修路径与算法状态
+│   ├── reports/            # CrewAI、报告队列与 Worker
+│   └── analytics/          # 实验与调用记录查询
+├── core/                   # LLM / 执行接口、服务可用性、安全与统一异常
+├── config/                 # 路由与开发 / 生产设置
+├── templates/              # Django 页面模板
+├── static/                 # CSS、JavaScript 与 SVG
+├── knowledge/
+│   ├── original/           # 教师原始 PDF
+│   ├── processed/          # 提取文本与处理结果
+│   └── wikipedia_keywords.json # 人工审核的双语预热词表
+├── data/                   # SQLite、Chroma 与验证日志
+├── deployment/             # 独立执行 VM 配置与部署说明
+├── scripts/                # 初始化、运行环境与实验脚本
+├── tests/                  # 集成测试与真实实验结果
+├── .env.example            # 配置示例；真实密钥不入库
+├── requirements.txt        # 锁定依赖
+└── manage.py
 ```
 
-### 关键设计
+详细边界、事务、公式与设计决策见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
-- **权限边界**：私有空间只有所有者/成员可读；共享空间所有登录用户可读、教师/管理员可写。
-- **索引隔离**：同一文件上传到不同空间使用加盐文档哈希与独立片段 ID；检索按文档作用域过滤。
-- **任务运行**：短事务领取、lease/heartbeat、取消检查、过期重排、重试与刷新恢复。
-- **产物管理**：回答、对照报告、代码报告与建议 diff 存入 TaskArtifact，下载前校验任务/空间权限。
-- **Skills 双轨**：运行时 Skill 参与用户任务；开发参考 Skill 固定在 `agent_skills/vendor/`，用于维护与审计。
+<a id="installation"></a>
 
-## 三分钟体验
+## 四、安装与运行
+
+### 1. 环境要求
+
+- **Python 3.12**，使用项目独立虚拟环境。
+- 首次安装需要网络，以下载依赖、中文 BGE 模型和执行镜像；下载后的课程向量检索可在本机运行。
+- 本机自动部署执行 VM 的脚本面向 **Apple Silicon Mac，需 Rosetta**。VM 配置为 2 CPU、3 GiB 内存和 12 GiB 稀疏磁盘，主应用与模型还需相应运行资源。
+- 其他系统可部署管理员管理的 Piston / Judge0 实例，再配置执行接口。完整条件见 [本机执行部署](deployment/LOCAL_EXECUTION.md)。
+
+以下命令使用 macOS / Linux Shell。DeepSeek 问答、AI 诊断和生成报告需要个人 API Key；课程浏览、图谱、算法演示及本机代码执行可独立使用。
+
+### 2. 下载项目
+
+从 GitHub 克隆项目，进入包含 `manage.py` 的项目根目录：
 
 ```bash
-# 本地准备：保留既有数据与配置，并创建 SQLite 快照
-/Volumes/半岛铁盒/实验室考核部署/scripts/local_setup.sh
-
-# 启动 Web + 任务 worker
-/Volumes/半岛铁盒/实验室考核部署/scripts/local_start.sh
-
-# 状态、诊断与 Skill 审计
-/Volumes/半岛铁盒/实验室考核部署/scripts/local_status.sh
-/Volumes/半岛铁盒/实验室/.venv/bin/python /Volumes/半岛铁盒/实验室考核部署/scripts/local_doctor.py
-cd /Volumes/半岛铁盒/实验室考核部署 && /Volumes/半岛铁盒/实验室/.venv/bin/python manage.py skills_audit
+git clone https://github.com/Oookla28/AlgoMentor.git
+cd AlgoMentor
 ```
 
-打开 `http://127.0.0.1:8010/workbench/`：
+也可解压交付的 `AlgoMentor-源码交付.zip`。已有源码时跳过下载。仓库与源码包不包含个人密钥、学生数据库、虚拟环境、模型缓存或执行 VM。
 
-1. **资料问答 / 学习**：进入“资料问答示例”，上传资料，提问“循环队列判满条件是什么？”，点击 `[来源1]` 查看原文；切换到“引导式学习”生成提纲与自测。
-2. **文献比较**：进入“文献比较示例”，选择“文献比较”，输入“比较这些论文的方法与局限”，下载 Markdown/HTML 报告。
-3. **代码分析**：进入“代码分析示例”，输入“库存扣减的异常处理有什么问题？”，查看文件/行号证据、建议 diff 与执行状态。
+### 3. 安装依赖
 
-## 评测结果
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m pip check
+```
 
-### 自动化回归
+`requirements-dev.txt` 同时安装主依赖和测试工具；仅安装运行依赖时使用 `requirements.txt`。后续命令统一使用 `.venv/bin/python`，确保运行在同一环境。
+
+### 4. 初始化数据库
+
+首次安装推荐使用引导脚本：
+
+```bash
+.venv/bin/python scripts/bootstrap.py
+```
+
+它依次完成以下工作：
+
+| 步骤 | 初始化内容 |
+| --- | --- |
+| 创建配置 | `.env` 不存在时，生成随机 Django 密钥和 Fernet 主密钥，设置文件权限为 `0600` |
+| 数据库迁移 | 建立 SQLite 业务表 |
+| 初始化课程 | 写入章节、知识点、关系、练习与测试用例 |
+| 导入课程资料 | 提取默认 PDF、下载 BGE 模型、写入 Chroma 索引并关联勘误 |
+
+引导脚本不会创建学生账户或学习成绩。**首次使用时不要先复制空密钥的 `.env.example` 为 `.env`**；已存在的 `.env` 会被保留，应先确认其中密钥完整。
+
+**已有环境升级本次增量版本**：先备份 `.env`、SQLite 与 Chroma，在项目根目录更新依赖并应用增量迁移。保留原有加密主密钥和学生数据，正常升级不需要重新初始化或重新导入课程。
+
+```bash
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py prepare_embedding_model --check-only
+```
+
+新配置具有默认值，可按需追加到已有 `.env`；配置完成后重启 Web 和报告 Worker。迁移新增百科缓存、服务状态和代码草稿，不清空原有业务表。
+
+如需通过 Django 后台管理课程，可自行创建管理员：
+
+```bash
+.venv/bin/python manage.py createsuperuser
+```
+
+### 5. 导入知识库
+
+`bootstrap.py` 已包含模型准备与默认课程资料导入。手动导入前，先准备本地模型；已有模型只需检查，缺失时再显式联网下载：
+
+```bash
+.venv/bin/python manage.py prepare_embedding_model --check-only
+# 首次缺少模型时执行；此命令需要网络
+.venv/bin/python manage.py prepare_embedding_model
+```
+
+模型准备完成后导入课程：
+
+```bash
+.venv/bin/python manage.py ingest_knowledge
+.venv/bin/python manage.py seed_knowledge
+```
+
+默认读取 `knowledge/original/数据结构与算法知识库文档.pdf`。指定其他课程 PDF 时，先将文件放入该目录，再执行：
+
+```bash
+.venv/bin/python manage.py ingest_knowledge --path 'knowledge/original/新的课程资料.pdf'
+```
+
+相同文档哈希与索引配置会跳过重复入库。运行时默认只加载本地模型文件，正常检索不自动下载或悄悄切换模型。更换 Embedding 模型或 revision 后执行 `ingest_knowledge --rebuild`，避免混用向量维度。原始 PDF 应保持不变，课程新增内容与勘误需经过审核。
+
+### 6. 启动项目
+
+**第一步：准备本机代码执行服务。** 已安装的本机只需执行 `start`；新的 Apple Silicon Mac 首次执行以下完整流程：
+
+```bash
+.venv/bin/python scripts/install_lima_runtime.py
+.venv/bin/python scripts/local_piston.py start
+.venv/bin/python scripts/local_piston.py install-python
+.venv/bin/python scripts/local_piston.py smoke
+```
+
+将以下三项写入已有 `.env`，保留原有 Django 与加密密钥：
+
+```dotenv
+EXECUTION_PROVIDER=piston
+PISTON_BASE_URL=http://127.0.0.1:2000/api/v2
+PISTON_PYTHON_VERSION=3.12.0
+```
+
+然后检查实际执行能力：
+
+```bash
+.venv/bin/python manage.py check_execution_service
+```
+
+**第二步：启动 Web 服务。**
+
+```bash
+.venv/bin/python manage.py runserver 127.0.0.1:8000
+```
+
+浏览器访问 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)。
+
+**第三步：另开终端启动报告 Worker。**
+
+```bash
+cd AlgoMentor
+.venv/bin/python manage.py report_worker
+```
+
+两个终端都应位于项目根目录。修改 `.env` 后重启 Web 服务与 Worker。执行 VM 可通过 `scripts/local_piston.py status` 查询，或通过 `scripts/local_piston.py stop` 关闭；重启电脑后先执行 `start` 再使用判题。
+
+<a id="wikipedia-warmup"></a>
+
+**可选：预热 Wikipedia 缓存。** 联网时执行以下命令，将四个概念保存到本地公共缓存，便于随后离线阅读：
+
+```bash
+.venv/bin/python manage.py warmup_wikipedia --query '红黑树' --query 'KMP算法' --query '二叉搜索树' --query 'Dijkstra算法' --interval 1
+```
+
+不传 `--query` 时使用 `knowledge/wikipedia_keywords.json` 中的 18 项审核词表：
+
+```bash
+.venv/bin/python manage.py warmup_wikipedia --interval 1
+```
+
+已有有效缓存自动跳过，可中断后重跑。支持 `--language zh|en`、`--config`、`--limit` 和 `--force-refresh`；刷新仍遵守服务冷却。默认概念间隔一秒，最小为半秒，单次最多 50 项。应用启动不会自动批量预热。
+
+<a id="usage"></a>
+
+## 五、使用说明
+
+### 1. 注册与登录
+
+打开网站，选择“注册”创建个人账户，再进入学习工作台。首次登录的总览、错题和掌握度没有预置学生数据；课程结构与题库已可浏览。已有账号直接登录，历史记录按用户保留。
+
+### 2. 配置 DeepSeek API Key
+
+进入“个人设置”，填写个人 DeepSeek API Key，选择默认模型档位与推理强度，保存后点击“测试连接”。连接测试会发起真实模型请求并消耗少量 Token。
+
+密钥保存后只显示掩码，可以更换或删除。模型使用统计依据真实 usage 展示；Token 统计不等于已扣费账单，实际余额与费用在服务商控制台查看。
+
+### 3. 使用 AI 智能助教
+
+进入“AI 智能助教”，选择教学模式和模型档位后输入问题。右侧可以查看课程来源、教学提示层级和实际工具调用记录；左侧可以继续已有会话。
+
+可以从以下问题开始：
+
+- “为什么链表不能像数组一样随机存取？请结合课程资料解释。”
+- “请引导我理解 KMP 的 next 数组，先不要给出完整代码。”
+- “查询我的学习记录，分析薄弱知识点并推荐下一道练习。”
+- “请实际运行这段 Python 程序，并解释输出和边界情况。”
+
+遇到困难时使用“更多提示”，需要完整说明时选择“完整解析”；“重新学习”和“结束会话”用于管理当前教学进度。
+
+### 4. 使用在线代码评测
+
+进入“在线练习”，选择题目，阅读输入输出、样例与复杂度说明，填写 Python 代码。
+
+1. 在“自定义输入”填写调试数据，点击“运行代码”查看标准输出、错误与耗时。
+2. 确认思路后点击“提交评测”，运行题目完整测试集。
+3. 查看本题提交记录与结果；有效错误会进入错题本，通过结果会更新学习证据与图谱。
+
+需要暂停时点击“保存草稿”，之后可用“载入草稿”恢复代码与输入。草稿按账号和题目 / 实验区隔离，只保存到 SQLite，不自动运行或形成学习成绩。
+
+例如“基本操作次数”题可先用输入 `4` 验证输出 `10`。自定义运行不记为通过成绩；完整评测通过后可按页面入口查看参考实现。服务错误时先恢复执行服务，再重新提交。
+
+### 5. 查看动态知识网络
+
+进入“知识网络”，搜索并选择目标知识点，查看掌握指数、证据量、课程来源、关联练习和先修路径。图谱支持拖动与缩放；历史视图读取真实保存的快照。
+
+灰色表示尚无学习证据。通过一个知识点的练习后，可以观察节点和章节进度变化，再依据先修路径安排学习顺序。
+
+### 6. 使用算法可视化
+
+进入“算法实验室”，选择链表反转、KMP、BF、循环队列或栈，按页面填写输入并生成步骤。使用播放、暂停和前后步进观察状态变化；字符串匹配演示可以对照 BF 与 KMP 的比较过程。
+
+### 7. 查看学习记录与错题
+
+“学习分析”展示练习趋势、题目通过情况、知识点覆盖与掌握表现；“智能错题本”可查看失败原因、复习记录和解决状态。
+
+从错题入口重新练习，通过后会保留原始错误并标记解决。根据推荐理由选择基础、巩固或挑战训练，避免只反复刷已经通过的同一道题。
+
+### 8. 生成学习报告
+
+确认个人 Key 可用，并已启动 `report_worker`，进入“学习报告”提交生成任务。页面显示任务状态，成功后打开报告查看本周统计、知识点表现、错题分析和后续建议。
+
+报告使用入队时保存的数据快照与模型档位；后续修改默认档位不会改变已经排队的任务。没有有效练习时，报告会说明缺少证据。
+
+### 9. 使用 Wikipedia 查询
+
+登录后进入 [Wikipedia 百科查询](http://127.0.0.1:8000/knowledge/wikipedia/)，输入公开概念，例如“红黑树”或“KMP算法”，选择中文优先或英文查询。该入口不调用 LLM，也不需要 DeepSeek Key。
+
+- 普通查询：优先读取有效缓存，必要时联网。
+- “尝试实时获取”：尝试刷新百科，失败回退会显示原因与历史标记。
+- “仅查本地缓存”：不请求 Wikipedia 外网，无缓存时明确提示。
+
+来源卡片可查看实际摘要、语言、获取时间、页面与修订编号，并打开原始词条。英文内容保留原文。在 AI 助教中输入“使用维基百科查询红黑树”可让 Agent 调用工具并整合解释，此流程需要可用的 DeepSeek Key。
+
+### 10. 使用本地学习与查看服务状态
+
+进入 [本地学习](http://127.0.0.1:8000/knowledge/local/)，输入课程问题，阅读检索片段、页码和原文链接；相关百科仅从历史缓存读取。页面会明确说明当前内容来自检索，没有调用大模型生成解释。
+
+顶部服务状态分别展示 DeepSeek、Wikipedia 与代码执行最近的真实调用结果。展开可查看更新时间、错误原因与冷却提示；“刷新状态”只读取本地记录。冷却结束后重新执行相应业务请求，真实调用成功即恢复。个人密钥或余额错误需先在设置或服务商账户中解决。
+
+外网不可用时可以继续打开知识网络、算法实验室、学习记录、错题和历史报告。保存代码草稿后，再按执行服务是否可用决定运行或评测；本地检索和草稿保存不会伪造通过记录。
+
+<a id="notes"></a>
+
+## 六、注意事项
+
+### 配置与数据
+
+本次增量的可选配置见 `.env.example`。以下默认值在缺少对应配置时仍会生效：
+
+| 配置项 | 默认值 | 作用 |
+| --- | --- | --- |
+| `WIKIPEDIA_ENABLED` | `true` | 是否允许百科联网检索 |
+| `WIKIPEDIA_DEFAULT_LANGUAGE` / `WIKIPEDIA_FALLBACK_LANGUAGE` | `zh` / `en` | 首选与补充语言 |
+| `WIKIPEDIA_TIMEOUT` | `6` | 读取超时秒数；连接超时最多三秒 |
+| `WIKIPEDIA_CACHE_TTL_DAYS` | `7` | 有效缓存天数 |
+| `WIKIPEDIA_USER_AGENT` | 含项目链接的 AlgoMentor 标识 | 官方 API 请求身份；部署时可填写自己的维护联系信息 |
+| `OFFLINE_FALLBACK_ENABLED` | `true` | 实时请求失败时是否回退历史缓存 |
+| `EXTERNAL_SERVICE_CHECK_INTERVAL` | `60` | 失败冷却秒数；不代表后台付费探测周期 |
+| `LOCAL_EMBEDDING_OFFLINE_MODE` | `true` | BGE 运行时只加载本地模型文件 |
+
+- **妥善备份 `.env`、SQLite 与 Chroma。** Fernet 主密钥丢失后，已加密的个人 API Key 无法恢复；密钥轮换方法见 [SECURITY.md](SECURITY.md)。
+- **控制模型调用成本。** 问答、连接测试、AI 诊断与报告生成会使用个人 Key 并消耗 Token；平台设有预算和限流。
+- **核对重要课程结论。** 引用可以定位真实片段，但生成内容仍需对照原文。默认 BGE 模型 revision 已锁定；显式选择 TF-IDF 时是词法基线，不等同于语义检索。
+- **保持执行隔离。** 不在 Django 进程中运行学生代码，不向执行 VM 挂载项目、数据库或密钥。默认运行请求为 2 秒 / 128 MiB；本机执行服务最大为 3 秒 / 256 MiB，并限制进程和输出。
+- **按证据解释掌握度。** 规则指数与 BKT 是工程估计，BKT 先验尚未拟合；无记录不代表已掌握，单题通过也不代表掌握整个章节。
+- **生产部署使用专用配置。** `runserver` 用于本机开发；正式部署需使用 `config.settings.production`、HTTPS、Gunicorn 与服务管理器；先执行 `collectstatic --settings=config.settings.production`，生产配置通过 WhiteNoise 提供本地静态资源。SQLite 适合当前课程规模，高并发部署需进一步评估。
+
+### 常见问题
+
+| 现象 | 处理方式 |
+| --- | --- |
+| 未配置 Key / 428 | 在个人设置中保存自己的 Key，再测试连接 |
+| 密钥错误、余额不足或模型不可用 | 根据页面提示检查个人 Key、服务商账户与选择的模型 |
+| 请求过于频繁 / 429 | 检查个人预算与服务限流，稍后重试 |
+| 知识库尚未入库或索引配置变化 | 执行 `ingest_knowledge`；更换模型后使用 `--rebuild` |
+| 本地 Embedding 模型缺失 | 联网执行 `prepare_embedding_model` 后用 `--check-only` 验证；再导入知识库 |
+| Wikipedia 超时或冷却中 | 阅读已有缓存，按页面提示稍后重试；实时数据仍需网络 |
+| 离线百科无结果 | 该概念尚未缓存，联网查询或主动预热后再离线使用 |
+| 服务显示“尚未检测” | 表示没有当前配置下的真实调用记录，状态读取不会发起健康探测 |
+| 评测未完成 / 执行服务不可用 | 执行 `local_piston.py start` 与 `manage.py check_execution_service`，恢复后重新提交 |
+| 报告一直等待 | 检查独立 `report_worker` 是否正在运行 |
+| 报告失败或超时 | 查看任务错误提示，检查 Key、额度与网络后重新生成 |
+| 修改配置后没有生效 | 重启 Web 服务与 Worker；使用 `--noreload` 时代码修改也需重启 |
+
+### 验证与验收
+
+常规检查与自动测试：
+
+```bash
+.venv/bin/python manage.py check
+.venv/bin/python manage.py makemigrations --check --dry-run
+.venv/bin/python -m pip check
+.venv/bin/pytest -q
+```
+
+实际执行服务验证：
+
+```bash
+.venv/bin/python manage.py verify_judge
+.venv/bin/python manage.py verify_problem_bank
+.venv/bin/python manage.py verify_execution_isolation
+ALGOMENTOR_LIVE_EXECUTION=1 .venv/bin/pytest -q tests/integration/test_live_execution.py
+```
+
+本机已完成 21 题 / 89 用例和六类判题实测；真实提交闭环使用独立测试数据库验证。隔离探针结果为 8 项通过、0 项失败、1 项未验证：内存分配被终止，但 API 缺少 OOM 元数据，未独立证明终止原因。完整结果保存在 `tests/evaluation/`。
+
+**Wikipedia 与离线增量验收（2026-10-13）：**
+
+| 验证范围 | 实际结果 |
+| --- | --- |
+| 原版本自动回归 | 218 项通过，1 项默认跳过 |
+| 增量后完整自动回归 | **320 项通过，2 项默认跳过**；两个真实集成测试已单独执行通过 |
+| 官方 Wikipedia 联网 | 红黑树、KMP、二叉搜索树、Dijkstra 四项全部成功；扩展查询合计 6/6 |
+| 人工审核预热词表 | 18/18 实际核对通过；循环队列采用英文 Circular buffer |
+| LangChain + Wikipedia | 真实 Agent 与官方 API 集成通过；规划 LLM 明确使用测试替身 |
+| Piston 提交闭环 | 真实隔离执行通过，使用 pytest 数据库验证成绩与用户隔离 |
+| 离线冷启动 | 新 WSGI 进程阻断外部 DNS / socket 和主机代理后通过，本地模型、静态资源、课程、百科缓存与执行均可用 |
+| 既有学生数据 | 账户、聊天、提交、掌握度、错题和报告行的只读指纹核对未变 |
+离线验证前需完成模型与索引准备、创建至少一个注册账户、预热“红黑树”缓存，并启动本机 Piston（端口 2000）。收集本地静态资源后执行：
+
+```bash
+.venv/bin/python manage.py collectstatic --noinput --settings=config.settings.production
+.venv/bin/python scripts/verify_offline.py
+ALGOMENTOR_LIVE_WIKIPEDIA=1 .venv/bin/pytest -q tests/integration/test_live_wikipedia_agent.py
+```
+
+冷启动脚本在新进程中使用一次性数据库副本，测试进程仅允许本地验证服务器和 Piston，不修改主机网络或真实学生库，也不调用用户付费模型。脚本结果保存到 `tests/evaluation/offline_cold_start.json`。这是外网不可用条件下的本地功能验证，不是浏览器脱离 Django 后的完整离线应用。
+
+常规自动测试中的付费模型使用明确的测试替身，不能当作三个档位、全部工具任务或 CrewAI 线上质量验收；这些环节需使用个人 Key 单独验证。本机部署也不等同于完成生产安全审计。
+
+| 文档 | 内容 |
+| --- | --- |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 模块边界、RAG、事务、掌握度与任务恢复 |
+| [deployment/LOCAL_EXECUTION.md](deployment/LOCAL_EXECUTION.md) | 本机隔离执行环境的安装、启动、停止与验收 |
+| [SECURITY.md](SECURITY.md) | 密钥、权限、执行边界与生产要求 |
+| [TESTING.md](TESTING.md) | 测试范围、真实实验与结果解释 |
+| [WIKIPEDIA_OFFLINE_REPORT.md](WIKIPEDIA_OFFLINE_REPORT.md) | Wikipedia / 缓存 / 服务恢复 / 离线功能、逐文件修改与本轮验收 |
+| [DELIVERY_REPORT.md](DELIVERY_REPORT.md) | 开发完成情况、验收证据与尚未验证的环节 |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | 开发命令与工程维护 |
+| [docs/evidence_rag/baseline.md](docs/evidence_rag/baseline.md) | EvidenceRAG 增量开发前的审计与基线结果 |
+
+<a id="evidence-rag"></a>
+
+## 七、研究型 EvidenceRAG 扩展
+
+### 1. 为什么增加这一层
+
+原有 AlgoMentor 已经具备课程 RAG、引用、智能体、代码评测、知识图谱和
+离线学习。本扩展不是重写项目，而是在原有链路上增加一套可解释、可维护、
+冲突感知的检索实验层，用于回答以下研究问题：
+
+1. 结构感知的递归字符切片与父块/子块层次，能否在不改变旧索引的前提下
+   提升课程证据的可读性与可追溯性？
+2. 稀疏 BM25 与稠密 BGE/Chroma 的多查询融合（RRF），是否比单路稠密检索
+   更稳定？
+3. 当不同来源的表述互相冲突时，系统能否显式展示冲突、来源、时间与权威性，
+   而不是静默选择一条？
+4. 图片 OCR、人工标注与视频 ASR/关键帧证据，能否进入同一套引用与核验契约？
+
+### 2. 与原有体验的兼容策略
+
+- 旧版 `retrieve_knowledge(query, top_k=None)`、`Citation` 字段、旧搜索 API、
+  `[来源N]`、`verified_citation_ids()` 全部保留；
+- 旧 Chroma collection 不覆盖、不改维度；高级索引使用独立
+  `latest_index_version` 与 `ev-adv-*` collection；
+- 默认 `EVIDENCE_RAG_DEFAULT_MODE=legacy`，普通学生仍然看到原有搜索、
+  原文与本地学习入口；
+- 高级功能默认折叠；高级索引不可用时自动回退旧版稠密检索；
+- 不修改 `templates/base.html` 与 `static/css/app.css` 的全局视觉系统，
+  新增样式全部使用 `.evidence-rag-*` 前缀和现有 CSS 变量；
+- 不引入 React/Vue/Node 构建链。
+
+### 3. 项目贡献
+
+- 统一的 `EvidenceUnit` 证据结构，覆盖文本、图片、视频与音频；
+- 结构感知递归字符切割 + 父块/子块 + Small2Big；
+- 查询路由、确定性查询改写、稀疏/稠密多查询 Fan-out、RRF、确定性重排；
+- 检索轨迹（查询级 + 逐路召回级）与知识片段树；
+- 规则化主张抽取、冲突检测、权威性/时效性仲裁；
+- claim 级引用核验、无证据拒答与生成契约；
+- 管理员片段维护 API 与页面（CSRF、事务、索引一致性）；
+- 可选多模态适配器与缺依赖降级。
+
+<a id="requirement-mapping"></a>
+
+## 八、作业要求与功能映射
+
+| 作业要求 | 实现模块 | 入口文件 | API/命令 | 验证方式 |
+| --- | --- | --- | --- | --- |
+| 统一知识入库 | `multimodal_loader.py` / `mime_router.py` | `apps/knowledge/services` | `POST /api/v1/knowledge/documents/upload/` | `test_multimodal_loader.py`、`test_evidence_api.py` |
+| 结构感知递归切片 | `hierarchical_chunker.py` / `boundary_detector.py` | `apps/knowledge/services` | `ingest_knowledge --advanced` | `test_hierarchical_chunker.py` |
+| 父块—子块层次 | `hierarchical_chunker.py` / `models.py` | `apps/knowledge` | `GET /api/v1/knowledge/tree/` | `test_advanced_ingestion.py` |
+| Small2Big | `small2big_service.py` | `apps/knowledge/services` | advanced retrieval | `test_small2big.py` |
+| BM25/词法检索 | `sparse_retrieval.py` | `apps/knowledge/services` | advanced retrieval | `test_retrieval_advanced.py` |
+| BGE/Chroma 稠密检索 | `embedding_service.py` / `advanced_index_service.py` | `apps/knowledge/services` | `ingest_knowledge` | 旧版测试 + TF-IDF 高级索引集成测试 |
+| 查询改写 | `query_router.py` / `query_rewriter.py` | `apps/knowledge/services` | advanced retrieval | 改写/回退测试 |
+| 多查询 Fan-out | `hybrid_retrieval.py` | `apps/knowledge/services` | advanced retrieval | 轨迹测试（逐路召回；确定性顺序执行以保证可复现） |
+| RRF 排名融合 | `rrf_service.py` | `apps/knowledge/services` | advanced retrieval | RRF 单元测试 |
+| 可选交叉编码器重排 | `rerank_service.py` | `apps/knowledge/services` | `EVIDENCE_RAG_RERANK_BACKEND=cross_encoder` | 缺依赖回退测试（在线模型 UNVERIFIED） |
+| 检索轨迹 | `trace_service.py` / `models.py` | `apps/knowledge` | `GET /api/v1/knowledge/traces/<id>/` | `test_evidence_api.py` |
+| 知识片段可视化 | `templates/knowledge/index.html` / `knowledge.js` | `templates`、`static` | “切片树”页签 | 浏览器 QA |
+| 片段增删改查 | `views_evidence.py` | `apps/knowledge` | `GET/PATCH/DELETE /api/v1/knowledge/chunks/<id>/` | `test_evidence_api.py` |
+| 图片 OCR / 标注 | `multimodal_loader.py` / `MediaAsset` | `apps/knowledge` | upload + annotation | `test_multimodal_loader.py`（OCR 依赖缺失路径） |
+| 视频 ASR / 关键帧 | `multimodal_loader.py` / `MediaAsset` | `apps/knowledge` | upload + annotation | 元数据/时间戳测试（真实 ASR UNVERIFIED） |
+| 冲突证据识别 | `claim_service.py` / `conflict_service.py` | `apps/knowledge/services` | advanced retrieval | `test_conflict_service.py` |
+| 来源/时间/版本/权威性仲裁 | `conflict_service.py` / `models.py` | `apps/knowledge` | `GET /api/v1/knowledge/conflicts/<id>/` | 冲突仲裁测试 |
+| 结构化引用核验 | `citation_verifier.py` / `retrieval_service.py` | `apps/knowledge/services` | `[来源N]` | `test_citation_verifier.py` |
+| 无证据拒答 | `hybrid_retrieval.py` / `prompt_service.py` | `apps/knowledge`、`apps/tutor` | advanced retrieval / chat | 证据不足测试 + 生成契约 |
+| 离线与降级 | `advanced_index_service.py` / `query_rewriter.py` | `apps/knowledge/services` | 自动 fallback | fallback 测试 |
+| 文档同步 | 本 README、ARCHITECTURE、IMPLEMENTATION_PLAN、TESTING、DELIVERY_REPORT | 仓库根目录 | — | 文档审阅 |
+| 测试与评测 | `apps/knowledge/tests/*` | `apps/knowledge/tests` | `pytest -q` | 398 passed / 2 skipped |
+| 检索评测脚本 | `scripts/evaluate_evidence_rag.py` | `tests/evaluation/rag_cases.json` | `python scripts/evaluate_evidence_rag.py` | advanced 9/9、拒答 2/2；legacy 6/9（TF-IDF） |
+
+<a id="rag-pipeline"></a>
+
+## 九、研究型检索链路
+
+```mermaid
+flowchart LR
+  A[PDF / DOCX / Markdown / 文本 / 图片 / 视频] --> B[MIME Router]
+  B --> C[Multimodal Loader]
+  C --> D[EvidenceUnit]
+  D --> E[结构感知递归字符切片]
+  E --> F[Parent / Child]
+  F --> G[Sparse BM25]
+  F --> H[Dense BGE / Chroma]
+  Q[原始查询] --> R[Query Router]
+  R --> W[Query Rewrite]
+  W --> G
+  W --> H
+  G --> X[RRF]
+  H --> X
+  X --> Y[Rerank]
+  Y --> Z[Small2Big]
+  Z --> C2[Conflict Arbitration]
+  C2 --> G2[Grounded Answer]
+  G2 --> V[Citation Verification]
+```
+
+文字链路：
 
 ```text
-430 passed
+上传 → 解析 → EvidenceUnit → 结构感知递归切片 → Parent/Child
+→ Sparse + Dense → Query Rewrite → Fan-out → RRF → Rerank
+→ Small2Big → Conflict Arbitration → Grounded Answer
+→ Citation Verification
 ```
 
-### 工作台三领域开发集
+关键约束：
 
-| 指标 | 结果 |
-| --- | --- |
-| 案例 | 11（8 条有依据回答 / 3 条正确拒答） |
-| answerability accuracy | **1.0** |
-| retrieval recall mean | **1.0** |
-| MRR mean | **0.9375** |
-| citation presence（可答） | **1.0** |
-| 案例通过率 | **100%** |
+- 查询改写只用于召回，永远不作为事实证据；
+- 每条可验证结论必须有 `[来源N]`；
+- 冲突时并列展示 A/B、来源、版本与时间；置信度差距不足时标记
+  `UNRESOLVED`，不静默选择；
+- 证据不足时返回 `evidence_sufficient=false`，回答侧明确拒答；
+- 高相似但结论相反的片段会进入冲突检测，出现次数多不代表正确。
 
-### 平台评测
+<a id="evidence-data-model"></a>
 
-- advanced 19 例：**100%**
-- 冲突检测：**5/5**
-- 拒答 precision / recall：**1.0 / 1.0**
-- unsupported claim：**0**
+## 十、数据模型
 
-### 浏览器验收
+| 模型 | 作用 | 关键字段 |
+| --- | --- | --- |
+| `KnowledgeDocument` | 文档级元数据 | `source_type`、`authority_level`、`valid_from/to`、`parser_name`、`ingestion_status`、`latest_index_version` |
+| `KnowledgeChunk` | 原文/父块/子块/媒体片段 | `parent_chunk`、`chunk_type`、`heading_path`、`char_start/end`、`token_count`、`content_hash`、`is_active`、`deleted_at` |
+| `MediaAsset` | 图片/视频/音频证据 | `asset_id`、`modality`、`sha256`、`bbox`、`start_time/end_time`、`ocr_text`、`asr_text`、`manual_annotation` |
+| `EvidenceClaim` | 从片段抽取的可核验主张 | `subject`、`predicate`、`object`、`normalized_text`、`contradiction_group`、`detector_score` |
+| `KnowledgeQueryTrace` | 查询级轨迹 | `query_variants`、`retrieval_mode`、`selected_chunk_ids`、`latency_ms`、`fallback_reason` |
+| `KnowledgeRetrievalTrace` | 逐路召回轨迹 | `retriever_name`、`query_variant`、`rank`、`raw_score`、`rrf_score`、`rerank_score`、`selected` |
+| `KnowledgeConflict` | 冲突案例与仲裁 | `claim_a/b`、`conflict_type`、`confidence`、`authority_scores`、`freshness_scores`、`verdict` |
 
-- 1440 / 390 / 768 / 1920 四种宽度通过
-- 私有空间创建、上传、检索、引用定位、文献比较下载、代码分析下载、刷新恢复与重试通过
-- 浏览器控制台：**全部正常**
+旧数据继续可读：所有新增字段都有默认值或允许为空；迁移只新增字段与表，
+不删除、不重命名旧字段。
 
-## 复现实验
+<a id="advanced-config"></a>
+
+## 十一、高级模式配置
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `EVIDENCE_RAG_ENABLED` | `true` | 是否启用增量模块 |
+| `EVIDENCE_RAG_DEFAULT_MODE` | `legacy` | 旧搜索 API 的默认模式 |
+| `EVIDENCE_RAG_CHAT_MODE` | `legacy` | 聊天是否走高级检索兼容接口 |
+| `EVIDENCE_RAG_INDEX_VERSION` | `adv-v1` | 高级索引标签；与 embedding identity 一起哈希 |
+| `EVIDENCE_RAG_PARENT_TOKEN_MIN/MAX` | 1200 / 2000 | 父块初始 token 目标 |
+| `EVIDENCE_RAG_CHILD_TOKEN_MIN/MAX` | 300 / 500 | 子块初始 token 目标 |
+| `EVIDENCE_RAG_CHILD_OVERLAP_RATIO` | 0.12 | 子块重叠比例 |
+| `EVIDENCE_RAG_RRF_K` | 60 | RRF 公式中的 k |
+| `EVIDENCE_RAG_TOP_K` | 6 | 最终证据条数上限 |
+| `EVIDENCE_RAG_ROUTE_TOP_K` | 20 | 每路召回候选数 |
+| `EVIDENCE_RAG_CONTEXT_TOKEN_BUDGET` | 1800 | Small2Big 总上下文预算 |
+| `EVIDENCE_RAG_DENSE_MIN_SCORE` | 0.20 | 稠密召回最低余弦相似度 |
+| `EVIDENCE_RAG_MIN_RERANK_SCORE` | 0.12 | 最终重排最低分 |
+| `EVIDENCE_RAG_MIN_LEXICAL_OVERLAP` | 0.20 | 证据门控：多字词法覆盖门槛（实现中取一半作为候选预门控） |
+| `EVIDENCE_RAG_MIN_DENSE_SUPPORT` | 0.35 | 无词法覆盖时允许通过的稠密语义分数 |
+| `EVIDENCE_RAG_RERANK_BACKEND` | `deterministic` | `deterministic` 或 `cross_encoder` |
+| `EVIDENCE_RAG_QUERY_REWRITE_LLM` | `false` | 是否允许 LLM 改写；失败自动回退 |
+| `EVIDENCE_RAG_CONFLICT_SIMILARITY` | 0.55 | 冲突检测的相似度门槛 |
+| `EVIDENCE_RAG_CONFLICT_SCORE_GAP` | 0.12 | 低于该差距时判为 `UNRESOLVED` |
+| `EVIDENCE_RAG_OCR_ENABLED` | `false` | 是否尝试图片 OCR |
+| `EVIDENCE_RAG_ASR_ENABLED` | `false` | 是否尝试视频/音频 ASR |
+| `EVIDENCE_RAG_MAX_UPLOAD_BYTES` | 20 MiB | 上传大小上限 |
+| `CHROMA_PATH` | `data/chroma` | 可显式指向其他持久化目录 |
+
+模式说明：
+
+- **legacy**：仅旧版 650/80 字符切片 + 旧 Chroma collection；
+- **advanced hybrid**：父块/子块 + BM25 + 稠密 + 多查询 + RRF + 重排；
+- **multimodal optional**：图片/视频原文件保留，OCR/ASR/关键帧为可选后端；
+- **offline fallback**：无 LLM Key 时使用确定性改写；无高级索引时回退旧检索；
+- **embedding version**：高级索引绑定 embedding identity 与
+  `EVIDENCE_RAG_INDEX_VERSION`，变更后必须重建；
+- **rebuild**：`ingest_knowledge --advanced --rebuild` 只重建高级集合，
+  不触碰旧 collection。
+
+<a id="evidence-usage"></a>
+
+## 十二、使用方式
 
 ```bash
-cd /Volumes/半岛铁盒/实验室/AlgoMentor
-/Volumes/半岛铁盒/实验室/.venv/bin/python manage.py check
-/Volumes/半岛铁盒/实验室/.venv/bin/python manage.py migrate
-/Volumes/半岛铁盒/实验室/.venv/bin/python manage.py skills_audit
-/Volumes/半岛铁盒/实验室/.venv/bin/python -m pytest -q
-/Volumes/半岛铁盒/实验室/.venv/bin/python manage.py seed_workbench_demo --username demo_student
-/Volumes/半岛铁盒/实验室/.venv/bin/python manage.py evaluate_workbench --username demo_student
-python scripts/evaluate_evidence_rag.py
-python scripts/evaluate_platform.py
+python manage.py check
+python manage.py migrate
+python manage.py ingest_knowledge
+python manage.py ingest_knowledge --advanced
+python manage.py ingest_knowledge --advanced --rebuild
+python manage.py ingest_knowledge --advanced-only --path knowledge/original/课程讲义.md
+python manage.py runserver
+pytest -q
+python scripts/verify_offline.py
 ```
 
-原始结果：
+页面入口：
 
-- `tests/evaluation/workbench_results.json`
-- `tests/evaluation/evidence_rag_results.json`
-- `tests/evaluation/platform_results.json`
+1. `/knowledge/`：原有搜索 + “高级检索”开关；
+2. “切片树”页签：文档 → 父块 → 子块；
+3. 高级搜索结果：查询变体、逐路召回、RRF/重排分数、冲突、媒体证据、
+   Small2Big 上下文；
+4. `source/<chunk_id>/`：父块/子块、字符范围、媒体预览、视频时间戳跳转；
+5. 管理员登录后可见“管理员维护”：上传、重建索引、编辑/软删除/恢复片段。
 
-## 代码入口
+API 示例：
 
-| 模块 | 位置 |
-| --- | --- |
-| 私有空间与权限 | `apps/workspace/models.py`、`permissions.py`、`services/workspaces.py` |
-| 资料上传与解析 | `apps/workspace/services/documents.py`、`apps/knowledge/services/advanced_index_service.py` |
-| 工作台页面与 API | `apps/workspace/views.py`、`templates/workbench/index.html`、`static/js/workbench.js` |
-| 任务队列与执行 | `apps/workspace/services/tasks.py`、`services/executor.py`、`management/commands/workbench_worker.py` |
-| 文献库与推荐 | `apps/workspace/services/literature.py`、`knowledge/literature_catalog.json` |
-| 领域包与任务包 | `apps/platform/domains/`、`apps/platform/contracts/` |
-| Agent 状态机 | `apps/platform/agent/state_machine.py`、`adaptive_router.py` |
-| 运行时 Skills | `apps/platform/skills/runtime.py`、`agent_skills/registry.json`、`agent_skills/runtime/` |
-| 开发参考 Skills | `agent_skills/vendor/`、`agent_skills/development/index.json`、`apps/platform/skills/development.py` |
-| Skill 审计 | `manage.py skills_audit`、`skills.lock.json`、`THIRD_PARTY_NOTICES.md` |
-| 工作台评测 | `apps/workspace/evaluation/cases.py`、`manage.py evaluate_workbench` |
-| 部署与诊断 | `scripts/local_setup.sh`、`local_start.sh`、`local_stop.sh`、`local_status.sh`、`local_doctor.py` |
+```bash
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/search/?q=循环队列判满条件&mode=advanced'
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/tree/'
+curl -s 'http://127.0.0.1:8000/api/v1/knowledge/traces/<trace_id>/'
+```
 
-## 技术栈
+<a id="evidence-testing"></a>
 
-| 层 | 技术 |
-| --- | --- |
-| 后端 | Django、SQLite、Python 3.12 |
-| 检索 | Chroma、BM25、TF-IDF 本地词法基线、RRF、确定性重排 |
-| Agent | 自研显式状态机、DomainPack / TaskPack / ToolSpec / SkillSpec |
-| 前端 | Django Templates、原生 CSS / JavaScript / SVG，宋体优先字体栈 |
-| 任务 | SQLite worker、lease/heartbeat、预算、取消、重试、checkpoint |
-| 测试 | pytest、Django test client、真实浏览器旅程 |
+## 十三、测试、限制与验证记录
 
-## 文档
+### 1. 自动测试
 
-- [ARCHITECTURE.md](ARCHITECTURE.md)：模块边界与运行层设计
-- [TESTING.md](TESTING.md)：测试范围与验收记录
-- [docs/deployment/LOCAL_DEPLOYMENT.md](docs/deployment/LOCAL_DEPLOYMENT.md)：本地部署、启动、停止与回滚
-- [docs/deployment/NETWORK_DNS.md](docs/deployment/NETWORK_DNS.md)：本机 DNS 诊断与修复
-- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)：内置第三方 Skill 的来源、许可与审计
-- [skills.lock.json](skills.lock.json)：固定 commit 与 SHA-256 锁文件
+- 基线：320 passed，2 skipped；
+- 增量后：**398 passed，2 skipped**（新增 78 项：切片、Small2Big、
+  稀疏/稠密/RRF/重排、改写、冲突、引用核验、多模态、CRUD/权限/CSRF、
+  高级入库命令）；
+- 默认测试不调用真实 DeepSeek、Wikipedia 或外部网络，不下载模型，
+  不依赖 Docker/GPU；
+- 旧测试未删除、未修改断言以换取通过。
+- 离线检索评测：`python scripts/evaluate_evidence_rag.py`。在 TF-IDF
+  高级索引上，9 个库内问题 advanced 命中 9/9，2 个库外问题拒答 2/2；
+  同一环境 legacy 命中 6/9。结果写入
+  `tests/evaluation/evidence_rag_results.json`，只反映本机小样本，
+  不宣称生产准确率。
 
-## 致谢
+### 2. 浏览器验证
 
-感谢 Django、Chroma、LangChain 及所有开源社区贡献者。开发参考 Skill 的来源、固定 commit 与许可证记录在 `THIRD_PARTY_NOTICES.md` 与 `skills.lock.json`。
+使用真实浏览器完成：
+
+- `demo_staff` 登录后 `/knowledge/` 渲染“高级检索”和“管理员维护”；
+- 勾选高级检索并搜索“循环队列判满条件”，出现 6 条证据、查询变体、
+  dense/sparse 逐路轨迹与 Small2Big 面板；
+- “切片树”显示 8 个父块 / 29 个子块；“管理员维护”显示上传、重建索引、
+  加载片段与编辑片段控件；
+- 普通学生页面不出现“管理员维护”。
+
+### 3. 未验证与可选能力
+
+| 能力 | 状态 | 原因 |
+| --- | --- | --- |
+| 真实 BGE 高级索引 | UNVERIFIED | 本机未预下载 BGE 权重；高级链路用 TF-IDF 2048 维完成集成验证 |
+| 交叉编码器重排 | OPTIONAL / UNVERIFIED | 默认关闭；缺依赖时自动回退确定性重排 |
+| LLM 查询改写 | OPTIONAL / UNVERIFIED | 默认关闭；无 Key 时使用确定性 heuristic |
+| 图片 OCR | OPTIONAL / UNVERIFIED | 未安装 pytesseract/tesseract；缺失时返回 `OCR_UNAVAILABLE` |
+| 视频 ASR / 关键帧 | OPTIONAL / UNVERIFIED | 未安装 faster-whisper/ffmpeg；缺失时保留原文件与人工标注 |
+| 离线冷启动探针 | ENVIRONMENT-LIMITED | 初始化后页面/静态/RAG/百科缓存通过，停在未部署的本机 Piston；BGE 权重未装，未伪造通过 |
+| 在线 DeepSeek 生成 | NOT_VERIFIED | 未使用用户付费 Key |
+
+### 4. 限制
+
+- 父块/子块 token 是确定性估算（CJK 字符 ≈ 1 token，拉丁词 ≈ 1 token），
+  不是特定 tokenizer 的精确计数；
+- 规则化主张抽取与冲突检测覆盖否定、数字、单位、版本、年份和高相似
+  相反表述，不等同于完整 NLI；
+- 图片/视频的原始像素/文件不进入文本 Chroma，仅文本证据参与检索；
+- 上传接口默认只允许 staff，单文件上限 20 MiB；生产环境应接入对象存储
+  与更严格的 MIME/病毒扫描；
+- 本机 Chroma 在部分外接卷上可能因文件锁限制写入，可通过 `CHROMA_PATH`
+  指向支持 SQLite 锁的本地目录。
