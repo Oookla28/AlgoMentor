@@ -499,12 +499,21 @@
 
     $('#workbench-create-toggle')?.addEventListener('click', openCreateModal);
     $('#workbench-create-empty')?.addEventListener('click', openCreateModal);
+    $$('[data-create-domain]').forEach(button => button.addEventListener('click', () => {
+      openCreateModal();
+      const domain = $('#workbench-new-domain');
+      if (domain && button.dataset.createDomain) domain.value = button.dataset.createDomain;
+    }));
     $('#workbench-create-close')?.addEventListener('click', closeCreateModal);
     $('#workbench-create-cancel')?.addEventListener('click', closeCreateModal);
     $('#workbench-create-submit')?.addEventListener('click', createWorkspace);
   }
 
   bind();
+  const desiredTask = new URL(window.location.href).searchParams.get('task_type');
+  if (desiredTask && taskType && Array.from(taskType.options).some(option => option.value === desiredTask)) {
+    taskType.value = desiredTask;
+  }
   loadDraft();
   const taskParam = new URL(window.location.href).searchParams.get('task');
   if (taskParam) {

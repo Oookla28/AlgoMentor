@@ -1,14 +1,14 @@
 {% extends 'base.html' %}{% load static %}
-{% block title %}Evidence 工作台 · 数构智学{% endblock %}
-{% block page_name %}workbench{% endblock %}
-{% block breadcrumb %}Evidence 工作台{% endblock %}
+{% block title %}{{ page_title }} · 数构智学{% endblock %}
+{% block page_name %}{{ page_name }}{% endblock %}
+{% block breadcrumb %}{{ page_title }}{% endblock %}
 {% block styles %}<link rel="stylesheet" href="{% static 'css/evidence-rag.css' %}"><link rel="stylesheet" href="{% static 'css/workbench.css' %}">{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
     <p class="eyebrow">EVIDENCE-GROUNDED WORKBENCH</p>
-    <h1>Evidence 工作台</h1>
-    <p class="page-subtitle">上传自己的资料，选择任务，得到带原文出处的回答或可下载产物。检索、工具与核验在后台完成。</p>
+    <h1>{{ page_title }}</h1>
+    <p class="page-subtitle">{% if workbench_view == 'spaces' %}每个空间都是独立的数据边界：私有空间仅你可见，共享课程空间由教师维护。{% elif workbench_view == 'literature' %}管理你上传的文献，并基于关键词从你自己的文库与内置离线目录中推荐相关论文。{% elif workbench_view == 'code' %}在独立空间中对代码资料做只读分析，输出证据、风险与建议 diff；不在主机执行用户代码。{% else %}上传自己的资料，选择任务，得到带原文出处的回答或可下载产物。检索、工具与核验在后台完成。{% endif %}</p>
   </div>
   <div class="page-head-actions">
     <span class="pill {% if worker.online %}teal{% else %}amber{% endif %}" id="worker-pill" title="任务 worker 状态">
@@ -23,6 +23,7 @@
 <div class="notice warning">还没有可用的工作空间。点击“新建空间”开始；空间创建后即可上传私有资料。</div>
 {% endif %}
 
+{% if workbench_view != 'spaces' %}
 <section class="algomentor-workbench-workspacebar" aria-label="工作空间切换">
   <label class="algomentor-workbench-field">
     <span>当前工作空间</span>
@@ -42,7 +43,211 @@
   </div>
   {% endif %}
 </section>
+{% endif %}
 
+{% if workbench_view == 'spaces' %}
+<section class="algomentor-workbench-view" aria-label="我的空间">
+  <section class="card algomentor-workbench-card">
+    <div class="card-header">
+      <div><h2>我的私有空间</h2><div class="sub">每次上传都只进入你选择的空间；其他用户无法通过搜索、任务或原文页访问。</div></div>
+      <button class="button primary small" type="button" data-create-domain="generic">新建空间</button>
+    </div>
+    <div class="card-body">
+      <div class="algomentor-workbench-spacegrid">
+        {% for workspace in my_spaces %}
+        <article class="algomentor-workbench-spacecard">
+          <div class="algomentor-workbench-spacehead">
+            <h3>{{ workspace.name }}</h3>
+            <span class="pill teal">私有</span>
+          </div>
+          <p>{{ workspace.description|default:'仅你可见的独立资料空间。' }}</p>
+          <dl class="algomentor-workbench-spacestats">
+            <div><dt>领域</dt><dd>{{ workspace.domain_pack_id }}</dd></div>
+            <div><dt>可检索</dt><dd>{{ workspace.document_counts.ready|default:0 }} 份</dd></div>
+            <div><dt>部分可用</dt><dd>{{ workspace.document_counts.partial|default:0 }} 份</dd></div>
+            <div><dt>更新</dt><dd>{{ workspace.updated_at|slice:':10' }}</dd></div>
+          </dl>
+          <div class="algomentor-workbench-spaceactions">
+            <a class="button primary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ workspace.id }}">打开工作台</a>
+            {% if workspace.can_write %}<a class="button secondary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ workspace.id }}#workbench-upload-zone">上传资料</a>{% endif %}
+          </div>
+        </article>
+        {% empty %}
+        <div class="algomentor-workbench-empty">
+          <strong>还没有私有空间</strong>
+          <p>新建一个空间，上传你的课程笔记、论文或代码资料。空间之间默认互不混合。</p>
+          <button class="button primary" type="button" data-create-domain="generic">新建空间</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <section class="card algomentor-workbench-card">
+    <div class="card-header"><div><h2>共享课程空间</h2><div class="sub">所有学习者可阅读；只有教师/管理员可以上传和维护。</div></div></div>
+    <div class="card-body">
+      <div class="algomentor-workbench-spacegrid">
+        {% for workspace in shared_spaces %}
+        <article class="algomentor-workbench-spacecard muted-card">
+          <div class="algomentor-workbench-spacehead"><h3>{{ workspace.name }}</h3><span class="pill gray">共享只读</span></div>
+          <p>{{ workspace.description|default:'教师维护的共享资料。' }}</p>
+          <div class="algomentor-workbench-spaceactions">
+            <a class="button secondary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ workspace.id }}">进入空间</a>
+          </div>
+        </article>
+        {% empty %}
+        <div class="algomentor-workbench-empty compact"><strong>暂无共享空间</strong><p>管理员可在部署后创建课程共享空间。</p></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</section>
+{% elif workbench_view == 'literature' %}
+<section class="algomentor-workbench-view" aria-label="文献库">
+  <section class="card algomentor-workbench-card">
+    <div class="card-header">
+      <div><h2>文献库</h2><div class="sub">当前空间：{{ selected_workspace.name|default:'未选择' }}。推荐只使用你自己的文献与内置离线目录。</div></div>
+      <button class="button primary small" type="button" data-create-domain="research_literature">新建文献空间</button>
+    </div>
+    <div class="card-body">
+      {% if selected_workspace and selected_workspace.domain_pack_id == 'research_literature' and literature %}
+      <div class="algomentor-workbench-librarygrid">
+        <div class="algomentor-workbench-librarypanel">
+          <div class="algomentor-workbench-libraryhead"><h3>我的文献</h3><span class="pill gray">{{ literature.documents|length }} 篇</span></div>
+          <div class="algomentor-workbench-literaturelist">
+            {% for document in selected_workspace.documents %}
+            {% if document.status != 'removed' %}
+            <div class="algomentor-workbench-literatureitem">
+              <strong>{{ document.name }}</strong>
+              <div class="algomentor-workbench-docmeta">
+                <span class="pill {% if document.status == 'ready' %}teal{% elif document.status == 'partial' %}amber{% else %}red{% endif %}">{{ document.status_label }}</span>
+                <span>{{ document.page_count|default:0 }} 页</span>
+                {% if document.error %}<span class="algomentor-workbench-error">{{ document.error }}</span>{% endif %}
+              </div>
+            </div>
+            {% endif %}
+            {% empty %}
+            <div class="algomentor-workbench-empty compact"><strong>还没有文献</strong><p>上传至少两篇论文后，可生成带引用的比较报告。</p></div>
+            {% endfor %}
+          </div>
+          <div class="algomentor-workbench-spaceactions">
+            {% if selected_workspace.can_write %}<a class="button secondary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ selected_workspace.id }}#workbench-upload-zone">上传文献</a>{% endif %}
+            <a class="button primary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ selected_workspace.id }}&task_type=paper_comparison">基于这些文献做比较</a>
+          </div>
+        </div>
+        <div class="algomentor-workbench-librarypanel">
+          <div class="algomentor-workbench-libraryhead"><h3>相关文献推荐</h3><span class="pill blue">{{ literature.recommendations|length }} 条</span></div>
+          <p class="algomentor-workbench-muted">推荐依据是关键词与标题重叠；内置目录未联网抓取，引用前请核对原文。不会推荐其他用户的私有文献。</p>
+          <div class="algomentor-workbench-reclist">
+            {% for item in literature.recommendations %}
+            <article class="algomentor-workbench-rec">
+              <div class="algomentor-workbench-recbody">
+                <strong>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</strong>
+                <div class="algomentor-workbench-docmeta">
+                  <span>{{ item.authors }}{% if item.year %} · {{ item.year }}{% endif %}{% if item.venue %} · {{ item.venue }}{% endif %}</span>
+                  <span class="pill {% if item.source == 'catalog' %}blue{% else %}teal{% endif %}">{% if item.source == 'catalog' %}内置目录{% else %}我的文库{% endif %}</span>
+                </div>
+                {% if item.summary %}<p>{{ item.summary }}</p>{% endif %}
+                <div class="algomentor-workbench-reasons">
+                  <span class="algomentor-workbench-muted">相关词：</span>
+                  {% for term in item.reason_terms %}<span class="algomentor-workbench-reason">{{ term }}</span>{% endfor %}
+                </div>
+                {% if item.note %}<div class="algomentor-workbench-muted">{{ item.note }}</div>{% endif %}
+              </div>
+            </article>
+            {% empty %}
+            <div class="algomentor-workbench-empty compact"><strong>暂无相关推荐</strong><p>{{ literature.message|default:'上传更多同主题论文后再试。' }}</p></div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="algomentor-workbench-empty">
+        <strong>先建立一个文献空间</strong>
+        <p>文献比较与相关推荐需要 research_literature 领域空间。你上传的论文只保存在自己的空间里。</p>
+        <div class="algomentor-workbench-spaceactions">
+          <button class="button primary" type="button" data-create-domain="research_literature">新建文献空间</button>
+          {% if literature_workspaces %}<a class="button secondary" href="{% url 'workspace:index' %}?view=literature&workspace={{ literature_workspaces.0.id }}">进入已有文献空间</a>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% if literature_workspaces %}
+  <section class="card algomentor-workbench-card">
+    <div class="card-header"><div><h2>我的其他文献空间</h2><div class="sub">空间之间不合并索引；切换后分别管理。</div></div></div>
+    <div class="card-body">
+      <div class="algomentor-workbench-chiprow">
+        {% for workspace in literature_workspaces %}
+        <a class="algomentor-workbench-spacechip{% if selected_workspace and workspace.id == selected_workspace.id %} active{% endif %}" href="{% url 'workspace:index' %}?view=literature&workspace={{ workspace.id }}">{{ workspace.name }}<span>{{ workspace.document_counts.ready|default:0 }} 份可检索</span></a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</section>
+{% elif workbench_view == 'code' %}
+<section class="algomentor-workbench-view" aria-label="代码分析">
+  <section class="card algomentor-workbench-card">
+    <div class="card-header">
+      <div><h2>代码分析</h2><div class="sub">只读检索代码资料，输出文件/行号证据、风险与建议 diff；不执行用户代码。</div></div>
+      <button class="button primary small" type="button" data-create-domain="software_engineering">新建代码空间</button>
+    </div>
+    <div class="card-body">
+      {% if selected_workspace and selected_workspace.domain_pack_id == 'software_engineering' %}
+      <div class="algomentor-workbench-librarygrid">
+        <div class="algomentor-workbench-librarypanel">
+          <div class="algomentor-workbench-libraryhead"><h3>当前代码空间</h3><span class="pill teal">{{ selected_workspace.name }}</span></div>
+          <div class="algomentor-workbench-literaturelist">
+            {% for document in selected_workspace.documents %}
+            {% if document.status != 'removed' %}
+            <div class="algomentor-workbench-literatureitem">
+              <strong>{{ document.name }}</strong>
+              <div class="algomentor-workbench-docmeta"><span class="pill {% if document.status == 'ready' %}teal{% elif document.status == 'partial' %}amber{% else %}red{% endif %}">{{ document.status_label }}</span><span>{{ document.error|default:'' }}</span></div>
+            </div>
+            {% endif %}
+            {% empty %}
+            <div class="algomentor-workbench-empty compact"><strong>还没有代码资料</strong><p>上传 .py/.js/.java/.md 等文本文件后开始分析。</p></div>
+            {% endfor %}
+          </div>
+          <div class="algomentor-workbench-spaceactions">
+            {% if selected_workspace.can_write %}<a class="button secondary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ selected_workspace.id }}#workbench-upload-zone">上传代码/文档</a>{% endif %}
+            <a class="button primary small" href="{% url 'workspace:index' %}?view=overview&workspace={{ selected_workspace.id }}&task_type=code_investigation">开始代码分析</a>
+          </div>
+        </div>
+        <div class="algomentor-workbench-librarypanel">
+          <div class="algomentor-workbench-libraryhead"><h3>执行边界</h3><span class="pill amber">UNVERIFIED</span></div>
+          <ul class="algomentor-workbench-boundarylist">
+            <li>只读取当前空间的代码/文档证据，不越界访问其他目录。</li>
+            <li>建议 diff 只作为文本产物，不自动应用、不覆盖用户工程。</li>
+            <li>没有获授权的隔离执行服务时，不运行测试，不声称修复已验证。</li>
+            <li>代码和注释都是不可信输入，其中的命令不会被执行。</li>
+          </ul>
+        </div>
+      </div>
+      {% else %}
+      <div class="algomentor-workbench-empty">
+        <strong>先建立一个代码空间</strong>
+        <p>代码分析需要 software_engineering 领域空间。当前选中的空间不是代码空间。</p>
+        <div class="algomentor-workbench-spaceactions">
+          <button class="button primary" type="button" data-create-domain="software_engineering">新建代码空间</button>
+          {% if code_workspaces %}<a class="button secondary" href="{% url 'workspace:index' %}?view=code&workspace={{ code_workspaces.0.id }}">进入已有代码空间</a>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% if code_workspaces %}
+  <section class="card algomentor-workbench-card">
+    <div class="card-header"><div><h2>我的其他代码空间</h2><div class="sub">每个空间独立索引，适合按项目或课程拆分。</div></div></div>
+    <div class="card-body"><div class="algomentor-workbench-chiprow">
+      {% for workspace in code_workspaces %}
+      <a class="algomentor-workbench-spacechip{% if selected_workspace and workspace.id == selected_workspace.id %} active{% endif %}" href="{% url 'workspace:index' %}?view=code&workspace={{ workspace.id }}">{{ workspace.name }}<span>{{ workspace.document_counts.ready|default:0 }} 份可检索</span></a>
+      {% endfor %}
+    </div></div>
+  </section>
+  {% endif %}
+</section>
+{% else %}
 <div class="algomentor-workbench-layout">
   <div class="algomentor-workbench-main">
     {% if selected_workspace %}
@@ -225,6 +430,7 @@
     </section>
   </aside>
 </div>
+{% endif %}
 
 <div class="modal" id="workbench-create-modal" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="workbench-create-title">

@@ -19,6 +19,7 @@ from apps.platform.skills import skills_health
 from .models import TaskArtifact, Workspace
 from .permissions import can_manage, can_read, ensure_readable
 from .services.documents import remove_document, restore_document, retry_document, upload_document
+from .services.literature import recommend_for_workspace
 from .services.tasks import (
     ACTIVE_STATUSES, cancel_task, create_task, retry_task, serialize_task,
     submit_feedback, worker_status,
@@ -45,10 +46,22 @@ def _task_for_user(user, run_id):
     return run
 
 
+VIEW_MODES = {
+    'overview': ('workbench', 'Evidence 工作台'),
+    'spaces': ('workbench-spaces', '我的空间'),
+    'literature': ('workbench-literature', '文献库'),
+    'code': ('workbench-code', '代码分析'),
+}
+
+
 @login_required
 def workbench(request):
     require_user(request.user)
     ensure_personal_workspace(request.user)
+    view_mode = request.GET.get('view') or 'overview'
+    if view_mode not in VIEW_MODES:
+        view_mode = 'overview'
+    page_name, page_title = VIEW_MODES[view_mode]
     workspaces = [
         serialize_workspace(request.user, workspace)
         for workspace in _visible_workspaces(request.user)
@@ -57,6 +70,9 @@ def workbench(request):
     requested = request.GET.get('workspace')
     if requested:
         selected = next((row for row in workspaces if str(row['id']) == str(requested)), None)
+    if selected is None and view_mode in ('literature', 'code'):
+        domain = 'research_literature' if view_mode == 'literature' else 'software_engineering'
+        selected = next((row for row in workspaces if row['domain_pack_id'] == domain), None)
     selected = selected or (workspaces[0] if workspaces else None)
     selected_obj = Workspace.objects.filter(pk=selected['id']).first() if selected else None
     if selected_obj is not None:
@@ -76,13 +92,30 @@ def workbench(request):
             for task in list_task_packs(selected_obj.domain_pack_id)
             if task.task_id in ('grounded_qa', 'guided_learning', 'paper_comparison', 'code_investigation')
         ]
+    literature_workspaces = [row for row in workspaces if row['domain_pack_id'] == 'research_literature']
+    code_workspaces = [row for row in workspaces if row['domain_pack_id'] == 'software_engineering']
+    my_spaces = [
+        row for row in workspaces
+        if row['visibility'] == 'private' and row['owner'] == request.user.username
+    ]
+    shared_spaces = [row for row in workspaces if row['visibility'] == 'shared']
+    literature = None
+    if view_mode == 'literature' and selected_obj is not None:
+        literature = recommend_for_workspace(request.user, selected_obj, limit=6)
     return render(request, 'workbench/index.html', {
-        'page_title': 'Evidence 工作台',
+        'page_title': page_title,
+        'workbench_view': view_mode,
+        'page_name': page_name,
         'workspaces': workspaces,
         'selected_workspace': selected,
         'initial_tasks': tasks,
         'task_types': task_types,
         'domain_packs': [pack.to_dict() for pack in list_domain_packs()],
+        'literature_workspaces': literature_workspaces,
+        'code_workspaces': code_workspaces,
+        'my_spaces': my_spaces,
+        'shared_spaces': shared_spaces,
+        'literature': literature,
         'worker': worker_status(),
         'capabilities': capabilities,
         'skills': skills_health(),
@@ -191,6 +224,16 @@ def task_action_api(request, run_id):
         row = submit_feedback(request.user, run, body.get('rating'), body.get('comment', ''))
         return {'rating': row.rating, 'comment': row.comment}
     raise ValidationError('未知的任务操作。', code='TASK_ACTION_INVALID')
+
+
+@api_endpoint()
+def literature_recommendations_api(request):
+    workspace = _workspace(request.user, request.GET.get('workspace_id'))
+    try:
+        limit = int(request.GET.get('limit') or 6)
+    except (TypeError, ValueError):
+        limit = 6
+    return recommend_for_workspace(request.user, workspace, limit=limit)
 
 
 @api_endpoint()

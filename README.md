@@ -21,6 +21,15 @@
 
 **Evidence 工作台（本轮新增）**：普通用户可以建立私有工作空间、上传自己的资料、提交有据问答 / 引导式学习 / 文献比较 / 代码问题分析任务，查看真实阶段、引用与可下载产物。私有资料不会进入其他用户或共享课程空间的检索范围。
 
+**左侧导航（2026-11-09）**：工作台功能拆到左侧导航的四个入口：
+
+- **Evidence 工作台**：默认问答/学习/比较/代码任务。
+- **我的空间**：只列出当前账号的私有空间，并单独展示教师维护的共享课程空间。
+- **文献库**：管理当前空间的论文，基于关键词从“我的其他私有文献 + 内置离线目录”推荐相关论文，并说明推荐依据。
+- **代码分析**：只读代码空间入口、执行边界与建议 diff 说明。
+
+每个账号的私有空间相互独立；文献推荐不会读取其他用户的私有文献。内置目录是离线示例，未联网抓取，引用前需核对原文。
+
 ### 三分钟 Demo
 
 ```bash
@@ -94,7 +103,8 @@ flowchart LR
 | 工作台上传/任务/产物 | `apps/workspace/views.py`、`services/documents.py`、`services/tasks.py`、`services/executor.py` |
 | 任务 worker | `apps/workspace/management/commands/workbench_worker.py` |
 | Skill Runtime / 原生 Skill | `apps/platform/skills/runtime.py`、`agent_skills/registry.json`、`agent_skills/runtime/` |
-| 工作台前端 | `templates/workbench/index.html`、`static/js/workbench.js`、`static/css/workbench.css` |
+| 工作台前端/左侧导航 | `templates/base.html`、`templates/workbench/index.html`、`static/js/workbench.js`、`static/css/workbench.css` |
+| 文献库与相关推荐 | `apps/workspace/services/literature.py`、`knowledge/literature_catalog.json` |
 | 工作台评测 | `apps/workspace/evaluation/cases.py`、`manage.py evaluate_workbench` |
 | 本地部署/诊断 | `scripts/local_setup.sh`、`local_start.sh`、`local_stop.sh`、`local_status.sh`、`local_doctor.py` |
 | 研究文档 | `docs/research/RESEARCH_CARD.md`、`docs/evidence_rag/evaluation_protocol.md`、`docs/continuation/implementation_inventory.md` |

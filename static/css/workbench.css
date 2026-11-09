@@ -1,5 +1,218 @@
 /* Workbench additive styles. Reuses the existing grey/teal design tokens. */
 
+.algomentor-workbench-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.algomentor-workbench-spacegrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.algomentor-workbench-spacecard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #e4eeea;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.algomentor-workbench-spacecard.muted-card {
+  background: #fbfdfc;
+}
+
+.algomentor-workbench-spacehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.algomentor-workbench-spacehead h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #365c52;
+  overflow-wrap: anywhere;
+}
+
+.algomentor-workbench-spacecard p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.85;
+  color: #7b8f92;
+  min-height: 34px;
+}
+
+.algomentor-workbench-spacestats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin: 2px 0 4px;
+}
+
+.algomentor-workbench-spacestats div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.algomentor-workbench-spacestats dt {
+  color: #8ba0a2;
+}
+
+.algomentor-workbench-spacestats dd {
+  margin: 0;
+  color: #4f6e67;
+  font-weight: 600;
+}
+
+.algomentor-workbench-spaceactions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.algomentor-workbench-librarygrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 22px;
+}
+
+.algomentor-workbench-librarypanel {
+  min-width: 0;
+}
+
+.algomentor-workbench-libraryhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 9px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #edf3f0;
+}
+
+.algomentor-workbench-libraryhead h3 {
+  margin: 0;
+  font-size: 13px;
+  color: #41675c;
+}
+
+.algomentor-workbench-literaturelist,
+.algomentor-workbench-reclist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.algomentor-workbench-literatureitem {
+  padding: 9px 10px;
+  border: 1px solid #e9f0ed;
+  border-radius: 7px;
+  background: #fcfefd;
+}
+
+.algomentor-workbench-literatureitem strong {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #4d6b64;
+  overflow-wrap: anywhere;
+}
+
+.algomentor-workbench-rec {
+  padding: 11px 12px;
+  border: 1px solid #e4eeea;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.algomentor-workbench-recbody strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #315e52;
+}
+
+.algomentor-workbench-recbody strong a {
+  color: #2f6b5b;
+  text-decoration: none;
+}
+
+.algomentor-workbench-recbody strong a:hover {
+  text-decoration: underline;
+}
+
+.algomentor-workbench-recbody p {
+  margin: 6px 0 4px;
+  font-size: 10px;
+  line-height: 1.85;
+  color: #7d9294;
+}
+
+.algomentor-workbench-reasons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin: 5px 0;
+}
+
+.algomentor-workbench-reason {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--soft);
+  color: var(--primary-dark);
+  font-size: 9px;
+}
+
+.algomentor-workbench-chiprow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.algomentor-workbench-spacechip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid #e1ece7;
+  border-radius: 8px;
+  background: #fbfdfc;
+  color: #55766d;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.algomentor-workbench-spacechip span {
+  font-size: 9px;
+  color: #91a4a4;
+}
+
+.algomentor-workbench-spacechip.active,
+.algomentor-workbench-spacechip:hover {
+  border-color: #a9cfc1;
+  background: #f0f8f4;
+}
+
+.algomentor-workbench-boundarylist {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 10px;
+  line-height: 2;
+  color: #718689;
+}
+
 .algomentor-workbench-workspacebar {
   display: flex;
   align-items: flex-end;
@@ -397,7 +610,8 @@
 }
 
 @media (max-width: 1000px) {
-  .algomentor-workbench-layout {
+  .algomentor-workbench-layout,
+  .algomentor-workbench-librarygrid {
     grid-template-columns: 1fr;
   }
   .algomentor-workbench-side {

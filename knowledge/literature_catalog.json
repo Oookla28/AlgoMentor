@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "note": "内置示例目录，未联网抓取；仅用于本地相关文献推荐演示。元数据请在引用前自行核对原文。",
+  "papers": [
+    {
+      "paper_id": "vaswani2017attention",
+      "title": "Attention Is All You Need",
+      "authors": "Vaswani et al.",
+      "year": 2017,
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "keywords": ["transformer", "attention", "sequence", "translation", "注意力", "序列"],
+      "summary": "提出完全基于注意力的 Transformer，替代循环与卷积结构，并成为后续大模型的基础架构。"
+    },
+    {
+      "paper_id": "devlin2019bert",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "authors": "Devlin et al.",
+      "year": 2019,
+      "venue": "NAACL",
+      "url": "https://arxiv.org/abs/1810.04805",
+      "keywords": ["pretraining", "bidirectional", "language model", "预训练", "语言模型"],
+      "summary": "使用双向 Transformer 掩码语言建模进行预训练，推动下游自然语言理解任务。"
+    },
+    {
+      "paper_id": "karpukhin2020dpr",
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "authors": "Karpukhin et al.",
+      "year": 2020,
+      "venue": "EMNLP",
+      "url": "https://arxiv.org/abs/2004.04906",
+      "keywords": ["dense retrieval", "passage", "question answering", "稠密检索", "问答"],
+      "summary": "用双塔稠密向量检索替代 BM25，在开放域问答中展示稠密检索的召回优势。"
+    },
+    {
+      "paper_id": "beltagy2020longformer",
+      "title": "Longformer: The Long-Document Transformer",
+      "authors": "Beltagy et al.",
+      "year": 2020,
+      "venue": "arXiv",
+      "url": "https://arxiv.org/abs/2004.05150",
+      "keywords": ["long document", "sparse attention", "长文档", "稀疏注意力"],
+      "summary": "提出滑动窗口与全局注意力的稀疏注意力结构，降低长文档建模成本。"
+    },
+    {
+      "paper_id": "khattab2020colbert",
+      "title": "ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT",
+      "authors": "Khattab, Zaharia",
+      "year": 2020,
+      "venue": "SIGIR",
+      "url": "https://arxiv.org/abs/2004.12832",
+      "keywords": ["late interaction", "retrieval", "passage search", "检索", "交互"],
+      "summary": "用延迟交互的 token 级表示兼顾检索效果与效率，是稠密检索的重要变体。"
+    },
+    {
+      "paper_id": "lewis2020rag",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "authors": "Lewis et al.",
+      "year": 2020,
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/2005.11401",
+      "keywords": ["retrieval", "generation", "RAG", "检索增强", "生成"],
+      "summary": "把参数化生成模型与非参数化检索结合，用于知识密集型任务。"
+    },
+    {
+      "paper_id": "wei2022cot",
+      "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+      "authors": "Wei et al.",
+      "year": 2022,
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/2201.11903",
+      "keywords": ["reasoning", "prompting", "chain of thought", "推理", "提示"],
+      "summary": "通过少样本思维链提示提升大模型的多步推理表现。"
+    },
+    {
+      "paper_id": "liu2023lost",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "authors": "Liu et al.",
+      "year": 2023,
+      "venue": "TACL",
+      "url": "https://arxiv.org/abs/2307.03172",
+      "keywords": ["long context", "retrieval", "长上下文", "位置偏差"],
+      "summary": "发现长上下文中位于中间的信息更容易被模型忽略，对上下文组装有直接启示。"
+    },
+    {
+      "paper_id": "luan2021sparse",
+      "title": "Sparse, Dense, and Attentional Representations for Text Retrieval",
+      "authors": "Luan et al.",
+      "year": 2021,
+      "venue": "TACL",
+      "url": "https://arxiv.org/abs/2005.00181",
+      "keywords": ["sparse retrieval", "dense retrieval", "hybrid", "稀疏检索", "混合检索"],
+      "summary": "系统比较稀疏、稠密与注意力表示在文本检索中的权衡，并讨论混合策略。"
+    },
+    {
+      "paper_id": "thakur2021beir",
+      "title": "BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models",
+      "authors": "Thakur et al.",
+      "year": 2021,
+      "venue": "NeurIPS Datasets",
+      "url": "https://arxiv.org/abs/2104.08663",
+      "keywords": ["benchmark", "zero-shot", "retrieval", "评测", "泛化"],
+      "summary": "提供跨任务检索基准，强调模型在分布外数据上的泛化差异。"
+    }
+  ]
+}

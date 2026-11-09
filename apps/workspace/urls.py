@@ -12,6 +12,7 @@ api_patterns = [
     path('workbench/tasks/', views.tasks_api, name='tasks'),
     path('workbench/tasks/<str:run_id>/', views.task_detail_api, name='task_detail'),
     path('workbench/tasks/<str:run_id>/action/', views.task_action_api, name='task_action'),
+    path('workbench/literature/recommendations/', views.literature_recommendations_api, name='literature_recommendations'),
     path('workbench/status/', views.status_api, name='status'),
 ]
 
